@@ -1,0 +1,1 @@
+A lógica de negócios será implementada nos controllers, que processarão as requisições, aplicarão as regras específicas do FashionHub e retornarão as respostas apropriadas.
