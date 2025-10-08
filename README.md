@@ -1,4 +1,4 @@
-# FashionHubApp - Plataforma de Marketplace de Moda 🛍️
+# FashionHubApp - Plataforma de Marketplace de Moda
 
 📖 **Sobre o Projeto**
 
@@ -97,7 +97,3 @@ yarn android
 | POST   | /api/products           | Cria um novo produto.                   |
 | POST   | /api/bags               | Cliente solicita uma nova mala.         |
 | PUT    | /api/bags/:id/confirm   | Cliente confirma itens comprados/devolvidos. |
-
-📄 **Licença**
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
