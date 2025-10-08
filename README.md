@@ -1,8 +1,8 @@
-# FashionHubApp - Plataforma de Marketplace de Moda 🛍️
+# FashionHub
 
 📖 **Sobre o Projeto**
 
-FashionHubApp é uma plataforma full-stack de marketplace de moda projetada para conectar lojistas e clientes de uma maneira inovadora. A aplicação permite que clientes solicitem uma "mala" de roupas para experimentar em casa, decidam com quais peças ficar e devolvam o restante, com todo o processo gerenciado pela plataforma, incluindo lojistas e entregadores.
+FashionHub é uma plataforma full-stack de marketplace de moda projetada para conectar lojistas e clientes de uma maneira inovadora. A aplicação permite que clientes solicitem uma "mala" de roupas para experimentar em casa, decidam com quais peças ficar e devolvam o restante, com todo o processo gerenciado pela plataforma, incluindo lojistas e entregadores.
 
 Este repositório contém o código-fonte completo da aplicação, dividido em:
 
@@ -46,7 +46,7 @@ Antes de começar, certifique-se de ter instalado:
 **1. Clone o Repositório**
 
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
+git clone https://github.com/chimdos/fashionhub.git
 cd seu-repositorio
 ```
 
@@ -97,7 +97,3 @@ yarn android
 | POST   | /api/products           | Cria um novo produto.                   |
 | POST   | /api/bags               | Cliente solicita uma nova mala.         |
 | PUT    | /api/bags/:id/confirm   | Cliente confirma itens comprados/devolvidos. |
-
-📄 **Licença**
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
