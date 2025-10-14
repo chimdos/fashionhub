@@ -1,12 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-// A palavra 'export' antes de 'const' é a correção.
-// Isso torna o componente HomeScreen "importável".
 export const DashboardScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Tela Inicial do Cliente</Text>
+      <Text style={styles.text}>Dashboard do Lojista</Text>
     </View>
   );
 };
@@ -18,6 +16,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    fontSize: 20,
+    fontSize: 22,
+    fontWeight: 'bold',
   },
 });
