@@ -7,11 +7,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Importe TODAS as telas necessárias
 import { LoginScreen } from '../screens/Auth/LoginScreen';
-import { HomeScreen } from '../screens/Cliente/HomeScreen';
-import { ExploreScreen } from '../screens/Cliente/ExploreScreen';
-import { CartScreen } from '../screens/Cliente/CartScreen';
-import { SettingsScreen } from '../screens/Cliente/SettingsScreen';
-import { DashboardScreen as StoreDashboardScreen } from '../screens/Lojista/DashboardScreen';
+import { HomeScreen } from '../screens/client/HomeScreen';
+import { ExploreScreen } from '../screens/client/ExploreScreen';
+import { CartScreen } from '../screens/client/CartScreen';
+import { SettingsScreen } from '../screens/client/SettingsScreen';
+import { DashboardScreen as StoreDashboardScreen } from '../screens/store/DashboardScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();

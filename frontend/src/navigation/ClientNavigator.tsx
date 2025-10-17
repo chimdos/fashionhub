@@ -3,20 +3,19 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Importe todas as telas que o cliente irá usar
-import { HomeScreen } from '../screens/Cliente/HomeScreen';
-import { ProductDetailScreen } from '../screens/Cliente/ProductDetailScreen';
-import { ExploreScreen } from '../screens/Cliente/ExploreScreen';
-import { CartScreen } from '../screens/Cliente/CartScreen';
-import { SettingsScreen } from '../screens/Cliente/SettingsScreen';
+// Importe TODAS as telas que o cliente vai usar
+import { HomeScreen } from '../screens/client/HomeScreen';
+import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
+import { ExploreScreen } from '../screens/client/ExploreScreen';
+import { CartScreen } from '../screens/client/CartScreen';
+import { SettingsScreen } from '../screens/client/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /**
  * Cria um "Navegador de Pilha" (StackNavigator) para o fluxo da tela inicial.
- * A razão para isto é permitir que, ao clicar num produto na HomeScreen,
- * a ProductDetailScreen abra "por cima" dela, com um botão de voltar.
+ * É aqui que registamos a HomeScreen e a ProductDetailScreen.
  */
 function HomeStackNavigator() {
   return (
@@ -35,9 +34,9 @@ export function ClientNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false, // Esconde o cabeçalho padrão das abas
+        headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName = 'alert-circle-outline'; // Ícone padrão em caso de erro
+          let iconName = 'alert-circle-outline';
 
           if (route.name === 'Início') {
             iconName = focused ? 'home' : 'home-outline';
@@ -51,8 +50,8 @@ export function ClientNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007bff', // Cor do ícone ativo
-        tabBarInactiveTintColor: 'gray',   // Cor do ícone inativo
+        tabBarActiveTintColor: '#007bff',
+        tabBarInactiveTintColor: 'gray',
       })}
     >
       {/* A aba "Início" agora aponta para a nossa pilha de navegação da Home */}
@@ -63,3 +62,4 @@ export function ClientNavigator() {
     </Tab.Navigator>
   );
 }
+
