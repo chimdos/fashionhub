@@ -1,22 +1,18 @@
-// src/controllers/productController.js
-
 const { Product, ProductVariation, ProductImage, Lojista } = require('../models');
 const { Op } = require('sequelize');
 const Joi = require('joi');
 const sequelize = require('../config/database');
 
-// --- Esquemas de Validação com Joi ---
+// --- Esquemas de Validação com Joi (Mantidos do seu código original) ---
 
-// Esquema para a query de listagem de produtos
 const getProductsSchema = Joi.object({
   categoria: Joi.string().optional(),
   lojista_id: Joi.string().uuid().optional(),
   search: Joi.string().trim().optional(),
   page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(20) // Limite máximo de 100
+  limit: Joi.number().integer().min(1).max(100).default(20)
 });
 
-// Esquema para a criação de um novo produto
 const createProductSchema = Joi.object({
   nome: Joi.string().min(3).max(255).required(),
   descricao: Joi.string().min(10).required(),
@@ -37,16 +33,14 @@ const createProductSchema = Joi.object({
   ).optional().min(1)
 });
 
-
 // --- Controller ---
 
 const productController = {
   /**
-   * Listar produtos com filtros, busca e paginação
+   * Listar produtos com filtros, busca e paginação (Seu código original)
    */
   async getProducts(req, res) {
     try {
-      // 1. Validar a query string
       const { error, value } = getProductsSchema.validate(req.query);
       if (error) {
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
@@ -70,14 +64,12 @@ const productController = {
       const { count, rows } = await Product.findAndCountAll({
         where: whereClause,
         include: [
-          { model: ProductVariation, as: 'variacoes' },
-          { model: ProductImage, as: 'imagens', order: [['ordem', 'ASC']] },
-          { model: Lojista, as: 'lojista', attributes: ['nome_loja'] } // Supondo um modelo Lojista
+          { model: Lojista, as: 'lojista', attributes: ['nome_loja'] }
         ],
         limit,
         offset,
         order: [['data_cadastro', 'DESC']],
-        distinct: true // Importante para contagens corretas com 'include'
+        distinct: true
       });
 
       res.json({
@@ -93,27 +85,49 @@ const productController = {
   },
 
   /**
-   * Criar um novo produto (apenas para lojistas)
+   * --- NOVO MÉTODO ADICIONADO ---
+   * Buscar um único produto pelo seu ID
+   */
+  async getProductById(req, res) {
+    try {
+      const { id } = req.params;
+      const product = await Product.findByPk(id, {
+        include: [
+          { model: ProductVariation, as: 'variacoes' },
+          { model: ProductImage, as: 'imagens', order: [['ordem', 'ASC']] },
+          { model: Lojista, as: 'lojista', attributes: ['id', 'nome_loja'] }
+        ]
+      });
+
+      if (!product) {
+        return res.status(404).json({ message: 'Produto não encontrado' });
+      }
+
+      res.json(product);
+    } catch (error) {
+      console.error(`Erro ao buscar produto ${req.params.id}:`, error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  },
+
+  /**
+   * Criar um novo produto (Seu código original)
    */
   async createProduct(req, res) {
-    // Inicia a transação
     const t = await sequelize.transaction();
-
     try {
-      // 1. Validar o corpo da requisição
       const { error, value } = createProductSchema.validate(req.body);
       if (error) {
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
       }
 
       const { nome, descricao, preco, categoria, variacoes, imagens } = value;
-      const lojista_id = req.user.userId; // Vem do middleware de autenticação
+      const lojista_id = req.user.userId;
 
       if (req.user.tipo_usuario !== 'lojista') {
         return res.status(403).json({ message: 'Acesso negado. Apenas lojistas podem criar produtos.' });
       }
 
-      // 2. Executar operações dentro da transação
       const newProduct = await Product.create({
         lojista_id,
         nome,
@@ -136,10 +150,8 @@ const productController = {
         await ProductImage.bulkCreate(imagensData, { transaction: t });
       }
 
-      // 3. Se tudo ocorreu bem, confirma a transação
       await t.commit();
       
-      // Opcional: buscar o produto recém-criado com suas associações
       const createdProductWithAssociations = await Product.findByPk(newProduct.id, {
           include: ['variacoes', 'imagens']
       });
@@ -150,7 +162,6 @@ const productController = {
       });
 
     } catch (error) {
-      // 4. Se ocorreu algum erro, desfaz todas as operações
       await t.rollback();
       console.error('Erro ao criar produto:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
@@ -159,3 +170,4 @@ const productController = {
 };
 
 module.exports = productController;
+

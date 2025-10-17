@@ -1,29 +1,43 @@
 import React from 'react';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Importe as telas
+// Importe todas as telas que o cliente irá usar
 import { HomeScreen } from '../screens/Cliente/HomeScreen';
+import { ProductDetailScreen } from '../screens/Cliente/ProductDetailScreen';
 import { ExploreScreen } from '../screens/Cliente/ExploreScreen';
 import { CartScreen } from '../screens/Cliente/CartScreen';
 import { SettingsScreen } from '../screens/Cliente/SettingsScreen';
 
-const Tab = createMaterialTopTabNavigator();
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
+/**
+ * Cria um "Navegador de Pilha" (StackNavigator) para o fluxo da tela inicial.
+ * A razão para isto é permitir que, ao clicar num produto na HomeScreen,
+ * a ProductDetailScreen abra "por cima" dela, com um botão de voltar.
+ */
+function HomeStackNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="HomeFeed" component={HomeScreen} />
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+/**
+ * Este é o componente principal do navegador do cliente.
+ * Ele cria o menu de abas na parte inferior da tela.
+ */
 export function ClientNavigator() {
   return (
-    // 1. SafeAreaView removido daqui. Adicione-o dentro de cada tela, se necessário.
     <Tab.Navigator
-      // 2. A propriedade 'tabBarPosition' foi removida, pois 'top' já é o padrão.
       screenOptions={({ route }) => ({
-        tabBarShowLabel: false,
-        tabBarIndicatorStyle: {
-          backgroundColor: '#007bff',
-          height: 3,
-        },
-        tabBarIcon: ({ focused, color }) => {
-          let iconName = 'alert-circle-outline';
-          const size = 24;
+        headerShown: false, // Esconde o cabeçalho padrão das abas
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName = 'alert-circle-outline'; // Ícone padrão em caso de erro
 
           if (route.name === 'Início') {
             iconName = focused ? 'home' : 'home-outline';
@@ -37,11 +51,12 @@ export function ClientNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007bff',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#007bff', // Cor do ícone ativo
+        tabBarInactiveTintColor: 'gray',   // Cor do ícone inativo
       })}
     >
-      <Tab.Screen name="Início" component={HomeScreen} />
+      {/* A aba "Início" agora aponta para a nossa pilha de navegação da Home */}
+      <Tab.Screen name="Início" component={HomeStackNavigator} />
       <Tab.Screen name="Explorar" component={ExploreScreen} />
       <Tab.Screen name="Mala" component={CartScreen} />
       <Tab.Screen name="Menu" component={SettingsScreen} />

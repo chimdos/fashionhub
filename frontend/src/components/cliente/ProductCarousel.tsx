@@ -1,16 +1,32 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 
-// O tipo 'any' é usado aqui para simplificar. O ideal seria criar uma interface Product.
+/**
+ * Interface para definir os tipos das props que o componente recebe.
+ */
 interface ProductCarouselProps {
-  products: any[];
+  products: any[]; // A lista de produtos a ser exibida.
+  onProductPress: (productId: string) => void; // A função a ser chamada quando um produto é clicado.
 }
 
-export const ProductCarousel = ({ products }: ProductCarouselProps) => {
+/**
+ * Componente que renderiza um carrossel horizontal de produtos.
+ */
+export const ProductCarousel = ({ products, onProductPress }: ProductCarouselProps) => {
+  
+  /**
+   * Função que define como cada item individual da lista de produtos deve ser renderizado.
+   */
   const renderProduct = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.productCard}>
+    // O TouchableOpacity faz com que o card do produto seja "clicável".
+    // Ao ser pressionado, ele chama a função 'onProductPress' que foi recebida via props,
+    // passando o ID do produto específico que foi clicado.
+    <TouchableOpacity style={styles.productCard} onPress={() => onProductPress(item.id)}>
+      {/* Um placeholder visual para a imagem do produto */}
       <View style={styles.productImagePlaceholder} />
+      {/* Exibe o nome do produto */}
       <Text style={styles.productName} numberOfLines={2}>{item.nome}</Text>
+      {/* Exibe o preço do produto */}
       <Text style={styles.productPrice}>R$ {item.preco}</Text>
     </TouchableOpacity>
   );
@@ -20,13 +36,14 @@ export const ProductCarousel = ({ products }: ProductCarouselProps) => {
       data={products}
       renderItem={renderProduct}
       keyExtractor={(item) => item.id.toString()}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 20 }}
+      horizontal // Essencial para criar o carrossel horizontal
+      showsHorizontalScrollIndicator={false} // Esconde a barra de rolagem
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}
     />
   );
 };
 
+// Estilos para o componente
 const styles = StyleSheet.create({
   productCard: {
     width: 160,
@@ -50,3 +67,4 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 });
+
