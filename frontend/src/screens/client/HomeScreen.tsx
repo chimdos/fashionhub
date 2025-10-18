@@ -9,22 +9,29 @@ import {
 } from 'react-native';
 import api from '../../services/api';
 
-// Importando os componentes
+// --- ATENÇÃO AQUI: Importando os componentes das pastas corretas ---
+// Usando 'cliente' no caminho, como na sua estrutura de pastas.
 import { ProductCarousel } from '../../components/client/ProductCarousel';
 import { PosterCarousel } from '../../components/client/PosterCarousel';
 import { CategoryButton } from '../../components/client/CategoryButton';
 
+// Dados de exemplo para as categorias
 const CATEGORIES_DATA = [
   { id: '1', title: 'Camisas', icon: 'shirt-outline' },
-  { id: '2', title: 'Calças', icon: 'ellipsis-horizontal' },
+  { id: '2', title: 'Calças', icon: 'ellipsis-horizontal' }, // Ícone genérico
   { id: '3', title: 'Sapatos', icon: 'footsteps-outline' },
 ];
 
+/**
+ * A tela inicial principal para o cliente.
+ * Ela recebe a prop 'navigation' do HomeStackNavigator.
+ */
 export const HomeScreen = ({ navigation }: any) => {
   const [bestSellingProducts, setBestSellingProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Busca os produtos da API quando a tela é carregada
     const fetchBestSellers = async () => {
       try {
         const response = await api.get('/products?limit=6');
@@ -38,24 +45,22 @@ export const HomeScreen = ({ navigation }: any) => {
     fetchBestSellers();
   }, []);
 
+  /**
+   * Função que é chamada quando um produto é clicado.
+   * Ela usa o objeto 'navigation' para navegar para a tela de detalhes.
+   */
   const handleProductPress = (productId: string) => {
-    // --- PISTA DE DIAGNÓSTICO ---
-    // Esta linha irá imprimir no terminal do Metro as rotas que este navegador conhece.
-    try {
-      console.log('Rotas disponíveis neste navegador:', navigation.getState().routeNames);
-    } catch (e) {
-      console.log("Não foi possível obter o estado do navegador. O objeto 'navigation' pode não ser o esperado.");
-    }
-
     navigation.navigate('ProductDetail', { productId });
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Seção de Categorias */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Categorias</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 15 }}>
+            {/* Agora usamos o componente CategoryButton aqui */}
             {CATEGORIES_DATA.map(item => (
               <CategoryButton
                 key={item.id}
@@ -67,15 +72,20 @@ export const HomeScreen = ({ navigation }: any) => {
           </ScrollView>
         </View>
 
+        {/* Seção de Posters */}
         <View style={styles.sectionContainer}>
+          {/* Usamos o componente PosterCarousel */}
           <PosterCarousel />
         </View>
 
+        {/* Seção de Produtos Mais Vendidos */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Mais Vendidos em Camisas</Text>
           {isLoading ? (
             <ActivityIndicator size="large" color="#555" style={{ marginTop: 20 }}/>
           ) : (
+            // A HomeScreen agora USA o componente ProductCarousel,
+            // passando a lista de produtos e a função de clique para ele.
             <ProductCarousel
               products={bestSellingProducts}
               onProductPress={handleProductPress}
@@ -87,6 +97,7 @@ export const HomeScreen = ({ navigation }: any) => {
   );
 };
 
+// Estilos para a tela
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

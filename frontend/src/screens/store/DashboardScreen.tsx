@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export const DashboardScreen = () => {
+export const StoreDashboardScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Dashboard do Lojista</Text>

@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Importe TODAS as telas que o cliente vai usar
+// Usando o caminho com 'cliente' em minúsculas para garantir consistência
 import { HomeScreen } from '../screens/client/HomeScreen';
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { ExploreScreen } from '../screens/client/ExploreScreen';
@@ -15,7 +16,8 @@ const Stack = createNativeStackNavigator();
 
 /**
  * Cria um "Navegador de Pilha" (StackNavigator) para o fluxo da tela inicial.
- * É aqui que registamos a HomeScreen e a ProductDetailScreen.
+ * A razão para isto é permitir que, ao clicar num produto na HomeScreen,
+ * a ProductDetailScreen abra "por cima" dela, com um botão de voltar.
  */
 function HomeStackNavigator() {
   return (
@@ -34,9 +36,9 @@ export function ClientNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
+        headerShown: false, // Esconde o cabeçalho padrão das abas
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName = 'alert-circle-outline';
+          let iconName = 'alert-circle-outline'; // Ícone padrão em caso de erro
 
           if (route.name === 'Início') {
             iconName = focused ? 'home' : 'home-outline';
@@ -50,8 +52,8 @@ export function ClientNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007bff',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#007bff', // Cor do ícone ativo
+        tabBarInactiveTintColor: 'gray',   // Cor do ícone inativo
       })}
     >
       {/* A aba "Início" agora aponta para a nossa pilha de navegação da Home */}
