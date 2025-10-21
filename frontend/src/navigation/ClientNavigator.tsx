@@ -64,4 +64,3 @@ export function ClientNavigator() {
     </Tab.Navigator>
   );
 }
-

@@ -1,22 +1,31 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+
+// Importa os nossos provedores de contexto
 import { AuthProvider } from './src/contexts/AuthContext';
+import { BagProvider } from './src/contexts/BagContext'; // 1. Importa o BagProvider
+
+// Importa o nosso navegador principal
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 /**
  * Este é o componente raiz que envolve toda a aplicação.
- * É o ÚNICO lugar onde o NavigationContainer deve estar.
  */
 export default function App() {
   return (
-    // O AuthProvider gere o estado de login
+    // O AuthProvider é a camada mais externa, provendo o login para todos
     <AuthProvider>
-      {/* O NavigationContainer gere toda a navegação */}
-      <NavigationContainer>
-        <StatusBar barStyle="dark-content" />
-        <AppNavigator />
-      </NavigationContainer>
+      {/* --- ALTERAÇÃO PRINCIPAL AQUI ---
+        2. O BagProvider agora envolve a navegação, provendo os dados da mala
+           para todas as telas que estão dentro do NavigationContainer.
+      */}
+      <BagProvider>
+        <NavigationContainer>
+          <StatusBar barStyle="dark-content" />
+          <AppNavigator />
+        </NavigationContainer>
+      </BagProvider>
     </AuthProvider>
   );
 }

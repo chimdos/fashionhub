@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,96 +11,99 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
+import { useBag } from '../../contexts/BagContext';
 
-// As props 'route' e 'navigation' são passadas automaticamente pelo React Navigation
 export const ProductDetailScreen = ({ route, navigation }: any) => {
-  // Pega o ID do produto que foi passado como parâmetro na navegação
   const { productId } = route.params;
-
-  // Estados para guardar os dados do produto, o estado de carregamento e a variação selecionada
+  const { addToBag, removeFromBag, isInBag } = useBag();
   const [product, setProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVariation, setSelectedVariation] = useState<any>(null);
 
-  // useEffect é executado quando o componente é montado
   useEffect(() => {
+    // ... (seu código de fetchProduct permanece o mesmo)
     const fetchProduct = async () => {
       try {
-        // Faz uma chamada GET para a API para buscar os detalhes do produto
         const response = await api.get(`/products/${productId}`);
-        setProduct(response.data);
+        const productData = response.data;
+        if (productData.variacoes) {
+          productData.variacoes = productData.variacoes.map((v: any) => ({
+            ...v,
+            produto: { nome: productData.nome, preco: productData.preco }
+          }));
+        }
+        setProduct(productData);
       } catch (error) {
         console.error("Erro ao buscar detalhes do produto:", error);
-        Alert.alert("Erro", "Não foi possível carregar os detalhes do produto.");
       } finally {
-        setIsLoading(false); // Termina o carregamento
+        setIsLoading(false);
       }
     };
-
     fetchProduct();
-  }, [productId]); // A busca é refeita se o productId mudar
+  }, [productId]);
 
-  // Função para lidar com o clique no botão "Adicionar à Mala"
-  const handleAddToBag = () => {
+  const handleBagAction = () => {
+    // ... (seu código handleBagAction permanece o mesmo)
     if (!selectedVariation) {
       Alert.alert("Atenção", "Por favor, selecione um tamanho e cor.");
       return;
     }
-    // Lógica para adicionar ao BagContext (será implementada na Fase 2)
-    console.log("Adicionar à mala:", selectedVariation);
-    Alert.alert("Sucesso", `${product.nome} (${selectedVariation.tamanho} - ${selectedVariation.cor}) foi adicionado à sua mala!`);
+    if (isInBag(selectedVariation.id)) {
+      removeFromBag(selectedVariation.id);
+      Alert.alert("Removido", `${product.nome} foi removido da sua mala.`);
+    } else {
+      addToBag(selectedVariation);
+    }
   };
 
-  // Se ainda estiver a carregar, mostra um indicador de atividade
-  if (isLoading) {
+  // --- ALTERAÇÃO PRINCIPAL AQUI ---
+  // Nova função para lidar com a seleção e "des-seleção" da variação.
+  const handleVariationPress = (variation: any) => {
+    // Verifica se a variação clicada é a mesma que já está selecionada
+    if (selectedVariation && selectedVariation.id === variation.id) {
+      // Se for, limpa a seleção (define como null)
+      setSelectedVariation(null);
+    } else {
+      // Se não for, seleciona a nova variação
+      setSelectedVariation(variation);
+    }
+  };
+
+  if (isLoading || !product) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#555" />
+        {isLoading ? <ActivityIndicator size="large" color="#555" /> : <Text>Produto não encontrado.</Text>}
       </View>
     );
   }
 
-  // Se o produto não for encontrado, mostra uma mensagem de erro
-  if (!product) {
-    return (
-      <SafeAreaView style={styles.centerContainer}>
-        <Text>Produto não encontrado.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{color: '#007bff', marginTop: 10}}>Voltar</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+  const isVariationInBag = selectedVariation ? isInBag(selectedVariation.id) : false;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Botão para voltar para a tela anterior */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
-
       <ScrollView>
-        {/* Placeholder para o carrossel de imagens do produto */}
         <View style={styles.imageCarouselPlaceholder} />
-
         <View style={styles.detailsContainer}>
           <Text style={styles.productName}>{product.nome}</Text>
           <Text style={styles.productPrice}>R$ {product.preco}</Text>
           <Text style={styles.productDescription}>{product.descricao}</Text>
 
-          {/* Seção para selecionar as variações */}
-          <Text style={styles.sectionTitle}>Selecione o Tamanho e a Cor:</Text>
+          <Text style={styles.sectionTitle}>Selecione a Variação:</Text>
           <View style={styles.variationsContainer}>
-            {product.variacoes && product.variacoes.map((variation: any) => (
+            {product.variacoes.map((variation: any) => (
               <TouchableOpacity
                 key={variation.id}
                 style={[
                   styles.variationButton,
                   selectedVariation?.id === variation.id && styles.variationButtonSelected,
                 ]}
-                onPress={() => setSelectedVariation(variation)}
+                // O onPress agora chama a nossa nova função com a lógica de "toggle"
+                onPress={() => handleVariationPress(variation)}
               >
-                <Text style={selectedVariation?.id === variation.id && styles.variationTextSelected}>
+                <Text style={selectedVariation?.id === variation.id ? styles.variationTextSelected : styles.variationText}>
                   {`${variation.tamanho} - ${variation.cor}`}
                 </Text>
               </TouchableOpacity>
@@ -108,11 +111,14 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Botão fixo na parte inferior da tela */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.addToBagButton} onPress={handleAddToBag}>
-          <Text style={styles.addToBagButtonText}>Adicionar à Mala</Text>
+        <TouchableOpacity
+          style={[styles.addToBagButton, isVariationInBag && styles.removeFromBagButton]}
+          onPress={handleBagAction}
+        >
+          <Text style={styles.addToBagButtonText}>
+            {isVariationInBag ? 'Remover da Mala' : 'Adicionar à Mala'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -130,41 +136,12 @@ const styles = StyleSheet.create({
   productDescription: { fontSize: 16, color: '#666', lineHeight: 24 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 24, marginBottom: 12 },
   variationsContainer: { flexDirection: 'row', flexWrap: 'wrap' },
-  variationButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  variationButtonSelected: {
-    backgroundColor: '#333',
-    borderColor: '#333',
-  },
-  variationTextSelected: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
-  },
-  addToBagButton: {
-    height: 50,
-    backgroundColor: '#007bff',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addToBagButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  variationButton: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#f0f0f0', borderRadius: 8, marginRight: 10, marginBottom: 10, borderWidth: 1, borderColor: '#ddd' },
+  variationButtonSelected: { backgroundColor: '#333', borderColor: '#333' },
+  variationText: { color: '#333' },
+  variationTextSelected: { color: '#fff', fontWeight: 'bold' },
+  footer: { padding: 20, borderTopWidth: 1, borderTopColor: '#eee', backgroundColor: '#fff' },
+  addToBagButton: { height: 50, backgroundColor: '#007bff', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  removeFromBagButton: { backgroundColor: '#dc3545' },
+  addToBagButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
-
