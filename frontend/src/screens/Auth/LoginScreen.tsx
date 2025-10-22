@@ -7,40 +7,39 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  SafeAreaView, // Importa o SafeAreaView
 } from 'react-native';
 import api from '../../services/api';
-import { AuthContext } from '../../contexts/AuthContext'; // Importa o contexto
+import { AuthContext } from '../../contexts/AuthContext';
 
-export const LoginScreen = () => {
+// --- ALTERAÇÃO 1: A função agora recebe a prop 'navigation' ---
+export const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Estado para o loading
-  const { signIn } = useContext(AuthContext); // Pega a função signIn do contexto
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useContext(AuthContext);
 
   const handleLogin = async () => {
     if (!email || !senha) {
       Alert.alert('Atenção', 'Por favor, preencha o e-mail e a senha.');
       return;
     }
-
-    setIsLoading(true); // Inicia o loading
-
+    setIsLoading(true);
     try {
       const response = await api.post('/auth/login', { email, senha });
       const { token, user } = response.data;
-      // Chama a função signIn do contexto para atualizar o estado global
-      // A navegação será tratada automaticamente pelo AppNavigator
       await signIn(user, token);
     } catch (error: any) {
       console.error('Erro no login:', error.response?.data || error.message);
       Alert.alert('Erro no Login', error.response?.data?.message || 'Não foi possível entrar. Verifique suas credenciais.');
     } finally {
-      setIsLoading(false); // Termina o loading, independentemente do resultado
+      setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    // Usa SafeAreaView para evitar que o conteúdo fique sob as barras do sistema
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>FashionHub</Text>
       <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
 
@@ -61,23 +60,29 @@ export const LoginScreen = () => {
         value={senha}
         onChangeText={setSenha}
       />
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleLogin}
-        disabled={isLoading} // Desabilita o botão durante o loading
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Entrar</Text>
-        )}
+      
+      {/* --- ALTERAÇÃO 2: Adicionado o link para "Esqueci a senha" --- */}
+      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+        <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
       </TouchableOpacity>
-    </View>
+      
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
+      </TouchableOpacity>
+      
+      {/* --- ALTERAÇÃO 3: Adicionado o link para "Cadastre-se" --- */}
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 };
 
-// Estilos para a tela de login
+// --- ALTERAÇÃO 4: Adicionados os novos estilos e SafeAreaView ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -117,10 +122,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  buttonDisabled: {
+    backgroundColor: '#a0c7e4',
+  },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
+  forgotPasswordText: {
+    color: '#007bff',
+    fontSize: 14,
+    textAlign: 'right',
+    marginBottom: 20,
+  },
+  linkText: {
+    color: '#007bff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });
-
