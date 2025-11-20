@@ -1,6 +1,6 @@
 # FashionHub
 
-📖 **Sobre o Projeto**
+**Sobre o Projeto**
 
 FashionHub é uma plataforma full-stack de marketplace de moda projetada para conectar lojistas e clientes de uma maneira inovadora. A aplicação permite que clientes solicitem uma "mala" de roupas para experimentar em casa, decidam com quais peças ficar e devolvam o restante, com todo o processo gerenciado pela plataforma, incluindo lojistas e entregadores.
 
@@ -9,7 +9,7 @@ Este repositório contém o código-fonte completo da aplicação, dividido em:
 - **/backend**: A API RESTful construída com Node.js, Express e Sequelize, responsável por toda a lógica de negócio, gerenciamento de dados e autenticação.
 - **/frontend**: O aplicativo mobile desenvolvido com React Native, que consome a API e fornece a interface para clientes, lojistas e entregadores.
 
-✨ **Funcionalidades Principais**
+**Funcionalidades Principais**
 
 - **Autenticação por Perfis**: Sistema de registro e login seguro com JWT para diferentes tipos de usuários (Cliente, Lojista, Entregador).
 - **Gerenciamento de Produtos**: Lojistas podem cadastrar, atualizar e gerenciar seus produtos, incluindo variações de tamanho e cor.
@@ -18,7 +18,7 @@ Este repositório contém o código-fonte completo da aplicação, dividido em:
 - **Fluxo de Compra e Devolução**: O cliente confirma quais itens da mala deseja comprar e quais irá devolver.
 - **Processamento de Pedidos**: Lojistas recebem e gerenciam as solicitações de malas dos clientes.
 
-🛠️ **Tecnologias Utilizadas**
+**Tecnologias Utilizadas**
 
 A aplicação foi construída utilizando as seguintes tecnologias:
 
@@ -30,7 +30,7 @@ A aplicação foi construída utilizando as seguintes tecnologias:
 | JWT (JSON Web Tokens)  | Axios                |                |
 | Bcrypt.js              | Joi                  |                |
 
-🚀 **Como Executar o Projeto**
+**Como Executar o Projeto**
 
 Siga os passos abaixo para configurar e executar o projeto em seu ambiente local.
 
@@ -87,7 +87,7 @@ yarn install
 yarn android
 ```
 
-📝 **Estrutura da API (Exemplos de Endpoints)**
+**Estrutura da API (Exemplos de Endpoints)**
 
 | Método | Endpoint                | Descrição                               |
 | ------ | ----------------------- | --------------------------------------- |
