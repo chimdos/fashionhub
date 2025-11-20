@@ -8,19 +8,52 @@ import {
   SafeAreaView,
   Button,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  TouchableOpacity,
+  Image, // Importa o componente Image
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // Importa o Picker
+import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker'; // Importa o Image Picker
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
+
+// Define as categorias fixas
+const CATEGORIAS_FIXAS = [
+  { label: 'Selecione uma categoria...', value: '' },
+  { label: 'Camisa', value: 'Camisa' },
+  { label: 'Calça', value: 'Calça' },
+  { label: 'Calçado', value: 'Calçado' },
+  { label: 'Boné', value: 'Boné' },
+];
 
 export const CreateProductScreen = ({ navigation }: any) => {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
   const [categoria, setCategoria] = useState('');
+  const [images, setImages] = useState<Asset[]>([]); // Estado para guardar as imagens selecionadas
   const [isLoading, setIsLoading] = useState(false);
   
-  // (Lógica para adicionar variações e imagens seria mais complexa,
-  // por enquanto vamos focar no produto principal)
+  // Função para abrir a galeria de imagens
+  const handleSelectImages = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        selectionLimit: 5, // Limite de 5 fotos
+        quality: 0.8,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          console.log('Seleção de imagem cancelada');
+        } else if (response.errorCode) {
+          console.log('Erro do ImagePicker: ', response.errorMessage);
+          Alert.alert("Erro", "Não foi possível carregar a imagem.");
+        } else if (response.assets) {
+          setImages(response.assets);
+        }
+      }
+    );
+  };
 
   const handleCreateProduct = async () => {
     if (!nome || !descricao || !preco || !categoria) {
@@ -29,13 +62,27 @@ export const CreateProductScreen = ({ navigation }: any) => {
     }
 
     setIsLoading(true);
+    
+    // --- LÓGICA DE UPLOAD (A SER IMPLEMENTADA) ---
+    // O upload de arquivos (imagens) é um processo complexo.
+    // O backend NÃO está preparado para receber arquivos ainda.
+    // Por enquanto, vamos enviar o produto com URLs de placeholder
+    // e mostraremos as imagens selecionadas no console.
+    
+    console.log("Imagens selecionadas para upload:", images.map(img => img.uri));
+
     try {
       const payload = {
         nome,
         descricao,
         preco: parseFloat(preco),
         categoria,
-        // Adicionar 'variacoes' e 'imagens' aqui futuramente
+        // Envia URLs de placeholder, pois o upload não está implementado
+        imagens: images.map((img, index) => ({
+          url: `https://placehold.co/600x400?text=Imagem+${index+1}`,
+          ordem: index
+        })),
+        // A lógica de Variações também será adicionada aqui
       };
 
       await api.post('/products', payload);
@@ -53,44 +100,48 @@ export const CreateProductScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Criar Novo Produto</Text>
       </View>
       <ScrollView style={styles.container}>
         <Text style={styles.label}>Nome do Produto</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex: Camisa de Algodão"
-          value={nome}
-          onChangeText={setNome}
-        />
+        <TextInput style={styles.input} placeholder="Ex: Camisa de Algodão" value={nome} onChangeText={setNome} />
         
         <Text style={styles.label}>Descrição</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Descreva seu produto..."
-          value={descricao}
-          onChangeText={setDescricao}
-          multiline
-        />
+        <TextInput style={[styles.input, styles.textArea]} placeholder="Descreva seu produto..." value={descricao} onChangeText={setDescricao} multiline />
         
         <Text style={styles.label}>Preço (R$)</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex: 79.90"
-          value={preco}
-          onChangeText={setPreco}
-          keyboardType="numeric"
-        />
+        <TextInput style={styles.input} placeholder="Ex: 79.90" value={preco} onChangeText={setPreco} keyboardType="numeric" />
         
         <Text style={styles.label}>Categoria</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex: Camisas"
-          value={categoria}
-          onChangeText={setCategoria}
-        />
+        {/* --- NOVO COMPONENTE DE DROPDOWN --- */}
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={categoria}
+            onValueChange={(itemValue, itemIndex) => setCategoria(itemValue)}
+            style={styles.picker}
+          >
+            {CATEGORIAS_FIXAS.map(cat => (
+              <Picker.Item key={cat.value} label={cat.label} value={cat.value} />
+            ))}
+          </Picker>
+        </View>
+
+        {/* --- NOVA SEÇÃO DE IMAGENS --- */}
+        <Text style={styles.label}>Imagens (Até 5)</Text>
+        <TouchableOpacity style={styles.imageButton} onPress={handleSelectImages}>
+          <Ionicons name="camera" size={24} color="#007bff" />
+          <Text style={styles.imageButtonText}>Selecionar Fotos</Text>
+        </TouchableOpacity>
         
-        {/* Futuramente, adicione aqui os campos para Variações e Imagens */}
+        {/* Mostra as miniaturas das imagens selecionadas */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagePreviewContainer}>
+          {images.map((img, index) => (
+            <Image key={index} source={{ uri: img.uri }} style={styles.imagePreview} />
+          ))}
+        </ScrollView>
         
         <View style={styles.buttonContainer}>
           {isLoading ? (
@@ -106,8 +157,14 @@ export const CreateProductScreen = ({ navigation }: any) => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
-  header: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  headerTitle: { fontSize: 22, fontWeight: 'bold' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
+  },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', marginLeft: 15 },
   container: { padding: 20 },
   label: { fontSize: 16, fontWeight: '500', color: '#333', marginBottom: 5, marginTop: 15 },
   input: {
@@ -123,6 +180,48 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
     paddingTop: 10,
+  },
+  pickerContainer: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+    justifyContent: 'center',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  imageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#007bff',
+    borderStyle: 'dashed',
+    marginTop: 10,
+  },
+  imageButtonText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#007bff',
+    fontWeight: 'bold',
+  },
+  imagePreviewContainer: {
+    flexDirection: 'row',
+    marginTop: 15,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
   buttonContainer: {
     marginTop: 30,

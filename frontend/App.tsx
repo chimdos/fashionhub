@@ -4,22 +4,25 @@ import { NavigationContainer } from '@react-navigation/native';
 
 // Importa os nossos provedores de contexto
 import { AuthProvider } from './src/contexts/AuthContext';
-import { BagProvider } from './src/contexts/BagContext'; // 1. Importa o BagProvider
+import { BagProvider } from './src/contexts/BagContext';
 
 // Importa o nosso navegador principal
 import { AppNavigator } from './src/navigation/AppNavigator';
+
+// --- ALTERAÇÃO PRINCIPAL AQUI ---
+// Importa o interceptor da API.
+// Isto "ativa" o interceptor em toda a aplicação, 
+// fazendo com que ele ouça todas as respostas da API.
+import './src/services/apiInterceptor'; 
 
 /**
  * Este é o componente raiz que envolve toda a aplicação.
  */
 export default function App() {
   return (
-    // O AuthProvider é a camada mais externa, provendo o login para todos
+    // O AuthProvider é a camada mais externa
     <AuthProvider>
-      {/* --- ALTERAÇÃO PRINCIPAL AQUI ---
-        2. O BagProvider agora envolve a navegação, provendo os dados da mala
-           para todas as telas que estão dentro do NavigationContainer.
-      */}
+      {/* O BagProvider envolve a navegação */}
       <BagProvider>
         <NavigationContainer>
           <StatusBar barStyle="dark-content" />
@@ -29,4 +32,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
