@@ -3,7 +3,7 @@ const router = express.Router();
 const bagController = require('../controllers/bagController');
 const { authMiddleware, requireUserType } = require('../middleware/auth');
 
-// Rota para um cliente solicitar uma nova mala (protegida, apenas para clientes)
+// Rota para um cliente criar uma nova solicitação de mala
 router.post(
   '/',
   authMiddleware,
@@ -11,7 +11,7 @@ router.post(
   bagController.createBagRequest
 );
 
-// Rota para o cliente confirmar a compra/devolução (protegida, apenas para clientes)
+// Rota para o cliente confirmar a compra/devolução
 router.put(
   '/:bagId/confirm-purchase',
   authMiddleware,
@@ -19,12 +19,21 @@ router.put(
   bagController.confirmPurchase
 );
 
-// Rota para o lojista confirmar o retorno da mala (protegida, apenas para lojistas)
+// Rota para o lojista confirmar o retorno da mala
 router.put(
   '/:bagId/confirm-return',
   authMiddleware,
   requireUserType('lojista'),
   bagController.confirmReturn
+);
+
+// --- NOVA ROTA ADICIONADA ---
+// Rota para o lojista buscar as solicitações de malas pendentes da sua loja
+router.get(
+  '/store', // O endpoint será GET /api/bags/store
+  authMiddleware,
+  requireUserType('lojista'), // Apenas lojistas podem acessar
+  bagController.getStoreBagRequests // Chama a nova função do controller
 );
 
 

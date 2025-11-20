@@ -3,27 +3,27 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../contexts/AuthContext';
 
-// Importa os navegadores e telas
-import { ClientNavigator } from './ClientNavigator'; // Navegador do Cliente (com abas)
+// Importa os NAVEGADORES de cada perfil
+import { ClientNavigator } from './ClientNavigator';
+import { StoreNavigator } from './StoreNavigator'; // 1. Importa o novo navegador do Lojista
+
+// Importa as telas individuais
 import { LoginScreen } from '../screens/Auth/LoginScreen';
-import { RegisterScreen } from '../screens/Auth/RegisterScreen'; // Tela de Registro do Cliente
+import { RegisterScreen } from '../screens/Auth/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/Auth/ForgotPasswordScreen';
-import { StoreRegisterScreen } from '../screens/Auth/StoreRegisterScreen'; // 1. Importa a nova tela de Registro do Lojista
-import { StoreDashboardScreen } from '../screens/store/DashboardScreen'; // Tela do Lojista
+import { StoreRegisterScreen } from '../screens/Auth/StoreRegisterScreen';
+// Telas que podem ser abertas por cima das abas (ex: Detalhes do Produto)
+import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
 /**
- * --- NOVA ESTRUTURA ---
- * Criamos um "Navegador de Pilha" exclusivamente para o fluxo de autenticação.
- * Ele gerencia todas as telas relacionadas ao login e registro.
+ * Cria um "Navegador de Pilha" exclusivamente para o fluxo de autenticação.
  */
 function AuthNavigator() {
   return (
-    // 'initialRouteName="Register"' define "RegisterScreen" (Cliente) como a primeira tela
     <Stack.Navigator initialRouteName="Register" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Register" component={RegisterScreen} />
-      {/* 2. Adiciona a nova tela de Registro do Lojista a este fluxo */}
       <Stack.Screen name="StoreRegister" component={StoreRegisterScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -33,8 +33,6 @@ function AuthNavigator() {
 
 /**
  * Este é o componente "porteiro" principal da aplicação.
- * Ele decide se mostra o fluxo de autenticação (AuthNavigator)
- * ou o fluxo principal da aplicação (ClientNavigator ou StoreDashboardScreen).
  */
 export const AppNavigator = () => {
   const { user, token, isLoading } = useContext(AuthContext);
@@ -50,31 +48,37 @@ export const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!token || !user ? (
-        // Se NÃO estiver logado, ele agora carrega o nosso navegador de autenticação completo
+        // Se NÃO estiver logado, mostra o fluxo completo de autenticação
         <Stack.Screen name="AuthFlow" component={AuthNavigator} />
       ) : (
-        // Se ESTIVER logado, o fluxo principal é carregado
+        // Se ESTIVER logado, mostra o fluxo principal da aplicação
         <>
           {user.tipo_usuario === 'cliente' && (
-            <Stack.Screen name="ClientApp" component={ClientNavigator} />
+            <>
+              {/* O ClientNavigator (com as abas) é a tela principal */}
+              <Stack.Screen name="ClientApp" component={ClientNavigator} />
+              {/* Telas que podem ser abertas por cima das abas do cliente */}
+              <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+            </>
           )}
           {user.tipo_usuario === 'lojista' && (
-            <Stack.Screen name="StoreApp" component={StoreDashboardScreen} />
+            // --- ALTERAÇÃO PRINCIPAL AQUI ---
+            // 2. Se o usuário for um lojista, carrega o StoreNavigator (com as abas)
+            <Stack.Screen name="StoreApp" component={StoreNavigator} />
+            // No futuro, podemos adicionar telas Stack aqui também se o lojista precisar
+            // (ex: um tela de "Detalhes da Requisição")
           )}
-          {/* Adicione o fluxo para 'entregador' aqui se necessário */}
         </>
       )}
     </Stack.Navigator>
   );
 };
 
-// Estilos permanecem os mesmos
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5', // Adicionado um fundo para o loading
+    backgroundColor: '#f5f5f5',
   },
 });
-
