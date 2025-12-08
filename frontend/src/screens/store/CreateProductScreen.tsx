@@ -26,6 +26,14 @@ const CATEGORIAS_FIXAS = [
   { label: 'Boné', value: 'Boné' },
 ];
 
+interface VariationState {
+  id: string;
+  cor: string;
+  tamanho: string;
+  estoque: string;
+  preco: string;
+}
+
 export const CreateProductScreen = ({ navigation }: any) => {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -33,7 +41,8 @@ export const CreateProductScreen = ({ navigation }: any) => {
   const [categoria, setCategoria] = useState('');
   const [images, setImages] = useState<Asset[]>([]); // Estado para guardar as imagens selecionadas
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [variacoes, setVariacoes] = useState<VariationState[]>([]);
+
   // Função para abrir a galeria de imagens
   const handleSelectImages = () => {
     launchImageLibrary(
@@ -62,31 +71,43 @@ export const CreateProductScreen = ({ navigation }: any) => {
     }
 
     setIsLoading(true);
-    
+
     // --- LÓGICA DE UPLOAD (A SER IMPLEMENTADA) ---
     // O upload de arquivos (imagens) é um processo complexo.
     // O backend NÃO está preparado para receber arquivos ainda.
     // Por enquanto, vamos enviar o produto com URLs de placeholder
     // e mostraremos as imagens selecionadas no console.
-    
+
     console.log("Imagens selecionadas para upload:", images.map(img => img.uri));
 
     try {
+      const variationsPayload = variacoes.map(item => ({
+        cor: item.cor,
+        tamanho: item.tamanho,
+        quantidade_estoque: parseInt(item.estoque) || 0,
+        preco: item.preco ? parseFloat(item.preco) : null
+      }));
+
+      if (variationsPayload.length === 0) {
+        Alert.alert("Adicione pelo menos uma variação (cor/tamanho) ao produto.");
+        setIsLoading(false);
+        return;
+      }
+
       const payload = {
         nome,
         descricao,
         preco: parseFloat(preco),
         categoria,
-        // Envia URLs de placeholder, pois o upload não está implementado
         imagens: images.map((img, index) => ({
-          url: `https://placehold.co/600x400?text=Imagem+${index+1}`,
+          url: `https://placehold.co/600x400?text=Imagem+${index + 1}`,
           ordem: index
         })),
-        // A lógica de Variações também será adicionada aqui
+        variacoes: variationsPayload
       };
 
       await api.post('/products', payload);
-      
+
       Alert.alert("Sucesso", "Produto criado com sucesso!");
       navigation.goBack(); // Volta para a lista de produtos
     } catch (error: any) {
@@ -96,6 +117,41 @@ export const CreateProductScreen = ({ navigation }: any) => {
       setIsLoading(false);
     }
   };
+
+  const handleAddVariation = () => {
+    // Cria o objeto segundo o molde da interface
+    const newVariation: VariationState = {
+      id: Date.now().toString(), // Gera um ID único baseado no milissegundo da requisição
+      cor: '',
+      tamanho: '',
+      estoque: '',
+      preco: '',
+    };
+
+    // Atualiza o estado de forma imutável
+    // ...variacoes -> "Despeja" os itens antigos aqui
+    // newVariation -> Adiciona o novo item no final
+    setVariacoes([...variacoes, newVariation]);
+  }
+
+  const handleRemoveVariation = (idToRemove: string) => {
+    const novaLista = variacoes.filter((item) => item.id !== idToRemove);
+
+    setVariacoes(novaLista);
+  }
+
+  const handleUpdateVariation = (id: string, field: keyof VariationState, value: string) => {
+    const novaLista = variacoes.map((item) => {
+      if (item.id === id) {
+        return {
+          ...item,
+          [field]: value
+        };
+      }
+      return item;
+    });
+    setVariacoes(novaLista);
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -108,13 +164,13 @@ export const CreateProductScreen = ({ navigation }: any) => {
       <ScrollView style={styles.container}>
         <Text style={styles.label}>Nome do Produto</Text>
         <TextInput style={styles.input} placeholder="Ex: Camisa de Algodão" value={nome} onChangeText={setNome} />
-        
+
         <Text style={styles.label}>Descrição</Text>
         <TextInput style={[styles.input, styles.textArea]} placeholder="Descreva seu produto..." value={descricao} onChangeText={setDescricao} multiline />
-        
+
         <Text style={styles.label}>Preço (R$)</Text>
         <TextInput style={styles.input} placeholder="Ex: 79.90" value={preco} onChangeText={setPreco} keyboardType="numeric" />
-        
+
         <Text style={styles.label}>Categoria</Text>
         {/* --- NOVO COMPONENTE DE DROPDOWN --- */}
         <View style={styles.pickerContainer}>
@@ -135,14 +191,77 @@ export const CreateProductScreen = ({ navigation }: any) => {
           <Ionicons name="camera" size={24} color="#007bff" />
           <Text style={styles.imageButtonText}>Selecionar Fotos</Text>
         </TouchableOpacity>
-        
+
         {/* Mostra as miniaturas das imagens selecionadas */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagePreviewContainer}>
           {images.map((img, index) => (
             <Image key={index} source={{ uri: img.uri }} style={styles.imagePreview} />
           ))}
         </ScrollView>
-        
+
+        <Text style={styles.label}>Variações de Estoque</Text>
+        {variacoes.map((item, index) => (
+          <View key={item.id} style={styles.variationCard}>
+
+            <View style={styles.variationHeader}>
+              <Text style={styles.variationTitle}>Variação {index + 1}</Text>
+              <TouchableOpacity onPress={() => handleRemoveVariation(item.id)}>
+                <Ionicons name="trash-outline" size={20} color="red" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.row}>
+              {/* COR */}
+              <View style={[styles.col, { flex: 2 }]}>
+                <TextInput
+                  style={styles.inputSmall}
+                  placeholder="Cor (ex: Azul)"
+                  value={item.cor}
+                  // AQUI ESTÁ A MÁGICA: Passamos o ID e o nome do campo ('cor')
+                  onChangeText={(txt) => handleUpdateVariation(item.id, 'cor', txt)}
+                />
+              </View>
+
+              {/* TAMANHO */}
+              <View style={[styles.col, { flex: 1 }]}>
+                <TextInput
+                  style={styles.inputSmall}
+                  placeholder="Tam"
+                  value={item.tamanho}
+                  onChangeText={(txt) => handleUpdateVariation(item.id, 'tamanho', txt)}
+                />
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              {/* ESTOQUE */}
+              <View style={styles.col}>
+                <TextInput
+                  style={styles.inputSmall}
+                  placeholder="Qtd"
+                  keyboardType="numeric"
+                  value={item.estoque}
+                  onChangeText={(txt) => handleUpdateVariation(item.id, 'estoque', txt)}
+                />
+              </View>
+
+              {/* PREÇO */}
+              <View style={styles.col}>
+                <TextInput
+                  style={styles.inputSmall}
+                  placeholder="Preço (opcional)"
+                  keyboardType="numeric"
+                  value={item.preco}
+                  onChangeText={(txt) => handleUpdateVariation(item.id, 'preco', txt)}
+                />
+              </View>
+            </View>
+
+          </View>
+        ))}
+
+        <Button title="+ Adicionar Variação" onPress={handleAddVariation} color="#6c757d" />
+
         <View style={styles.buttonContainer}>
           {isLoading ? (
             <ActivityIndicator size="large" color="#007bff" />
@@ -226,5 +345,40 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 30,
     marginBottom: 50,
+  },
+  variationCard: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  variationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  variationTitle: {
+    fontWeight: 'bold',
+    color: '#555',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  col: {
+    flex: 1,
+    marginRight: 5,
+  },
+  inputSmall: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 8,
+    fontSize: 14,
   },
 });
