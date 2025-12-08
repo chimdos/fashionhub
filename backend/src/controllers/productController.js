@@ -116,37 +116,48 @@ const productController = {
   async createProduct(req, res) {
     const t = await sequelize.transaction();
     try {
-      const { error, value } = createProductSchema.validate(req.body);
+      // Validação com Joi
+      const { error, value } = createProductSchema.validate(req.body, { stripUnknown: true});
+      
       if (error) {
-        return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
+        await t.rollback(); // Se os dados colocados forem incorretos, dá um rollback na transação e volta ao estado anterior
+        return res.status(400).json({ message: 'Dados inválidos', details: error.details });
       }
-      const { nome, descricao, preco, categoria, variacoes, imagens } = value;
-      const lojista_id = req.user.userId;
+      
+      // Separa as variáveis de listas (variacoes, imagens) do resto dos dados (productData)
+      const { variacoes, imagens, ...productData } = value;
+      
+      // Verificação de segurança para lojistas
       if (req.user.tipo_usuario !== 'lojista') {
-        return res.status(403).json({ message: 'Acesso negado. Apenas lojistas podem criar produtos.' });
+        await t.rollback();
+        return res.status(403).json({ message: 'Apenas lojistas podem criar produtos.' })
       }
+      
+      // Mapeia as imagens para conformidade com o banco
+      const formattedImages = imagens ? imagens.map((img, index) => ({
+        url_imagem: img.url,
+        ordem: img.ordem ?? index // Se não vier ordem, usa a posição do array (0, 1, 2...)
+      })) : [];
+
       const newProduct = await Product.create({
-        lojista_id, nome, descricao, preco, categoria
-      }, { transaction: t });
-      if (variacoes && variacoes.length > 0) {
-        const variacoesData = variacoes.map(v => ({ ...v, produto_id: newProduct.id }));
-        await ProductVariation.bulkCreate(variacoesData, { transaction: t });
-      }
-      if (imagens && imagens.length > 0) {
-        const imagensData = imagens.map((img, index) => ({
-          produto_id: newProduct.id,
-          url_imagem: img.url,
-          ordem: img.ordem !== undefined ? img.ordem : index
-        }));
-        await ProductImage.bulkCreate(imagensData, { transaction: t });
-      }
-      await t.commit();
-      const createdProductWithAssociations = await Product.findByPk(newProduct.id, {
-          include: ['variacoes', 'imagens']
+        ...productData, // Espalha os dados do produto
+        lojista_id: req.user.userId,
+        
+        variacoes: variacoes,
+        imagens: formattedImages,
+      }, {
+        // Configuração do Sequelize que avisa que os campos 'variacoes' e 'imagens' são associações, pede para olhar os Models e salvar nas tabelas conforme eles dizem
+        include: [
+          { model: ProductVariation, as: 'variacoes' },
+          { model: ProductImage, as: 'imagens' }
+        ],
+        transaction: t // Usa o método de segurança, se falhar, desfaz tudo
       });
-      res.status(201).json({
-        message: 'Produto criado com sucesso',
-        product: createdProductWithAssociations
+
+      await t.commit();
+      return res.status(201).json({
+        message: 'Produto criado',
+        product: newProduct
       });
     } catch (error) {
       await t.rollback();
