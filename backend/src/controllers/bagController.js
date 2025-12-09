@@ -121,18 +121,18 @@ const bagController = {
         ],
         order: [['createdAt', 'DESC']],
       });
-      
+
       // Filtra malas que não contém itens da loja
       const filteredBags = bags.filter(bag => bag.itens.length > 0);
-      
+
       res.json(filteredBags);
 
       const simplifiedBags = bags.map(bag => ({
-          id: bag.id,
-          status: bag.status,
-          data_solicitacao: bag.data_solicitacao,
-          cliente: bag.cliente,
-          itemCount: bag.itens.length,
+        id: bag.id,
+        status: bag.status,
+        data_solicitacao: bag.data_solicitacao,
+        cliente: bag.cliente,
+        itemCount: bag.itens.length,
       }));
 
       res.json(simplifiedBags);
@@ -189,7 +189,7 @@ const bagController = {
       }
     } catch (error) {
       console.error(error);
-      return res.json(500)({ error: 'Erro ao processar ação do lojista.'});
+      return res.json(500)({ error: 'Erro ao processar ação do lojista.' });
     }
   },
 
@@ -201,16 +201,16 @@ const bagController = {
       // Busca a mala e o endereço da loja
       const bag = await Bag.findByPk(bagId, {
         include: [
-          { model: Address, as: 'endereco'} // Endereço do cliente (destino)
+          { model: Address, as: 'endereco' } // Endereço do cliente (destino)
         ]
       });
-      
+
       if (!bag) return res.status(404).json({ message: 'Mala não encontrada.' });
 
       if (bag.status !== 'PREPARANDO') {
-        return res.status(400).json({ message: 'A mala precisa estar no status PREPARANDO para chamar motoboy.'});
+        return res.status(400).json({ message: 'A mala precisa estar no status PREPARANDO para chamar motoboy.' });
       }
-      
+
       // Atualiza o status após o processo
       await bag.update({ status: 'AGUARDANDO_MOTO' });
 
@@ -325,7 +325,7 @@ const bagController = {
 
       await bag.update({ status: 'FINALIZADA' }, { transaction: t });
       await t.commit();
-      
+
       res.json({ message: 'Devolução confirmada com sucesso. A mala foi finalizada.' });
 
     } catch (error) {
@@ -347,7 +347,7 @@ const bagController = {
         transaction: t,
         lock: t.LOCK.UPDATE
       });
-      
+
       if (!bag) {
         await t.rollback();
         return res.status(409).json({ message: 'Esta entrega já foi aceita por outro parceiro.' })
@@ -356,7 +356,7 @@ const bagController = {
       await bag.update({
         status: 'EM_ROTA_ENTREGA',
         entregador_id: entregadorId
-      }, { transaction : t});
+      }, { transaction: t });
 
       await t.commit();
 
@@ -404,13 +404,58 @@ const bagController = {
           step: 'INDO_AO_CLIENTE'
         });
       }
-      
+
       return res.json({ message: 'Retirada confirmada! Inicie a viagem para o cliente.', bag });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao confirmar retirada.' });
+    }
+  },
+
+  async confirmDelivery(req, res) {
+    const t = await sequelize.transaction();
+    try {
+      const { bagId } = req.params;
+      const { token } = req.body;
+      const entregadorId = req.user.userId;
+
+      const bag = await Bag.findByPk(bagId);
+
+      if (!bag) {
+        await t.rollback();
+        return res.status(404).json({ message: 'Mala não encontrada.' });
+      }
+
+      if (bag.entregador_id !== entregadorId) {
+        await t.rollback();
+        return res.status(403).json({ message: 'Você não é o entregador responsável por esta mala.' });
+      }
+
+      if (bag.token_entrega !== token) {
+        await t.rollback();
+        return res.status(401).json({ message: 'Token de entrega incorreto.' });
+      }
+
+      await bag.update({
+        status: 'ENTREGUE',
+
+      }, { transaction: t });
+
+      await t.commit();
+
+      // Notifica o lojista e o cliente via socket
+      if (req.io) {
+        req.io.to(`bag_${bagId}`).emit('STATUS_UPDATED', { status: 'ENTREGUE' });
+        req.io.to(`store_${bag.lojista_id}`).emit('STATUS_UPDATED', { status: 'ENTREGUE' });
+      }
+
+      return res.json({ message: 'Entrega finalizada com sucesso! Bom trabalho.', bag });
+    } catch (error) {
+      await t.rollback();
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao confirmar entrega.' });
+    }
   }
-  }
-};
+}
 
 module.exports = bagController;
