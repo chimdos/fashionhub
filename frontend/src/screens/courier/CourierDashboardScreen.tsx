@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../contexts/AuthContext'; // Ajuste o caminho conforme seu projeto
 import api from '../../services/api';
@@ -22,6 +23,7 @@ export const CourierDashboardScreen = () => {
   const [isOnline, setIsOnline] = useState(false);
   const [requests, setRequests] = useState<DeliveryRequest[]>([]);
   const socketRef = useRef<Socket | null>(null);
+  const navigation = useNavigation<any>();
 
   // --- Conexão com Socket.io ---
   const toggleOnline = () => {
@@ -60,16 +62,18 @@ export const CourierDashboardScreen = () => {
   }, []);
 
   // --- Ação de Aceitar ---
-  const handleAccept = async (bagId: string) => {
+  const handleAccept = async (request: DeliveryRequest) => {
     try {
-      const response = await api.post(`/bags/${bagId}/accept`);
+      await api.post(`/bags/${request.bagId}/accept`);
+
+      const response = await api.post(`/bags/${request.bagId}/accept`);
       Alert.alert('Sucesso', 'Entrega aceita! Dirija-se à loja.');
       
       // Remove da lista local após aceitar
-      setRequests((prev) => prev.filter(req => req.bagId !== bagId));
+      setRequests((prev) => prev.filter(req => req.bagId !== request.bagId));
       
       // TODO: Navegar para tela de "Em Rota" (Mapas)
-      // navigation.navigate('DeliveryRoute', { bagId });
+      navigation.navigate('PickupScreen', { bag: request });
 
     } catch (error: any) {
       Alert.alert('Ops', error.response?.data?.message || 'Erro ao aceitar corrida.');
@@ -95,7 +99,7 @@ export const CourierDashboardScreen = () => {
 
       <TouchableOpacity 
         style={styles.acceptButton} 
-        onPress={() => handleAccept(item.bagId)}
+        onPress={() => handleAccept(item)}
       >
         <Text style={styles.acceptText}>ACEITAR CORRIDA</Text>
       </TouchableOpacity>
