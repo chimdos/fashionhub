@@ -36,6 +36,6 @@ router.get(
 );
 // Rota para o entregador aceitar a entrega
 router.post('/:bagId/accept', authMiddleware, bagController.acceptDelivery);
-
+router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPickup);
 
 module.exports = router;

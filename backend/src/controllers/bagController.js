@@ -369,6 +369,47 @@ const bagController = {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao aceitar entrega.' });
     }
+  },
+
+  async confirmPickup(req, res) {
+    try {
+      const { bagId } = req.params;
+      const { token } = req.body;
+      const entregadorId = req.user.userId;
+
+      const bag = await Bag.findByPk(bagId);
+
+      if (!bag) {
+        return res.status(404).json({ message: 'Mala não encontrada.' });
+      }
+
+      // Verificações de segurança
+      if (bag.entregador_id !== entregadorId) {
+        return res.status(403).json({ message: 'Você não é o entregador desta mala.' });
+      }
+
+      if (bag.token_retirada !== token) {
+        return res.status(401).json({ message: 'Token de retirada inválido.' });
+      }
+
+      // Atualiza a data de retirada para marcar que a primeira fase (ir buscar) terminou
+      await bag.update({
+        data_retirada: new Date(),
+      });
+
+      // TODO: Avisar cliente via Socket que o entregador retirou a mala e está a camihno
+      if (req.io) {
+        req.io.to(`bag_${bagId}`).emit('STATUS_UPDATED', {
+          status: 'EM_ROTA_ENTREGA',
+          step: 'INDO_AO_CLIENTE'
+        });
+      }
+      
+      return res.json({ message: 'Retirada confirmada! Inicie a viagem para o cliente.', bag });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao confirmar retirada.' });
+  }
   }
 };
 
