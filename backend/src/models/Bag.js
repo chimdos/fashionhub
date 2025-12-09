@@ -20,19 +20,42 @@ module.exports = (sequelize) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
+    
     status: {
       type: DataTypes.ENUM(
-        'solicitada',
-        'em_preparacao',
-        'a_caminho',
-        'entregue_cliente',
-        'em_devolucao',
-        'devolvida_lojista',
-        'finalizada',
-        'cancelada'
+        'SOLICITADA',
+        'ANALISE',
+        'RECUSADA',
+        'PREPARANDO',
+        'AGUARDANDO_MOTO',
+        'EM_ROTA_ENTREGA',
+        'ENTREGUE',
+        'EM_ROTA_DEVOLUCAO',
+        'FINALIZADA',
+        'CANCELADA'
       ),
+      defaultValue: 'SOLICITADA',
       allowNull: false
     },
+
+    token_retirada: {
+      type: DataTypes.STRING(6),
+      allowNull: false
+    },
+    token_entrega: {
+      type: DataTypes.STRING(6),
+      allowNull: false
+    },
+
+    motivo_recusa: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    valor_frete: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0.00
+    },
+
     data_solicitacao: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW
@@ -55,4 +78,3 @@ module.exports = (sequelize) => {
 
   return Bag;
 };
-
