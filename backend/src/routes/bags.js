@@ -27,7 +27,6 @@ router.put(
   bagController.confirmReturn
 );
 
-// --- NOVA ROTA ADICIONADA ---
 // Rota para o lojista buscar as solicitações de malas pendentes da sua loja
 router.get(
   '/store', // O endpoint será GET /api/bags/store
@@ -35,6 +34,8 @@ router.get(
   requireUserType('lojista'), // Apenas lojistas podem acessar
   bagController.getStoreBagRequests // Chama a nova função do controller
 );
+// Rota para o entregador aceitar a entrega
+router.post('/:bagId/accept', authMiddleware, bagController.acceptDelivery);
 
 
 module.exports = router;

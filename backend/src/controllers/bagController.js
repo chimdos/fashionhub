@@ -333,6 +333,42 @@ const bagController = {
       console.error('Erro ao confirmar devolução:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
+  },
+
+  async acceptDelivery(req, res) {
+    const t = await sequelize.transaction();
+    try {
+      const { bagId } = req.params;
+      const entregadorId = req.user.userId;
+
+      // Verifica se a mala ainda está disponível
+      const bag = await Bag.findOne({
+        where: { id: bagId, status: 'AGUARDANDO_MOTO' },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      });
+      
+      if (!bag) {
+        await t.rollback();
+        return res.status(409).json({ message: 'Esta entrega já foi aceita por outro parceiro.' })
+      }
+
+      await bag.update({
+        status: 'EM_ROTA_ENTREGA',
+        entregador_id: entregadorId
+      }, { transaction : t});
+
+      await t.commit();
+
+      // Avisa o lojista via Socket que alguém aceitou a entrega
+      req.io.to(bag.lojista_id).emit('ENTREGA_ACEITA', { entregadorId });
+
+      return res.json({ message: 'Entrega aceita! Dirija-se à loja.', bag });
+    } catch (error) {
+      await t.rollback();
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao aceitar entrega.' });
+    }
   }
 };
 
