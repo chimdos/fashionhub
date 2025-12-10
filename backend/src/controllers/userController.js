@@ -1,5 +1,45 @@
 const { User, Address } = require('../models');
 
+exports.becomeCourier = async (req, res) => {
+  const userId = req.user.userId;
+  const { veiculo, placa, cnh } = req.body;
+
+  try {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    // Validação de CNH, Placa, etc.
+    if (!veiculo || !placa) {
+      return res.status(400).json({ message: 'Dados do veículo são obrigatórios' });
+    }
+
+    // Atualiza o usuário
+    // PENDING_APPROVAL
+    user.tipo_usuario = 'entregador';
+
+    // user.veiculo_modelo = veiculo
+    // user.veiculo_placa = placa;
+
+    await user.save();
+
+    return res.json({
+      message: 'Você agora é um entregador!',
+      user: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        tipo_usuario: 'entregador'
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Erro ao processar solicitação.' });
+  }
+};
+
 // Objeto para agrupar todas as funções do controller
 const userController = {
   /**
