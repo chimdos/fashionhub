@@ -10,6 +10,7 @@ import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { ExploreScreen } from '../screens/client/ExploreScreen';
 import { CartScreen } from '../screens/client/CartScreen';
 import { SettingsScreen } from '../screens/client/SettingsScreen';
+import { BecomeCourierScreen } from '../screens/client/BecomeCourierScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -24,6 +25,11 @@ function HomeStackNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeFeed" component={HomeScreen} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+      <Stack.Screen
+        name="BecomeCourier"
+        component={BecomeCourierScreen}
+        options={{ title: 'Virar Entregador' }}
+      />
     </Stack.Navigator>
   );
 }

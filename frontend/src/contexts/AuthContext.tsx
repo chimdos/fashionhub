@@ -19,6 +19,7 @@ interface AuthContextData {
   isLoading: boolean;
   signIn(userData: User, userToken: string): Promise<void>;
   signOut(): Promise<void>;
+  updateUser: (user: User) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -32,7 +33,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- ALTERAÇÃO 2: Atualizamos a função signOut ---
   // A função de signOut agora também limpa o cabeçalho da API
   const signOut = async () => {
     await AsyncStorage.clear();
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
-    // --- ALTERAÇÃO 3: Injetamos a função signOut no interceptor ---
+    -
     // Isso permite que o 'apiInterceptor' chame o signOut()
     // sem criar um loop de importação.
     setSignOutAction(signOut);
@@ -68,7 +68,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loadStorageData();
   }, []);
 
-  // A função signIn permanece a mesma
   const signIn = async (userData: User, userToken: string) => {
     setUser(userData);
     setToken(userToken);
@@ -77,8 +76,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await AsyncStorage.setItem('userData', JSON.stringify(userData));
   };
 
+  async function updateUser(newUser: User) {
+    setUser(newUser);
+    await AsyncStorage.setItem('@FashionHub:user', JSON.stringify(newUser));
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
