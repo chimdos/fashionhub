@@ -11,6 +11,7 @@ import { ExploreScreen } from '../screens/client/ExploreScreen';
 import { CartScreen } from '../screens/client/CartScreen';
 import { SettingsScreen } from '../screens/client/SettingsScreen';
 import { BecomeCourierScreen } from '../screens/client/BecomeCourierScreen';
+import { BagSelectionScreen } from '../screens/client/BagSelectionScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -29,6 +30,11 @@ function HomeStackNavigator() {
         name="BecomeCourier"
         component={BecomeCourierScreen}
         options={{ title: 'Virar Entregador' }}
+      />
+      <Stack.Screen
+        name="BagSelection"
+        component={BagSelectionScreen}
+        options={{ title: 'Minha Mala' }}
       />
     </Stack.Navigator>
   );
