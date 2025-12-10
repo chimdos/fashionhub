@@ -245,12 +245,12 @@ const bagController = {
     try {
       const { bagId } = req.params;
       const { error, value } = confirmPurchaseSchema.validate(req.body);
+      const { itens_comprados } = req.body;
+      const clienteId = req.user.userId;
+
       if (error) {
         return res.status(400).json({ message: 'Dados inválidos', details: error.details });
       }
-
-      const { itens_comprados } = value;
-      const cliente_id = req.user.userId;
 
       const bag = await Bag.findOne({
         where: { id: bagId, cliente_id, status: 'ENTREGUE' },
@@ -261,6 +261,22 @@ const bagController = {
         return res.status(404).json({ message: 'Mala não encontrada ou não está disponível para confirmação.' });
       }
 
+      for (const itemSelection of itens_comprados) {
+        const itemDb = await BagItem.findOne({
+          where: { id: itemSelection.item_id, mala_id: bagId },
+          transaction: t
+        });
+
+        if (itemDb) {
+          const novoStatus = itemSelection.comprar ? 'COMPRADO' : 'DEVOLVIDO';
+          await itemDb.update({ status_item: novoStatus }, { transaction: t });
+
+          if (itemSelection.comprar) {
+            valorFinal += parseFloat(itemDb.preco_unitario_mala);
+          }
+        }
+      }
+
       await Promise.all(itens_comprados.map(item =>
         BagItem.update(
           { status_item: item.comprar ? 'comprado' : 'devolvido' },
@@ -268,11 +284,46 @@ const bagController = {
         )
       ));
 
+      // IMPORTANTE: Agora a mala precisa voltar para a loja!
+      // Mudamos o status para AGUARDANDO_MOTO (para aparecer no painel do motoboy de novo)
+      // Mas precisamos de uma flag para saber que é uma "Volta" e não "Ida".
+      // Vamos usar o status 'AGUARDANDO_MOTO' e o motoboy vai saber pela origem/destino
+      // Ou, se preferir usar 'EM_ROTA_DEVOLUCAO' direto se a loja busca depois. 
+      // Vamos manter a lógica do Uber: Gera nova corrida.
+
+      // Reseta o entregador para NULL para que qualquer um possa pegar a volta
+      // E gera token de retirada novo (agora o cliente é quem fornece o token pro motoboy)
+      const novoTokenRetirada = Math.floor(100000 + Math.random() * 900000).toString();
+
       // Muda o status para EM_ROTA_DEVOLUCAO (assumindo que o motoboy busca depois)
       // Ou 'AGUARDANDO_RETIRADA' se o sistema gera nova corrida automática
-      await bag.update({ status: 'EM_ROTA_DEVOLUCAO' }, { transaction: t });
+      await bag.update({
+        status: 'AGUARDANDO_MOTO',
+        token_retirada: novoTokenRetirada,
+        entregador_id: null,
+        data_entrega: null,
+        data_retirada: null
+      }, { transaction: t });
 
       await t.commit();
+
+      // Envia Socket para os entregadores
+      if (req.io) {
+        req.io.emit('NOVA_ENTREGA_DISPONIVEL', {
+          bagId: bag.id,
+          tipo: 'DEVOLUCAO',
+          origem: "Casa do Cliente", // Endereço real no futuro
+          destino: "Loja Tal", // Endereço real no futuro
+          valorFrete: 12.00 // Valor exemplo
+        });
+      }
+
+      return res.json({
+        message: 'Compra confirmada! Um entregador virá buscar a mala.',
+        valorTotal: valorFinal,
+        tokenDevolucao: novoTokenRetirada
+      });
+
       res.json({ message: 'Confirmação de compra registrada com sucesso.', bag });
 
     } catch (error) {
