@@ -27,6 +27,9 @@ router.put(
   bagController.confirmReturn
 );
 
+// GET /api/bags
+router.get('/', authMiddleware, bagController.getClientBags);
+
 // Rota para o lojista buscar as solicitações de malas pendentes da sua loja
 router.get(
   '/store', // O endpoint será GET /api/bags/store

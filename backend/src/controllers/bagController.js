@@ -506,7 +506,35 @@ const bagController = {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao confirmar entrega.' });
     }
-  }
+  },
+
+  async getClientBags(req, res) {
+    try {
+      const cliente_id = req.user.userId;
+
+      const bags = await Bag.findAll({
+        where: { cliente_id },
+        
+        include: [
+          {
+            model: BagItem,
+            as: 'itens',
+            include: [{
+              model: ProductVariation,
+              as: 'variacao_produto',
+              include: [{ model: Product, as: 'produto', attributes: ['nome'] }]
+            }]
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+      
+      return res.json(bags);
+    } catch (error) {
+      console.error('Erro ao buscar malas do cliente:', error);
+      return res.status(500).json({ error: 'Erro ao buscar histórico de pedidos.' });
+    }
+  },
 }
 
 module.exports = bagController;
