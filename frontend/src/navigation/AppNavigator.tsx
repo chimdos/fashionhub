@@ -5,7 +5,8 @@ import { AuthContext } from '../contexts/AuthContext';
 
 // Importa os NAVEGADORES de cada perfil
 import { ClientNavigator } from './ClientNavigator';
-import { StoreNavigator } from './StoreNavigator'; // 1. Importa o novo navegador do Lojista
+import { StoreNavigator } from './StoreNavigator';
+import { CourierNavigator } from './CourierNavigator';
 
 // Importa as telas individuais
 import { LoginScreen } from '../screens/Auth/LoginScreen';
@@ -17,9 +18,6 @@ import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
-/**
- * Cria um "Navegador de Pilha" exclusivamente para o fluxo de autenticação.
- */
 function AuthNavigator() {
   return (
     <Stack.Navigator initialRouteName="Register" screenOptions={{ headerShown: false }}>
@@ -31,9 +29,6 @@ function AuthNavigator() {
   );
 }
 
-/**
- * Este é o componente "porteiro" principal da aplicação.
- */
 export const AppNavigator = () => {
   const { user, token, isLoading } = useContext(AuthContext);
 
@@ -48,25 +43,20 @@ export const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!token || !user ? (
-        // Se NÃO estiver logado, mostra o fluxo completo de autenticação
         <Stack.Screen name="AuthFlow" component={AuthNavigator} />
       ) : (
-        // Se ESTIVER logado, mostra o fluxo principal da aplicação
         <>
           {user.tipo_usuario === 'cliente' && (
             <>
-              {/* O ClientNavigator (com as abas) é a tela principal */}
               <Stack.Screen name="ClientApp" component={ClientNavigator} />
-              {/* Telas que podem ser abertas por cima das abas do cliente */}
               <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
             </>
           )}
           {user.tipo_usuario === 'lojista' && (
-            // --- ALTERAÇÃO PRINCIPAL AQUI ---
-            // 2. Se o usuário for um lojista, carrega o StoreNavigator (com as abas)
             <Stack.Screen name="StoreApp" component={StoreNavigator} />
-            // No futuro, podemos adicionar telas Stack aqui também se o lojista precisar
-            // (ex: um tela de "Detalhes da Requisição")
+          )}
+          {user.tipo_usuario === 'entregador' && (
+            <Stack.Screen name="CourierApp" component={CourierNavigator} />
           )}
         </>
       )}

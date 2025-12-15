@@ -1,10 +1,9 @@
+// frontend/src/navigation/ClientNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Importe TODAS as telas que o cliente vai usar
-// Usando o caminho com 'cliente' em minúsculas para garantir consistência
 import { HomeScreen } from '../screens/client/HomeScreen';
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { ExploreScreen } from '../screens/client/ExploreScreen';
@@ -17,40 +16,18 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /**
- * Cria um "Navegador de Pilha" (StackNavigator) para o fluxo da tela inicial.
- * A razão para isto é permitir que, ao clicar num produto na HomeScreen,
- * a ProductDetailScreen abra "por cima" dela, com um botão de voltar.
+ * 1. Primeiro, criamos as ABAS (Tabs) isoladamente.
+ * Contém apenas as telas principais de navegação.
  */
-function HomeStackNavigator() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HomeFeed" component={HomeScreen} />
-      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-      <Stack.Screen
-        name="BecomeCourier"
-        component={BecomeCourierScreen}
-        options={{ title: 'Virar Entregador' }}
-      />
-      <Stack.Screen
-        name="BagSelection"
-        component={BagSelectionScreen}
-        options={{ title: 'Minha Mala' }}
-      />
-    </Stack.Navigator>
-  );
-}
-
-/**
- * Este é o componente principal do navegador do cliente.
- * Ele cria o menu de abas na parte inferior da tela.
- */
-export function ClientNavigator() {
+function ClientTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false, // Esconde o cabeçalho padrão das abas
+        headerShown: false,
+        tabBarActiveTintColor: '#000', // Preto é mais fashion que azul padrão ;)
+        tabBarInactiveTintColor: 'gray',
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName = 'alert-circle-outline'; // Ícone padrão em caso de erro
+          let iconName = 'alert-circle-outline';
 
           if (route.name === 'Início') {
             iconName = focused ? 'home' : 'home-outline';
@@ -64,15 +41,51 @@ export function ClientNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007bff', // Cor do ícone ativo
-        tabBarInactiveTintColor: 'gray',   // Cor do ícone inativo
       })}
     >
-      {/* A aba "Início" agora aponta para a nossa pilha de navegação da Home */}
-      <Tab.Screen name="Início" component={HomeStackNavigator} />
+      <Tab.Screen name="Início" component={HomeScreen} />
       <Tab.Screen name="Explorar" component={ExploreScreen} />
       <Tab.Screen name="Mala" component={CartScreen} />
       <Tab.Screen name="Menu" component={SettingsScreen} />
     </Tab.Navigator>
+  );
+}
+
+/**
+ * 2. Navegador Principal (Stack Global)
+ * Esse navegador segura as abas E todas as telas que podem ser abertas
+ * de qualquer lugar (como Detalhes de Produto ou Virar Entregador).
+ */
+export function ClientNavigator() {
+  return (
+    <Stack.Navigator>
+      {/* A tela principal é o conjunto de Abas */}
+      <Stack.Screen 
+        name="MainTabs" 
+        component={ClientTabs} 
+        options={{ headerShown: false }} 
+      />
+
+      {/* -- Telas Globais (Abrem por cima das abas) -- */}
+      
+      <Stack.Screen 
+        name="ProductDetail" 
+        component={ProductDetailScreen} 
+        options={{ title: 'Detalhes' }}
+      />
+      
+      <Stack.Screen
+        name="BecomeCourierScreen"
+        component={BecomeCourierScreen}
+        options={{ title: 'Trabalhe Conosco' }}
+      />
+      
+      <Stack.Screen
+        name="BagSelection"
+        component={BagSelectionScreen}
+        options={{ title: 'Provador em Casa 🏠' }}
+      />
+
+    </Stack.Navigator>
   );
 }
