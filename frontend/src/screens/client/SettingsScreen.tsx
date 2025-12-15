@@ -28,7 +28,7 @@ export const SettingsScreen = () => {
       </View>
       <TouchableOpacity
         style={styles.optionButton}
-        onPress={() => navigation.navigate('BecomeCourier')}
+        onPress={() => navigation.navigate('BecomeCourierScreen')}
       >
         <View style={styles.iconContainer}>
           <Text>🏍️</Text>
