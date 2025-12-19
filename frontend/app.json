@@ -1,4 +1,31 @@
 {
-  "name": "frontend",
-  "displayName": "frontend"
+  "expo": {
+    "name": "FashionHub",
+    "slug": "fashionhub",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.daniel.fashionhub",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d5273ad5-323c-46da-b941-f4d537d83ec4"
+      }
+    },
+    "owner": "chimdos"
+  }
 }
