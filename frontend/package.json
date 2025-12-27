@@ -50,5 +50,9 @@
   },
   "engines": {
     "node": ">=20.18.0"
+  },
+  "overrides": {
+    "metro": "0.80.12",
+    "metro-resolver": "0.80.12"
   }
 }
