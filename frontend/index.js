@@ -1,9 +1,5 @@
-/**
- * @format
- */
-
-import { AppRegistry } from 'react-native';
+import { registerRootComponent } from 'expo';
 import App from './App';
-import { name as appName } from './app.json';
 
-AppRegistry.registerComponent(appName, () => App);
+// registerRootComponent garante que o ambiente do Expo seja configurado corretamente
+registerRootComponent(App);
