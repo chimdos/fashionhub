@@ -7,9 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": [
-      "react-native-vector-icons"
-    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
