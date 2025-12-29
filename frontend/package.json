@@ -53,6 +53,8 @@
   },
   "overrides": {
     "metro": "0.80.12",
-    "metro-resolver": "0.80.12"
+    "metro-resolver": "0.80.12",
+    "metro-minify-terser": "0.80.12",
+    "metro-config": "0.80.12"
   }
 }
