@@ -16,7 +16,8 @@
       "**/*"
     ],
     "android": {
-      "package": "com.daniel.fashionhub",
+      "usesCleartextTraffic": true,
+      "package": "com.chimdos.fashionhub",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
