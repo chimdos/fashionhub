@@ -12,8 +12,10 @@ const authController = {
     const t = await sequelize.transaction();
     try {
       const { nome, email, senha, tipo_usuario, telefone, endereco, nome_loja } = req.body;
+
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
+        await t.rollback();
         return res.status(400).json({ message: 'Um usuário já existe com este e-mail.' });
       }
 
@@ -49,7 +51,7 @@ const authController = {
       const token = jwt.sign(
         { userId: newUser.id, tipo_usuario: newUser.tipo_usuario },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
       
       // Prepara a resposta, removendo a senha
@@ -59,9 +61,15 @@ const authController = {
       res.status(201).json({ message: 'Usuário criado com sucesso!', token, user: userResponse });
 
     } catch (error) {
-      await t.rollback(); // Desfaz tudo se houver um erro
-      console.error('Erro no registro:', error);
-      res.status(500).json({ message: 'Erro interno do servidor.' });
+      if (t && !t.finished) {
+      await t.rollback();
+    }
+    
+    console.error('ERRO REAL NO REGISTRO:', error);
+    return res.status(500).json({ 
+      message: 'Erro interno do servidor.',
+      error: error.message
+    });
     }
   },
 
