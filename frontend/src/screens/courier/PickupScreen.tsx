@@ -24,7 +24,7 @@ export const PickupScreen = ({ route, navigation }: any) => {
 
     setLoading(true);
     try {
-      await api.post(`/bags/${bag.bagId}/confirm-pickup`, { token });
+      await api.post(`/api/bags/${bag.bagId}/confirm-pickup`, { token });
       
       Alert.alert('Sucesso', 'Mala retirada! Inicie a entrega.');
       

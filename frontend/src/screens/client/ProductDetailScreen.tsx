@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 import { useBag } from '../../contexts/BagContext';
 
@@ -24,7 +24,7 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
     // ... (seu código de fetchProduct permanece o mesmo)
     const fetchProduct = async () => {
       try {
-        const response = await api.get(`/products/${productId}`);
+        const response = await api.get(`/api/products/${productId}`);
         const productData = response.data;
         if (productData.variacoes) {
           productData.variacoes = productData.variacoes.map((v: any) => ({

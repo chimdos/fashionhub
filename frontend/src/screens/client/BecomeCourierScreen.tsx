@@ -21,7 +21,7 @@ export const BecomeCourierScreen = () => {
 
     setLoading(true);
     try {
-      const response = await api.put('/users/become-courier', {
+      const response = await api.put('/api/users/become-courier', {
         veiculo,
         placa,
         cnh

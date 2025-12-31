@@ -102,7 +102,7 @@ export const RegisterScreen = ({ navigation }: any) => {
         nome, email, senha, tipo_usuario: 'cliente', telefone: formattedTelefone,
         endereco: { rua, numero, bairro, cidade, estado, cep }
       };
-      const response = await api.post('/auth/register', payload);
+      const response = await api.post('/api/auth/register', payload);
       const { token, user } = response.data;
       await signIn(user, token);
     } catch (error: any) {

@@ -23,7 +23,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
 
     setLoading(true);
     try {
-      await api.post(`/bags/${bag.bagId}/confirm-delivery`, { token });
+      await api.post(`/api/bags/${bag.bagId}/confirm-delivery`, { token });
       
       Alert.alert('Parabéns!', 'Corrida finalizada com sucesso.');
       

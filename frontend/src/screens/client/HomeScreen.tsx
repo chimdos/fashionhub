@@ -34,7 +34,7 @@ export const HomeScreen = ({ navigation }: any) => {
     // Busca os produtos da API quando a tela é carregada
     const fetchBestSellers = async () => {
       try {
-        const response = await api.get('/products?limit=6');
+        const response = await api.get('/api/products?limit=6');
         setBestSellingProducts(response.data.products);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);

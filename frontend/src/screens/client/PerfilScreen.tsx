@@ -16,7 +16,7 @@ export const PerfilScreen = () => {
 
   const fetchMyBags = async () => {
     try {
-      const response = await api.get('/bags');
+      const response = await api.get('/api/bags');
       setMyBags(response.data);
     } catch (error) {
       console.log('Erro ao buscar malas', error);

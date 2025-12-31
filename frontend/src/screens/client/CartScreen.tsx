@@ -37,7 +37,7 @@ export const CartScreen = () => {
         }))
       };
 
-      await api.post('/bags', requestData);
+      await api.post('/api/bags', requestData);
 
       Alert.alert("Sucesso!", "Sua mala foi solicitada. Em breve, um lojista irá prepará-la para você.");
       

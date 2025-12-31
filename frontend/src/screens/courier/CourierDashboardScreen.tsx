@@ -64,9 +64,9 @@ export const CourierDashboardScreen = () => {
   // --- Ação de Aceitar ---
   const handleAccept = async (request: DeliveryRequest) => {
     try {
-      await api.post(`/bags/${request.bagId}/accept`);
+      await api.post(`/api/bags/${request.bagId}/accept`);
 
-      const response = await api.post(`/bags/${request.bagId}/accept`);
+      const response = await api.post(`/api/bags/${request.bagId}/accept`);
       Alert.alert('Sucesso', 'Entrega aceita! Dirija-se à loja.');
       
       // Remove da lista local após aceitar

@@ -43,7 +43,7 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
         nome_loja: nomeLoja // Envia o nome da loja para o backend
       };
 
-      const response = await api.post('/auth/register', payload);
+      const response = await api.post('/api/auth/register', payload);
       const { token, user } = response.data;
       await signIn(user, token); // Faz o login automaticamente
 

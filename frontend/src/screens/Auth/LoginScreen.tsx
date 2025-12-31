@@ -26,7 +26,7 @@ export const LoginScreen = ({ navigation }: any) => {
     }
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/login', { email, senha });
+      const response = await api.post('/api/auth/login', { email, senha });
       const { token, user } = response.data;
       await signIn(user, token);
     } catch (error: any) {

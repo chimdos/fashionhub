@@ -49,7 +49,7 @@ export const BagSelectionScreen = () => {
   const loadBagDetails = async () => {
       try {
           // Ajuste a rota se necessário
-          const response = await api.get(`/bags/${bag.id}`);
+          const response = await api.get(`/api/bags/${bag.id}`);
           const formattedItems = response.data.itens.map((item: any) => ({
             ...item,
             selected: false
@@ -90,7 +90,7 @@ export const BagSelectionScreen = () => {
     setProcessing(true);
 
     try {
-      const response = await api.post(`/bags/${bag.id}/confirm-purchase`, {
+      const response = await api.post(`/api/bags/${bag.id}/confirm-purchase`, {
         itens_comprados: itensCompradosPayload
       });
 
