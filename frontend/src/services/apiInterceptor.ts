@@ -1,39 +1,36 @@
 import { Alert } from 'react-native';
-import api from './api';
 
-// Esta é uma função 'setter' que nos permite "injetar" a função de signOut
-// do AuthContext no nosso serviço de API, sem criar um loop de importação.
-
+// Esta é uma função 'setter' para injetar o signOut do AuthContext
 let signOutAction: () => Promise<void> = async () => {};
 
 export const setSignOutAction = (signOut: () => Promise<void>) => {
   signOutAction = signOut;
 };
 
-// Configura o interceptor de resposta
-api.interceptors.response.use(
-  // Se a resposta for sucesso (2xx), apenas a retorna
-  (response) => response,
+/**
+ * Esta função configura o interceptor usando a instância que 
+ * for passada como argumento. Isso resolve o erro de 'undefined'.
+ */
+export const setupInterceptors = (apiInstance: any) => {
+  apiInstance.interceptors.response.use(
+    // Caso de Sucesso
+    (response: any) => response,
 
-  // Se a resposta for um erro...
-  async (error) => {
-    // Verifica se o erro é um 401 (Não Autorizado)
-    if (error.response?.status === 401) {
-      console.log("Interceptor: Erro 401 detetado (Token inválido ou expirado).");
+    // Caso de Erro
+    async (error: any) => {
+      if (error.response?.status === 401) {
+        console.log("Interceptor: Erro 401 detectado (Token inválido ou expirado).");
+        
+        Alert.alert(
+          "Sessão Expirada",
+          "A sua sessão expirou. Por favor, faça login novamente.",
+          [{ text: "OK", onPress: async () => await signOutAction() }]
+        );
+        
+        await signOutAction();
+      }
       
-      // Mostra um alerta ao usuário
-      Alert.alert(
-        "Sessão Expirada",
-        "A sua sessão expirou. Por favor, faça login novamente.",
-        [{ text: "OK", onPress: async () => await signOutAction() }]
-      );
-      
-      // Chama a função de logout que foi injetada
-      await signOutAction();
+      return Promise.reject(error);
     }
-    
-    // Retorna o erro para que a tela que fez a chamada (ex: StoreDashboard)
-    // ainda possa lidar com ele (ex: parar o loading)
-    return Promise.reject(error);
-  }
-);
+  );
+};
