@@ -1,6 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import React from 'react';
+import { registerRootComponent } from 'expo';
 import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -11,15 +12,6 @@ import { BagProvider } from './src/contexts/BagContext';
 // Importa o nosso navegador principal
 import { AppNavigator } from './src/navigation/AppNavigator';
 
-// --- ALTERAÇÃO PRINCIPAL AQUI ---
-// Importa o interceptor da API.
-// Isto "ativa" o interceptor em toda a aplicação, 
-// fazendo com que ele ouça todas as respostas da API.
-import './src/services/apiInterceptor'; 
-
-/**
- * Este é o componente raiz que envolve toda a aplicação.
- */
 export default function App() {
   return (
     // O AuthProvider é a camada mais externa
@@ -34,3 +26,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+registerRootComponent(App);
