@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
-    -
     // Isso permite que o 'apiInterceptor' chame o signOut()
     // sem criar um loop de importação.
     setSignOutAction(signOut);
