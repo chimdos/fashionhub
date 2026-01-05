@@ -72,12 +72,6 @@ export const CreateProductScreen = ({ navigation }: any) => {
 
     setIsLoading(true);
 
-    // --- LÓGICA DE UPLOAD (A SER IMPLEMENTADA) ---
-    // O upload de arquivos (imagens) é um processo complexo.
-    // O backend NÃO está preparado para receber arquivos ainda.
-    // Por enquanto, vamos enviar o produto com URLs de placeholder
-    // e mostraremos as imagens selecionadas no console.
-
     console.log("Imagens selecionadas para upload:", images.map(img => img.uri));
 
     try {
