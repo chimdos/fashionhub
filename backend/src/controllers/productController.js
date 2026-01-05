@@ -3,8 +3,6 @@ const { Op } = require('sequelize');
 const Joi = require('joi');
 const sequelize = require('../config/database');
 
-// --- Esquemas de Validação (Mantidos do seu código original) ---
-
 const getProductsSchema = Joi.object({
   categoria: Joi.string().optional(),
   lojista_id: Joi.string().uuid().optional(),
@@ -17,20 +15,14 @@ const createProductSchema = Joi.object({
   nome: Joi.string().min(3).max(255).required(),
   descricao: Joi.string().min(10).required(),
   preco: Joi.number().positive().required(),
-  categoria: Joi.string().required(),
-  variacoes: Joi.array().items(
+  categoria: Joi.array().items(
     Joi.object({
       tamanho: Joi.string().required(),
       cor: Joi.string().required(),
-      quantidade_estoque: Joi.number().integer().min(0).required()
+      quantidade_estoque: Joi.number().integer().min(0).required(),
+      preco: Joi.number().optional().allow(null)
     })
-  ).optional().min(1),
-  imagens: Joi.array().items(
-    Joi.object({
-      url: Joi.string().uri().required(),
-      ordem: Joi.number().integer().min(0).optional()
-    })
-  ).optional().min(1)
+  ).required().min(1)
 });
 
 const updateProductSchema = Joi.object({
@@ -41,13 +33,7 @@ const updateProductSchema = Joi.object({
   ativo: Joi.boolean().optional(),
 });
 
-
-// --- Controller ---
-
 const productController = {
-  /**
-   * Listar produtos com filtros (público)
-   */
   async getProducts(req, res) {
     try {
       const { error, value } = getProductsSchema.validate(req.query);
@@ -87,9 +73,6 @@ const productController = {
     }
   },
 
-  /**
-   * Buscar um único produto pelo ID (público)
-   */
   async getProductById(req, res) {
     try {
       const { id } = req.params;
@@ -110,50 +93,49 @@ const productController = {
     }
   },
 
-  /**
-   * Criar um novo produto (protegido para lojista)
-   */
   async createProduct(req, res) {
     const t = await sequelize.transaction();
     try {
-      // Validação com Joi
-      const { error, value } = createProductSchema.validate(req.body, { stripUnknown: true});
+      if (typeof req.body.variacoes === 'string') {
+        req.body.variacoes = JSON.parse(req.body.variacoes);
+      }
+
+      const { error, value } = createProductSchema.validate(req.body, { stripUnknown: true });
       
       if (error) {
-        await t.rollback(); // Se os dados colocados forem incorretos, dá um rollback na transação e volta ao estado anterior
+        await t.rollback();
         return res.status(400).json({ message: 'Dados inválidos', details: error.details });
       }
       
-      // Separa as variáveis de listas (variacoes, imagens) do resto dos dados (productData)
-      const { variacoes, imagens, ...productData } = value;
+      const { variacoes, ...productData } = value;
+      const files = req.files;
+
+      if (!files || files.length === 0) {
       
-      // Verificação de segurança para lojistas
       if (req.user.tipo_usuario !== 'lojista') {
         await t.rollback();
-        return res.status(403).json({ message: 'Apenas lojistas podem criar produtos.' })
+        return res.status(403).json({ message: 'Pelo menos uma imagem é obrigatória.' })
       }
       
-      // Mapeia as imagens para conformidade com o banco
-      const formattedImages = imagens ? imagens.map((img, index) => ({
-        url_imagem: img.url,
-        ordem: img.ordem ?? index // Se não vier ordem, usa a posição do array (0, 1, 2...)
-      })) : [];
+      const formattedImages = files.map((file, index) => ({
+        url_imagem: '/uploads/${file.filename}',
+        ordem: index
+      }));
 
       const newProduct = await Product.create({
-        ...productData, // Espalha os dados do produto
+        ...productData,
         lojista_id: req.user.userId,
         
         variacoes: variacoes,
         imagens: formattedImages,
       }, {
-        // Configuração do Sequelize que avisa que os campos 'variacoes' e 'imagens' são associações, pede para olhar os Models e salvar nas tabelas conforme eles dizem
         include: [
           { model: ProductVariation, as: 'variacoes' },
           { model: ProductImage, as: 'imagens' }
         ],
-        transaction: t // Usa o método de segurança, se falhar, desfaz tudo
+        transaction: t
       });
-
+    }
       await t.commit();
       return res.status(201).json({
         message: 'Produto criado',
@@ -161,20 +143,17 @@ const productController = {
       });
     } catch (error) {
       await t.rollback();
-      console.error('Erro ao criar produto:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+      console.error('Erro real no backend:', error);
+      res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
     }
   },
 
-  /**
-   * Busca todos os produtos que pertencem ao lojista logado.
-   */
   async getStoreProducts(req, res) {
     try {
       const lojista_id = req.user.userId;
       const products = await Product.findAll({
         where: { lojista_id },
-        include: ['variacoes', 'imagens'], // Inclui variações e imagens
+        include: ['variacoes', 'imagens'],
         order: [['data_cadastro', 'DESC']]
       });
       res.json(products);
@@ -184,13 +163,10 @@ const productController = {
     }
   },
 
-  /**
-   * Atualiza um produto existente que pertence ao lojista.
-   */
   async updateProduct(req, res) {
     const t = await sequelize.transaction();
     try {
-      const { id } = req.params; // ID do produto
+      const { id } = req.params;
       const lojista_id = req.user.userId;
 
       const product = await Product.findByPk(id);
@@ -198,7 +174,6 @@ const productController = {
         return res.status(404).json({ message: 'Produto não encontrado.' });
       }
 
-      // Verifica se o lojista é o dono do produto
       if (product.lojista_id !== lojista_id) {
         return res.status(403).json({ message: 'Acesso negado. Você não é o dono deste produto.' });
       }
@@ -209,7 +184,6 @@ const productController = {
       }
 
       await product.update(value, { transaction: t });
-      // Lógica mais complexa de atualização de variações e imagens pode ser adicionada aqui
       await t.commit();
 
       res.json({ message: 'Produto atualizado com sucesso.', product });
@@ -220,10 +194,7 @@ const productController = {
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   },
-
-  /**
-   * Deleta um produto que pertence ao lojista.
-   */
+  
   async deleteProduct(req, res) {
     const t = await sequelize.transaction();
     try {
@@ -239,14 +210,9 @@ const productController = {
         return res.status(403).json({ message: 'Acesso negado.' });
       }
 
-      // Deleta as associações primeiro.
-      // NOTA: Se uma variação de produto estiver em uma mala (tabela 'itens_mala'),
-      // o 'ON DELETE RESTRICT' do seu SQL irá corretamente impedir a exclusão
-      // e o 'catch' irá tratar o erro.
       await ProductImage.destroy({ where: { produto_id: id }, transaction: t });
       await ProductVariation.destroy({ where: { produto_id: id }, transaction: t });
       
-      // Deleta o produto principal
       await product.destroy({ transaction: t });
 
       await t.commit();
@@ -254,7 +220,6 @@ const productController = {
 
     } catch (error) {
       await t.rollback();
-      // Verifica se é um erro de chave estrangeira (produto em uma mala)
       if (error.name === 'SequelizeForeignKeyConstraintError') {
         console.error('Erro ao deletar produto: está em uma mala ativa.', error);
         return res.status(400).json({ message: 'Não é possível deletar este produto, pois ele está associado a uma mala ativa.' });
