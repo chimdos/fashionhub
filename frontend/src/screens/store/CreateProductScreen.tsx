@@ -10,14 +10,13 @@ import {
   Alert,
   ActivityIndicator,
   TouchableOpacity,
-  Image, // Importa o componente Image
+  Image,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // Importa o Picker
-import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker'; // Importa o Image Picker
+import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 
-// Define as categorias fixas
 const CATEGORIAS_FIXAS = [
   { label: 'Selecione uma categoria...', value: '' },
   { label: 'Camisa', value: 'Camisa' },
@@ -39,29 +38,28 @@ export const CreateProductScreen = ({ navigation }: any) => {
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [images, setImages] = useState<Asset[]>([]); // Estado para guardar as imagens selecionadas
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [variacoes, setVariacoes] = useState<VariationState[]>([]);
 
-  // Função para abrir a galeria de imagens
-  const handleSelectImages = () => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        selectionLimit: 5, // Limite de 5 fotos
-        quality: 0.8,
-      },
-      (response: ImagePickerResponse) => {
-        if (response.didCancel) {
-          console.log('Seleção de imagem cancelada');
-        } else if (response.errorCode) {
-          console.log('Erro do ImagePicker: ', response.errorMessage);
-          Alert.alert("Erro", "Não foi possível carregar a imagem.");
-        } else if (response.assets) {
-          setImages(response.assets);
-        }
-      }
-    );
+  const handleSelectImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      Alert.alert ("Permissão negada", "Precisamos de permissão para acessar suas fotos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImages(result.assets);
+    }
   };
 
   const handleCreateProduct = async () => {
@@ -75,32 +73,36 @@ export const CreateProductScreen = ({ navigation }: any) => {
     console.log("Imagens selecionadas para upload:", images.map(img => img.uri));
 
     try {
+      const formData = new FormData();
+      formData.append('nome', nome);
+      formData.append('descricao', descricao);
+      formData.append('preco', preco);
+      formData.append('categoria', categoria);
+
       const variationsPayload = variacoes.map(item => ({
         cor: item.cor,
         tamanho: item.tamanho,
         quantidade_estoque: parseInt(item.estoque) || 0,
         preco: item.preco ? parseFloat(item.preco) : null
       }));
+      formData.append('variacoes', JSON.stringify(variationsPayload));
 
-      if (variationsPayload.length === 0) {
-        Alert.alert("Adicione pelo menos uma variação (cor/tamanho) ao produto.");
-        setIsLoading(false);
-        return;
-      }
+      images.forEach((img, index) => {
+        const uri = img.uri;
+        const fileType = uri.split('.').pop();
 
-      const payload = {
-        nome,
-        descricao,
-        preco: parseFloat(preco),
-        categoria,
-        imagens: images.map((img, index) => ({
-          url: `https://placehold.co/600x400?text=Imagem+${index + 1}`,
-          ordem: index
-        })),
-        variacoes: variationsPayload
-      };
+        formData.append('imagens', {
+          uri: uri,
+          name: 'produto_${index}.${fileType}',
+          type: `image/${fileType}`,
+        } as any);
+        });
 
-      await api.post('/api/products', payload);
+      await api.post('/api/products', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       Alert.alert("Sucesso", "Produto criado com sucesso!");
       navigation.goBack(); // Volta para a lista de produtos
@@ -113,18 +115,14 @@ export const CreateProductScreen = ({ navigation }: any) => {
   };
 
   const handleAddVariation = () => {
-    // Cria o objeto segundo o molde da interface
     const newVariation: VariationState = {
-      id: Date.now().toString(), // Gera um ID único baseado no milissegundo da requisição
+      id: Date.now().toString(),
       cor: '',
       tamanho: '',
       estoque: '',
       preco: '',
     };
 
-    // Atualiza o estado de forma imutável
-    // ...variacoes -> "Despeja" os itens antigos aqui
-    // newVariation -> Adiciona o novo item no final
     setVariacoes([...variacoes, newVariation]);
   }
 
@@ -166,7 +164,6 @@ export const CreateProductScreen = ({ navigation }: any) => {
         <TextInput style={styles.input} placeholder="Ex: 79.90" value={preco} onChangeText={setPreco} keyboardType="numeric" />
 
         <Text style={styles.label}>Categoria</Text>
-        {/* --- NOVO COMPONENTE DE DROPDOWN --- */}
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={categoria}
@@ -179,14 +176,12 @@ export const CreateProductScreen = ({ navigation }: any) => {
           </Picker>
         </View>
 
-        {/* --- NOVA SEÇÃO DE IMAGENS --- */}
         <Text style={styles.label}>Imagens (Até 5)</Text>
         <TouchableOpacity style={styles.imageButton} onPress={handleSelectImages}>
           <Ionicons name="camera" size={24} color="#007bff" />
           <Text style={styles.imageButtonText}>Selecionar Fotos</Text>
         </TouchableOpacity>
 
-        {/* Mostra as miniaturas das imagens selecionadas */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagePreviewContainer}>
           {images.map((img, index) => (
             <Image key={index} source={{ uri: img.uri }} style={styles.imagePreview} />
@@ -205,18 +200,15 @@ export const CreateProductScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.row}>
-              {/* COR */}
               <View style={[styles.col, { flex: 2 }]}>
                 <TextInput
                   style={styles.inputSmall}
                   placeholder="Cor (ex: Azul)"
                   value={item.cor}
-                  // AQUI ESTÁ A MÁGICA: Passamos o ID e o nome do campo ('cor')
                   onChangeText={(txt) => handleUpdateVariation(item.id, 'cor', txt)}
                 />
               </View>
 
-              {/* TAMANHO */}
               <View style={[styles.col, { flex: 1 }]}>
                 <TextInput
                   style={styles.inputSmall}
@@ -228,7 +220,6 @@ export const CreateProductScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.row}>
-              {/* ESTOQUE */}
               <View style={styles.col}>
                 <TextInput
                   style={styles.inputSmall}
@@ -239,7 +230,6 @@ export const CreateProductScreen = ({ navigation }: any) => {
                 />
               </View>
 
-              {/* PREÇO */}
               <View style={styles.col}>
                 <TextInput
                   style={styles.inputSmall}
