@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Importa o Picker
 import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker'; // Importa o Image Picker
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 
 // Define as categorias fixas
@@ -106,7 +106,7 @@ export const CreateProductScreen = ({ navigation }: any) => {
         variacoes: variationsPayload
       };
 
-      await api.post('/products', payload);
+      await api.post('/api/products', payload);
 
       Alert.alert("Sucesso", "Produto criado com sucesso!");
       navigation.goBack(); // Volta para a lista de produtos
