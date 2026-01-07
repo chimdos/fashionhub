@@ -138,8 +138,11 @@ const bagController = {
       res.json(simplifiedBags);
 
     } catch (error) {
-      console.error('Erro ao buscar malas da loja:', error);
-      res.status(500).json({ message: 'Erro interno do servidor.' });
+      console.error('ERRO REAL NAS MALAS:', error); // ISSO VAI APARECER NO TERMINAL
+    res.status(500).json({ 
+      message: 'Erro interno do servidor', 
+      error: error.message 
+    });
     }
   },
 
