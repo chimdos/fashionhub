@@ -47,7 +47,7 @@ export const ProductManagementScreen = ({ navigation }: any) => {
           style: "destructive", 
           onPress: async () => {
             try {
-              await api.delete(`/products/${productId}`);
+              await api.delete(`/api/products/${productId}`);
               Alert.alert("Sucesso", "Produto deletado.");
               fetchStoreProducts();
             } catch (error: any) {
