@@ -9,20 +9,17 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 
-// A prop 'navigation' é injetada pelo React Navigation
 export const ProductManagementScreen = ({ navigation }: any) => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Função para buscar os produtos do lojista
   const fetchStoreProducts = async () => {
     setIsLoading(true);
     try {
-      // Usamos a nova rota da API para buscar apenas os produtos deste lojista
-      const response = await api.get('/products/store/my-products');
+      const response = await api.get('/api/products/store/my-products');
       setProducts(response.data);
     } catch (error) {
       console.error("Erro ao buscar produtos da loja:", error);
@@ -32,16 +29,13 @@ export const ProductManagementScreen = ({ navigation }: any) => {
     }
   };
 
-  // useEffect para buscar os produtos quando a tela é focada
-  // Isso garante que a lista seja atualizada se você voltar da tela de criação/edição
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchStoreProducts();
     });
-    return unsubscribe; // Limpa o listener ao sair da tela
+    return unsubscribe;
   }, [navigation]);
 
-  // Função para lidar com a exclusão de um produto
   const handleDelete = (productId: string) => {
     Alert.alert(
       "Confirmar Exclusão",
@@ -53,10 +47,9 @@ export const ProductManagementScreen = ({ navigation }: any) => {
           style: "destructive", 
           onPress: async () => {
             try {
-              // Chama a nova rota DELETE da API
               await api.delete(`/products/${productId}`);
               Alert.alert("Sucesso", "Produto deletado.");
-              fetchStoreProducts(); // Atualiza a lista após deletar
+              fetchStoreProducts();
             } catch (error: any) {
               console.error("Erro ao deletar produto:", error.response?.data || error);
               Alert.alert("Erro", error.response?.data?.message || "Não foi possível deletar o produto.");
@@ -67,10 +60,8 @@ export const ProductManagementScreen = ({ navigation }: any) => {
     );
   };
 
-  // Componente para renderizar cada item da lista de produtos
   const renderProductItem = ({ item }: { item: any }) => (
     <View style={styles.productCard}>
-      {/* Placeholder da imagem */}
       <View style={styles.productImagePlaceholder} /> 
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.nome}</Text>
@@ -80,11 +71,9 @@ export const ProductManagementScreen = ({ navigation }: any) => {
         </Text>
       </View>
       <View style={styles.productActions}>
-        {/* Botão de Editar (funcionalidade futura) */}
         <TouchableOpacity onPress={() => navigation.navigate('EditProduct', { productId: item.id })}>
           <Ionicons name="pencil" size={24} color="#007bff" />
         </TouchableOpacity>
-        {/* Botão de Deletar (funcional) */}
         <TouchableOpacity style={{ marginLeft: 15 }} onPress={() => handleDelete(item.id)}>
           <Ionicons name="trash" size={24} color="#dc3545" />
         </TouchableOpacity>
@@ -96,7 +85,6 @@ export const ProductManagementScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meus Produtos</Text>
-        {/* Botão para adicionar novo produto (funcionalidade futura) */}
         <TouchableOpacity 
           style={styles.addButton} 
           onPress={() => navigation.navigate('CreateProduct')}
