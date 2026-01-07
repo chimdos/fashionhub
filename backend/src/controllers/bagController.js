@@ -5,7 +5,6 @@ const Joi = require('joi');
 const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const createBagSchema = Joi.object({
-  endereco_entrega_id: Joi.string().uuid().required(),
   observacoes: Joi.string().allow('').optional(),
   itens: Joi.array().items(
     Joi.object({
@@ -41,13 +40,20 @@ const bagController = {
       const { itens, endereco_entrega_id, observacoes } = value;
       const cliente_id = req.user.userId;
 
+      const usuario = await User.findByPk(cliente_id);
+
+      if (!usuario || !usuario.endereco_id) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Cadastre um endereço para solicitar malas' });
+      }
+
       if (req.user.tipo_usuario !== 'cliente') {
         return res.status(403).json({ message: 'Apenas clientes podem solicitar malas' });
       }
 
       const newBag = await Bag.create({
         cliente_id,
-        endereco_entrega_id,
+        endereco_entrega_id: usuario.endereco_id,
         observacoes,
         status: 'SOLICITADA'
       }, { transaction: t });
