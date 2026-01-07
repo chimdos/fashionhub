@@ -15,7 +15,8 @@ const createProductSchema = Joi.object({
   nome: Joi.string().min(3).max(255).required(),
   descricao: Joi.string().min(10).required(),
   preco: Joi.number().positive().required(),
-  categoria: Joi.array().items(
+  categoria: Joi.string().required(),
+  variacoes: Joi.array().items(
     Joi.object({
       tamanho: Joi.string().required(),
       cor: Joi.string().required(),
