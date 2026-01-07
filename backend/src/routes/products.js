@@ -8,6 +8,12 @@ const upload = multer({ dest: 'uploads/' });
 
 router.get('/', productController.getProducts);
 
+router.get(
+  '/store/my-products',
+  authMiddleware,
+  requireUserType('lojista'),
+  productController.getStoreProducts
+);
 router.get('/:id', productController.getProductById);
 
 router.post(
@@ -16,13 +22,6 @@ router.post(
   requireUserType('lojista'),
   upload.array('imagens', 5),
   productController.createProduct
-);
-
-router.get(
-  '/store/my-products',
-  authMiddleware,
-  requireUserType('lojista'),
-  productController.getStoreProducts
 );
 
 router.put(
