@@ -40,11 +40,11 @@ module.exports = (sequelize) => {
 
     token_retirada: {
       type: DataTypes.STRING(6),
-      allowNull: false
+      allowNull: true
     },
     token_entrega: {
       type: DataTypes.STRING(6),
-      allowNull: false
+      allowNull: true
     },
 
     motivo_recusa: {
