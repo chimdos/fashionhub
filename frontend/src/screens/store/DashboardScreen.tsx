@@ -16,7 +16,7 @@ import api from '../../services/api';
 interface BagRequest {
   id: string;
   status: string;
-  createdAt: string;
+  data_solicitacao: string;
   cliente: {
     nome: string;
   };
@@ -79,7 +79,7 @@ export const StoreDashboardScreen = () => {
           <Text style={styles.cardInfo}><Ionicons name="shirt" size={14} /> {item.itens.length} itens na mala</Text>
           
           <Text style={styles.cardDate}>
-            Solicitada em: {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+            Solicitada em: {new Date(item.data_solicitacao).toLocaleDateString('pt-BR')}
           </Text>
         </View>
       </TouchableOpacity>

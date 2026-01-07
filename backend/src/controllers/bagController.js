@@ -116,7 +116,7 @@ const bagController = {
             }]
           }
         ],
-        order: [['createdAt', 'DESC']],
+        order: [['data_solicitacao', 'DESC']],
       });
 
       const filteredBags = bags.filter(bag => bag.itens.length > 0);
