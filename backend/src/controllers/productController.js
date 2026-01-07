@@ -100,33 +100,34 @@ const productController = {
       if (typeof req.body.variacoes === 'string') {
         req.body.variacoes = JSON.parse(req.body.variacoes);
       }
+      
+      if (Array.isArray(req.body.categoria)) {
+        req.body.categoria = req.body.categoria[0];
+      }
 
       const { error, value } = createProductSchema.validate(req.body, { stripUnknown: true });
       
       if (error) {
-        await t.rollback();
+        if (t) await t.rollback();
         return res.status(400).json({ message: 'Dados inválidos', details: error.details });
       }
-      
-      const { variacoes, ...productData } = value;
-      const files = req.files;
 
+      const files = req.files;
       if (!files || files.length === 0) {
-      
-      if (req.user.tipo_usuario !== 'lojista') {
-        await t.rollback();
-        return res.status(403).json({ message: 'Pelo menos uma imagem é obrigatória.' })
+        if (t) await t.rollback();
+        return res.status(400).json({ message: 'Pelo menos uma imagem é obrigatória.' });
       }
+
+      const { variacoes, ...productData } = value;
       
       const formattedImages = files.map((file, index) => ({
-        url_imagem: '/uploads/${file.filename}',
+        url_imagem: `/uploads/${file.filename}`,
         ordem: index
       }));
 
       const newProduct = await Product.create({
         ...productData,
         lojista_id: req.user.userId,
-        
         variacoes: variacoes,
         imagens: formattedImages,
       }, {
@@ -136,14 +137,15 @@ const productController = {
         ],
         transaction: t
       });
-    }
+
       await t.commit();
       return res.status(201).json({
-        message: 'Produto criado',
+        message: 'Produto criado com sucesso!',
         product: newProduct
       });
+
     } catch (error) {
-      await t.rollback();
+      if (t) await t.rollback();
       console.error('Erro real no backend:', error);
       res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
     }
@@ -195,7 +197,7 @@ const productController = {
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   },
-  
+
   async deleteProduct(req, res) {
     const t = await sequelize.transaction();
     try {
@@ -213,7 +215,7 @@ const productController = {
 
       await ProductImage.destroy({ where: { produto_id: id }, transaction: t });
       await ProductVariation.destroy({ where: { produto_id: id }, transaction: t });
-      
+
       await product.destroy({ transaction: t });
 
       await t.commit();
