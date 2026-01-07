@@ -13,21 +13,19 @@ import {
 import api from '../../services/api';
 
 export const EditProductScreen = ({ route, navigation }: any) => {
-  const { productId } = route.params; // Recebe o ID do produto da navegação
+  const { productId } = route.params;
   
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [isLoading, setIsLoading] = useState(true); // Começa carregando
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Busca os dados do produto quando a tela é carregada
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await api.get(`/products/${productId}`);
+        const response = await api.get(`/api/products/${productId}`);
         const product = response.data;
-        // Preenche o formulário com os dados existentes
         setNome(product.nome);
         setDescricao(product.descricao);
         setPreco(product.preco.toString());
@@ -52,10 +50,10 @@ export const EditProductScreen = ({ route, navigation }: any) => {
         categoria,
       };
 
-      await api.put(`/products/${productId}`, payload);
+      await api.put(`/api/products/${productId}`, payload);
       
       Alert.alert("Sucesso", "Produto atualizado com sucesso!");
-      navigation.goBack(); // Volta para a lista de produtos
+      navigation.goBack();
     } catch (error: any) {
       console.error("Erro ao atualizar produto:", error.response?.data || error);
       Alert.alert("Erro", "Não foi possível atualizar o produto.");
@@ -94,7 +92,6 @@ export const EditProductScreen = ({ route, navigation }: any) => {
   );
 };
 
-// (Use os mesmos estilos do CreateProductScreen)
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   header: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },
