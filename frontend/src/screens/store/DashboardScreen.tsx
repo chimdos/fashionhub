@@ -7,11 +7,10 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert, // Para mostrar erros
+  Alert,
 } from 'react-native';
-import api from '../../services/api'; // Certifique-se que o caminho está correto
+import api from '../../services/api';
 
-// Define a "forma" esperada para uma solicitação de mala
 interface BagRequest {
   id: string;
   status: string;
@@ -30,12 +29,11 @@ export const StoreDashboardScreen = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Busca as solicitações da API quando a tela é carregada
     const fetchBagRequests = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await api.get('/bags/store');
+        const response = await api.get('/api/bags/store');
         setBagRequests(response.data);
       } catch (err: any) {
         console.error("Erro ao buscar solicitações de malas:", err.response?.data || err.message);
@@ -47,12 +45,9 @@ export const StoreDashboardScreen = () => {
     };
 
     fetchBagRequests();
-    // O array vazio [] como segundo argumento garante que a busca só ocorre uma vez
   }, []);
 
-  // Componente para renderizar cada solicitação na lista
   const renderRequest = ({ item }: { item: BagRequest }) => (
-    // No futuro, este TouchableOpacity pode navegar para uma tela de detalhes da mala
     <TouchableOpacity style={styles.requestCard}>
       <Text style={styles.cardTitle}>Solicitação #{item.id.substring(0, 6)}</Text>
       <Text style={styles.cardInfo}>Cliente: {item.cliente.nome}</Text>
@@ -64,7 +59,6 @@ export const StoreDashboardScreen = () => {
     </TouchableOpacity>
   );
 
-  // Se estiver carregando, mostra o indicador
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
@@ -74,7 +68,6 @@ export const StoreDashboardScreen = () => {
     );
   }
 
-  // Se houve um erro na busca
   if (error) {
      return (
        <View style={styles.centerContainer}>
