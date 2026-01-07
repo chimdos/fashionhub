@@ -93,7 +93,7 @@ export const CreateProductScreen = ({ navigation }: any) => {
 
         formData.append('imagens', {
           uri: uri,
-          name: 'produto_${index}.${fileType}',
+          name: `produto_${index}.${fileType}`,
           type: `image/${fileType}`,
         } as any);
         });
