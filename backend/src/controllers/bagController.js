@@ -1,4 +1,4 @@
-const { Bag, BagItem, Product, ProductVariation, User, Address } = require('../models');
+const { Bag, BagItem, Product, ProductVariation, ProductImage, ProductVariation, User, Address } = require('../models');
 const sequelize = require('../config/database');
 const Joi = require('joi');
 
