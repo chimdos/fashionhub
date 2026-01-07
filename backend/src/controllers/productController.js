@@ -95,18 +95,22 @@ const productController = {
   },
 
   async createProduct(req, res) {
+    console.log("--- DADOS RECEBIDOS NO BACKEND ---");
+    console.log("BODY:", req.body);
+    console.log("CATEGORIA TIPO:", typeof req.body.categoria);
+    console.log("----------------------------------");
     const t = await sequelize.transaction();
     try {
       if (typeof req.body.variacoes === 'string') {
         req.body.variacoes = JSON.parse(req.body.variacoes);
       }
-      
+
       if (Array.isArray(req.body.categoria)) {
         req.body.categoria = req.body.categoria[0];
       }
 
       const { error, value } = createProductSchema.validate(req.body, { stripUnknown: true });
-      
+
       if (error) {
         if (t) await t.rollback();
         return res.status(400).json({ message: 'Dados inválidos', details: error.details });
@@ -119,7 +123,7 @@ const productController = {
       }
 
       const { variacoes, ...productData } = value;
-      
+
       const formattedImages = files.map((file, index) => ({
         url_imagem: `/uploads/${file.filename}`,
         ordem: index
