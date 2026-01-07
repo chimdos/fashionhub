@@ -2,10 +2,8 @@ const { Bag, BagItem, Product, ProductVariation, User, Address } = require('../m
 const sequelize = require('../config/database');
 const Joi = require('joi');
 
-// Função que gera o token de 6 dígitos
 const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// Schemas Joi
 const createBagSchema = Joi.object({
   endereco_entrega_id: Joi.string().uuid().required(),
   observacoes: Joi.string().allow('').optional(),
@@ -26,16 +24,12 @@ const confirmPurchaseSchema = Joi.object({
   ).min(1).required()
 });
 
-// Schema para validação da ação do lojista
 const storeActionSchema = Joi.object({
   action: Joi.string().valid('ACEITAR', 'RECUSAR').required(),
   motivo: Joi.string().optional()
 });
 
 const bagController = {
-  /**
-   * Cliente cria uma nova solicitação de mala.
-   */
   async createBagRequest(req, res) {
     const t = await sequelize.transaction();
     try {
@@ -89,9 +83,6 @@ const bagController = {
     }
   },
 
-  /**
-   * Lojista busca as solicitações de malas para a sua loja.
-   */
   async getStoreBagRequests(req, res) {
     try {
       const lojista_id = req.user.userId;
@@ -100,7 +91,7 @@ const bagController = {
         where: { status: ['SOLICITADA', 'PREPARANDO', 'AGUARDANDO_MOTO', 'EM_ROTA_ENTREGA'] },
         include: [
           { model: User, as: 'cliente', attributes: ['id', 'nome', 'email', 'telefone'] },
-          { model: Address, as: 'endereco' },
+          { model: Address, as: 'endereco_entrega' },
           {
             model: BagItem,
             as: 'itens',
@@ -122,12 +113,11 @@ const bagController = {
         order: [['createdAt', 'DESC']],
       });
 
-      // Filtra malas que não contém itens da loja
       const filteredBags = bags.filter(bag => bag.itens.length > 0);
 
       res.json(filteredBags);
 
-      const simplifiedBags = bags.map(bag => ({
+      /*const simplifiedBags = bags.map(bag => ({
         id: bag.id,
         status: bag.status,
         data_solicitacao: bag.data_solicitacao,
@@ -135,10 +125,10 @@ const bagController = {
         itemCount: bag.itens.length,
       }));
 
-      res.json(simplifiedBags);
+      res.json(simplifiedBags);*/
 
     } catch (error) {
-      console.error('ERRO REAL NAS MALAS:', error); // ISSO VAI APARECER NO TERMINAL
+      console.error('ERRO REAL NAS MALAS:', error);
     res.status(500).json({ 
       message: 'Erro interno do servidor', 
       error: error.message 
@@ -146,11 +136,9 @@ const bagController = {
     }
   },
 
-  // Lojista aceita ou recusa a mala
   async updateStatusByStore(req, res) {
     const { bagId } = req.params;
 
-    // Validação Joi
     const { error, value } = storeActionSchema.validate(req.body);
     if (error) return res.status(400).json({ message: 'Entrada inválida', details: error.details });
 
@@ -160,7 +148,6 @@ const bagController = {
       const bag = await Bag.findByPk(bagId);
       if (!bag) return res.status(404).json({ message: 'Mala não encontrada' });
 
-      // Fluxo de recusa
       if (action === 'RECUSAR') {
         if (!motivo) return res.status(400).json({ message: 'Motivo é obrigatório ao recusar.' });
 
@@ -173,7 +160,6 @@ const bagController = {
         return res.json({ message: 'Pedido recusado.', bag });
       }
 
-      // Fluxo de aceite
       if (action === 'ACEITAR') {
         const tokenRetirada = generateToken();
         const tokenEntrega = generateToken();
@@ -184,7 +170,7 @@ const bagController = {
           token_entrega: tokenEntrega
         });
 
-        //TODO: Notificar cliente ("Sua mala já está sendo preparada")
+        // TODO: Notificar cliente ("Sua mala já está sendo preparada")
         return res.json({
           message: 'Pedido aceito. Inicie o preparo',
           tokens: { retirada: tokenRetirada }
@@ -192,19 +178,17 @@ const bagController = {
       }
     } catch (error) {
       console.error(error);
-      return res.json(500)({ error: 'Erro ao processar ação do lojista.' });
+      return res.status(500)({ error: 'Erro ao processar ação do lojista.' });
     }
   },
 
-  // Lojista solicita entregador/motoboy
   async requestCourier(req, res) {
     const { bagId } = req.params;
 
     try {
-      // Busca a mala e o endereço da loja
       const bag = await Bag.findByPk(bagId, {
         include: [
-          { model: Address, as: 'endereco' } // Endereço do cliente (destino)
+          { model: Address, as: 'endereco_entrega' }
         ]
       });
 
@@ -214,17 +198,13 @@ const bagController = {
         return res.status(400).json({ message: 'A mala precisa estar no status PREPARANDO para chamar motoboy.' });
       }
 
-      // Atualiza o status após o processo
       await bag.update({ status: 'AGUARDANDO_MOTO' });
 
-      // SOCKET.IO
-      // Emite o evento para a sala 'entregadores
-      // Envia lat/lng da loja (origem) e do cliente (destino)
       if (req.io) {
         req.io.emit('NOVA_ENTREGA_DISPONIVEL', {
           bagId: bag.id,
           origem: "Endereço da Loja A",
-          destino: bag.endereco,
+          destino: bag.endereco_entrega,
           valorFrete: 15.50, // Calcular via API do Google Maps depois
           distancia: "3.2 km"
         });
@@ -240,12 +220,10 @@ const bagController = {
     }
   },
 
-  /**
-   * Cliente confirma quais itens da mala foram comprados e quais foram devolvidos.
-   */
   async confirmPurchase(req, res) {
     const t = await sequelize.transaction();
     try {
+      let valorFinal = 0;
       const { bagId } = req.params;
       const { error, value } = confirmPurchaseSchema.validate(req.body);
       const { itens_comprados } = req.body;
@@ -287,15 +265,6 @@ const bagController = {
         )
       ));
 
-      // IMPORTANTE: Agora a mala precisa voltar para a loja!
-      // Mudamos o status para AGUARDANDO_MOTO (para aparecer no painel do motoboy de novo)
-      // Mas precisamos de uma flag para saber que é uma "Volta" e não "Ida".
-      // Vamos usar o status 'AGUARDANDO_MOTO' e o motoboy vai saber pela origem/destino
-      // Ou, se preferir usar 'EM_ROTA_DEVOLUCAO' direto se a loja busca depois. 
-      // Vamos manter a lógica do Uber: Gera nova corrida.
-
-      // Reseta o entregador para NULL para que qualquer um possa pegar a volta
-      // E gera token de retirada novo (agora o cliente é quem fornece o token pro motoboy)
       const novoTokenRetirada = Math.floor(100000 + Math.random() * 900000).toString();
 
       // Muda o status para EM_ROTA_DEVOLUCAO (assumindo que o motoboy busca depois)
@@ -310,14 +279,13 @@ const bagController = {
 
       await t.commit();
 
-      // Envia Socket para os entregadores
       if (req.io) {
         req.io.emit('NOVA_ENTREGA_DISPONIVEL', {
           bagId: bag.id,
           tipo: 'DEVOLUCAO',
-          origem: "Casa do Cliente", // Endereço real no futuro
-          destino: "Loja Tal", // Endereço real no futuro
-          valorFrete: 12.00 // Valor exemplo
+          origem: "Casa do Cliente",
+          destino: "Loja Tal",
+          valorFrete: 12.00
         });
       }
 
@@ -336,9 +304,6 @@ const bagController = {
     }
   },
 
-  /**
-   * Lojista confirma o recebimento da mala devolvida e finaliza o processo.
-   */
   async confirmReturn(req, res) {
     const t = await sequelize.transaction();
     try {
@@ -372,7 +337,6 @@ const bagController = {
 
       await Promise.all(stockUpdates);
 
-      // Pagamento
       if (valor_total > 0) {
         await Transaction.create({ /* ... dados da transação ... */ }, { transaction: t });
       }
@@ -395,7 +359,6 @@ const bagController = {
       const { bagId } = req.params;
       const entregadorId = req.user.userId;
 
-      // Verifica se a mala ainda está disponível
       const bag = await Bag.findOne({
         where: { id: bagId, status: 'AGUARDANDO_MOTO' },
         transaction: t,
@@ -414,7 +377,6 @@ const bagController = {
 
       await t.commit();
 
-      // Avisa o lojista via Socket que alguém aceitou a entrega
       req.io.to(bag.lojista_id).emit('ENTREGA_ACEITA', { entregadorId });
 
       return res.json({ message: 'Entrega aceita! Dirija-se à loja.', bag });
@@ -437,7 +399,6 @@ const bagController = {
         return res.status(404).json({ message: 'Mala não encontrada.' });
       }
 
-      // Verificações de segurança
       if (bag.entregador_id !== entregadorId) {
         return res.status(403).json({ message: 'Você não é o entregador desta mala.' });
       }
@@ -446,7 +407,6 @@ const bagController = {
         return res.status(401).json({ message: 'Token de retirada inválido.' });
       }
 
-      // Atualiza a data de retirada para marcar que a primeira fase (ir buscar) terminou
       await bag.update({
         data_retirada: new Date(),
       });
@@ -497,7 +457,6 @@ const bagController = {
 
       await t.commit();
 
-      // Notifica o lojista e o cliente via socket
       if (req.io) {
         req.io.to(`bag_${bagId}`).emit('STATUS_UPDATED', { status: 'ENTREGUE' });
         req.io.to(`store_${bag.lojista_id}`).emit('STATUS_UPDATED', { status: 'ENTREGUE' });
