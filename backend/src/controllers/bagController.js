@@ -105,7 +105,13 @@ const bagController = {
                 as: 'produto',
                 where: { lojista_id },
                 required: true,
-                attributes: ['id', 'nome', 'imagem_url']
+                attributes: ['id', 'nome'],
+                include: [{
+                  model: ProductImage,
+                  as: 'imagens',
+                  attributes: ['url_imagem'],
+                  limit: 1
+                }]
               }]
             }]
           }
