@@ -32,12 +32,12 @@ const bagController = {
   async createBagRequest(req, res) {
     const t = await sequelize.transaction();
     try {
-      const { error, value } = createBagSchema.validate(req.body);
+      const { error, value } = createBagSchema.validate(req.body, { stripUnknown: true });
       if (error) {
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
       }
 
-      const { itens, endereco_entrega_id, observacoes } = value;
+      const { itens, observacoes } = value;
       const cliente_id = req.user.userId;
 
       const usuario = await User.findByPk(cliente_id);
