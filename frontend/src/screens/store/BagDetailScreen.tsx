@@ -19,6 +19,8 @@ export const BagDetailScreen = () => {
   const navigation = useNavigation<any>();
   const { bagId } = route.params;
 
+  console.log("Debug: ID da mala recebido no detalhe:", bagId);
+
   const [bag, setBag] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
