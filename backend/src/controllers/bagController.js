@@ -244,7 +244,7 @@ const bagController = {
       }
 
       const { itens_comprados } = value;
-      const clienteId = req.user.userId; 
+      const clienteId = req.user.userId;
 
       const bag = await Bag.findOne({
         where: { id: bagId, cliente_id: req.user.userId, status: 'ENTREGUE' },
@@ -510,5 +510,46 @@ const bagController = {
       return res.status(500).json({ error: 'Erro ao buscar histórico de pedidos.' });
     }
   },
+
+  async getBagById(req, res) {
+    try {
+      const { bagId } = req.params;
+      const bag = await Bag.findByPk(bagId, {
+        include: [
+          { model: User, as: 'cliente', attributes: ['id', 'nome', 'email', 'telefone'] },
+          { model: Address, as: 'endereco_entrega' },
+          {
+            model: BagItem,
+            as: 'itens',
+            include: [{
+              model: ProductVariation,
+              as: 'variacao_produto',
+              include: [{
+                model: Product,
+                as: 'produto',
+                attributes: ['id', 'nome', 'descricao', 'preco'],
+                include: [{
+                  model: ProductImage,
+                  as: 'imagens',
+                  attributes: ['url_imagem'],
+                  limit: 1
+                }]
+              }]
+            }]
+          }
+        ]
+      });
+
+      if (!bag) return res.status(404).json({ message: 'Mala não encontrada.' });
+
+      if (bag.cliente_id !== req.user.userId && req.user.tipo_usuario !== 'lojista') {
+        return res.status(403).json({ message: 'Você não tem permissão para acessar esta mala.' });
+      }
+
+    } catch (error) {
+      console.error('Erro ao buscar mala por ID:', error);
+      return res.status(500).json({ error: 'Erro ao buscar mala.' });
+    }
+  }
 }
 module.exports = bagController;
