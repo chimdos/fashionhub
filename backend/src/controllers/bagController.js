@@ -24,7 +24,10 @@ const confirmPurchaseSchema = Joi.object({
 });
 
 const storeActionSchema = Joi.object({
-  action: Joi.string().valid('ACEITAR', 'RECUSAR').required(),
+  action: Joi.string()
+    .uppercase()
+    .valid('ACEITAR', 'RECUSAR')
+    .required(),
   motivo: Joi.string().optional()
 });
 
