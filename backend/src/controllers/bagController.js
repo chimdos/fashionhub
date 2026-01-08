@@ -237,13 +237,14 @@ const bagController = {
     try {
       let valorFinal = 0;
       const { bagId } = req.params;
-      const { error, value } = confirmPurchaseSchema.validate(req.body);
-      const { itens_comprados } = req.body;
-      const clienteId = req.user.userId;
+      const { error, value } = confirmPurchaseSchema.validate(req.body, { stripUnknown: true });
 
       if (error) {
         return res.status(400).json({ message: 'Dados inválidos', details: error.details });
       }
+
+      const { itens_comprados } = value;
+      const clienteId = req.user.userId; 
 
       const bag = await Bag.findOne({
         where: { id: bagId, cliente_id: req.user.userId, status: 'ENTREGUE' },
@@ -269,13 +270,6 @@ const bagController = {
           }
         }
       }
-
-      await Promise.all(itens_comprados.map(item =>
-        BagItem.update(
-          { status_item: item.comprar ? 'comprado' : 'devolvido' },
-          { where: { id: item.item_id, mala_id: bagId }, transaction: t }
-        )
-      ));
 
       const novoTokenRetirada = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -306,8 +300,6 @@ const bagController = {
         valorTotal: valorFinal,
         tokenDevolucao: novoTokenRetirada
       });
-
-      res.json({ message: 'Confirmação de compra registrada com sucesso.', bag });
 
     } catch (error) {
       await t.rollback();
