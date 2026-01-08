@@ -545,6 +545,8 @@ const bagController = {
       if (bag.cliente_id !== req.user.userId && req.user.tipo_usuario !== 'lojista') {
         return res.status(403).json({ message: 'Você não tem permissão para acessar esta mala.' });
       }
+      
+      return res.json(bag);
 
     } catch (error) {
       console.error('Erro ao buscar mala por ID:', error);
