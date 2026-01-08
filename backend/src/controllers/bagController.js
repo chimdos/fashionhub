@@ -141,10 +141,10 @@ const bagController = {
 
     } catch (error) {
       console.error('ERRO REAL NAS MALAS:', error);
-    res.status(500).json({ 
-      message: 'Erro interno do servidor', 
-      error: error.message 
-    });
+      res.status(500).json({
+        message: 'Erro interno do servidor',
+        error: error.message
+      });
     }
   },
 
@@ -488,7 +488,6 @@ const bagController = {
 
       const bags = await Bag.findAll({
         where: { cliente_id },
-        
         include: [
           {
             model: BagItem,
@@ -496,13 +495,23 @@ const bagController = {
             include: [{
               model: ProductVariation,
               as: 'variacao_produto',
-              include: [{ model: Product, as: 'produto', attributes: ['nome'] }]
+              include: [{
+                model: Product,
+                as: 'produto',
+                attributes: ['id', 'nome', 'descricao', 'preco'],
+                include: [{
+                  model: ProductImage,
+                  as: 'imagens',
+                  attributes: ['url_imagem'],
+                  limit: 1
+                }]
+              }]
             }]
           }
         ],
-        order: [['createdAt', 'DESC']]
+        order: [['data_solicitacao', 'DESC']]
       });
-      
+
       return res.json(bags);
     } catch (error) {
       console.error('Erro ao buscar malas do cliente:', error);
@@ -510,5 +519,4 @@ const bagController = {
     }
   },
 }
-
 module.exports = bagController;
