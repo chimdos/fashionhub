@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -33,6 +34,7 @@ interface BagRequest {
 export const StoreDashboardScreen = () => {
   const [bagRequests, setBagRequests] = useState<BagRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigation = useNavigation<any>();
 
   const BASE_URL = api.defaults.baseURL;
 
@@ -57,12 +59,14 @@ export const StoreDashboardScreen = () => {
     const primeiraImagem = item.itens[0]?.variacao_produto?.produto?.imagens[0]?.url_imagem;
 
     return (
-      <TouchableOpacity style={styles.requestCard}>
+      <TouchableOpacity style={styles.requestCard}
+        onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
+      >
         <Image
           source={{
-            uri: primeiraImagem 
-              ? `${BASE_URL}${primeiraImagem}` 
-              : 'https://via.placeholder.com/150' 
+            uri: primeiraImagem
+              ? `${BASE_URL}${primeiraImagem}`
+              : 'https://via.placeholder.com/150'
           }}
           style={styles.productImage}
         />
@@ -74,10 +78,10 @@ export const StoreDashboardScreen = () => {
               <Text style={styles.statusText}>{item.status}</Text>
             </View>
           </View>
-          
+
           <Text style={styles.cardInfo}><Ionicons name="person" size={14} /> {item.cliente.nome}</Text>
           <Text style={styles.cardInfo}><Ionicons name="shirt" size={14} /> {item.itens.length} itens na mala</Text>
-          
+
           <Text style={styles.cardDate}>
             Solicitada em: {new Date(item.data_solicitacao).toLocaleDateString('pt-BR')}
           </Text>
@@ -108,7 +112,7 @@ export const StoreDashboardScreen = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Solicitações de Mala</Text>
         <TouchableOpacity onPress={fetchBagRequests}>
-           <Ionicons name="refresh" size={24} color="#28a745" />
+          <Ionicons name="refresh" size={24} color="#28a745" />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -129,13 +133,13 @@ export const StoreDashboardScreen = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    padding: 20, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#eee' 
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
   },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
   list: { padding: 15 },
