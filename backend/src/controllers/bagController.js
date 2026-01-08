@@ -246,7 +246,7 @@ const bagController = {
       }
 
       const bag = await Bag.findOne({
-        where: { id: bagId, cliente_id, status: 'ENTREGUE' },
+        where: { id: bagId, cliente_id: req.user.userId, status: 'ENTREGUE' },
         transaction: t
       });
 
