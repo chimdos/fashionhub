@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
 import { StoreDashboardScreen } from '../screens/store/DashboardScreen';
+import { BagDetailScreen } from '../screens/store/BagDetailScreen';
 import { ProductManagementScreen } from '../screens/store/ProductManagementScreen';
 import { CreateProductScreen } from '../screens/store/CreateProductScreen';
 import { EditProductScreen } from '../screens/store/EditProductScreen';
@@ -23,6 +24,26 @@ function ProductStackNavigator() {
   );
 }
 
+function BagStackNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="BagList" 
+        component={StoreDashboardScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="BagDetails" 
+        component={BagDetailScreen} 
+        options={{ 
+          title: 'Detalhes da Solicitação',
+          headerTintColor: '#28a745',
+        }} 
+      />
+    </Stack.Navigator>
+  );
+}
+
 export function StoreNavigator() {
   return (
     <Tab.Navigator
@@ -30,6 +51,7 @@ export function StoreNavigator() {
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: ComponentProps<typeof Ionicons>['name'] = 'alert-circle-outline';
+          
           if (route.name === 'Explorar') {
             iconName = focused ? 'search' : 'search-outline';
           } else if (route.name === 'Requisições') {
@@ -39,6 +61,7 @@ export function StoreNavigator() {
           } else if (route.name === 'Conta') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
+          
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#28a745',
@@ -46,8 +69,11 @@ export function StoreNavigator() {
       })}
     >
       <Tab.Screen name="Explorar" component={ExploreScreen} />
-      <Tab.Screen name="Requisições" component={StoreDashboardScreen} />
+      
+      <Tab.Screen name="Requisições" component={BagStackNavigator} />
+      
       <Tab.Screen name="Meus Produtos" component={ProductStackNavigator} />
+      
       <Tab.Screen name="Conta" component={StoreSettingsScreen} />
     </Tab.Navigator>
   );
