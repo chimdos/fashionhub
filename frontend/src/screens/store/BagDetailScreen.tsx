@@ -50,7 +50,7 @@ export const BagDetailScreen = () => {
 
     setSubmitting(true);
     try {
-      await api.post(`/api/bags/${bagId}/accept`, { action, motivo }); 
+      await api.post(`/api/bags/${bagId}/store-action`, { action, motivo }); 
       
       Alert.alert("Sucesso", `A solicitação foi ${action === 'ACEITAR' ? 'aceita' : 'recusada'}.`);
       navigation.goBack();
