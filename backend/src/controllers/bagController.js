@@ -190,7 +190,7 @@ const bagController = {
       }
     } catch (error) {
       console.error(error);
-      return res.status(500)({ error: 'Erro ao processar ação do lojista.' });
+      return res.status(500).json({ error: 'Erro ao processar ação do lojista.' });
     }
   },
 
