@@ -3,7 +3,15 @@ const router = express.Router();
 const bagController = require('../controllers/bagController');
 const { authMiddleware, requireUserType } = require('../middleware/auth');
 
-// Rota para um cliente criar uma nova solicitação de mala
+router.get(
+  '/store',
+  authMiddleware,
+  requireUserType('lojista'),
+  bagController.getStoreBagRequests
+);
+
+router.get('/', authMiddleware, bagController.getClientBags);
+
 router.post(
   '/',
   authMiddleware,
@@ -11,35 +19,24 @@ router.post(
   bagController.createBagRequest
 );
 
-// Rota para o cliente confirmar a compra/devolução
-router.put(
+router.get('/:bagId', authMiddleware, bagController.getBagById);
+
+router.post(
   '/:bagId/confirm-purchase',
   authMiddleware,
   requireUserType('cliente'),
   bagController.confirmPurchase
 );
 
-// Rota para o lojista confirmar o retorno da mala
+router.post('/:bagId/accept', authMiddleware, requireUserType('lojista'), bagController.acceptDelivery);
+router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPickup);
+router.post('/:bagId/confirm-delivery', authMiddleware, bagController.confirmDelivery);
+
 router.put(
   '/:bagId/confirm-return',
   authMiddleware,
   requireUserType('lojista'),
   bagController.confirmReturn
 );
-
-// GET /api/bags
-router.get('/', authMiddleware, bagController.getClientBags);
-
-// Rota para o lojista buscar as solicitações de malas pendentes da sua loja
-router.get(
-  '/store', // O endpoint será GET /api/bags/store
-  authMiddleware,
-  requireUserType('lojista'), // Apenas lojistas podem acessar
-  bagController.getStoreBagRequests // Chama a nova função do controller
-);
-// Rota para o entregador aceitar a entrega
-router.post('/:bagId/accept', authMiddleware, bagController.acceptDelivery);
-router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPickup);
-router.post('/:bagId/confirm-delivery', authMiddleware, bagController.confirmDelivery);
 
 module.exports = router;
