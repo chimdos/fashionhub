@@ -559,30 +559,45 @@ const bagController = {
 
   async getAvailableDeliveries(req, res) {
     try {
+      console.log("Iniciando busca de entregas disponíveis...");
+
       const deliveries = await Bag.findAll({
         where: { status: 'AGUARDANDO_MOTO' },
         include: [
           { model: Address, as: 'endereco_entrega' },
           { model: User, as: 'cliente', attributes: ['nome', 'telefone'] }
         ],
-        order: [['data_solicitacao', 'DESC']]
+        order: [['data_solicitacao', 'DESC']],
+        logging: console.log
       });
-      
-      const formatted = deliveries.map(delivery => ({
-        bagId: delivery.id,
-        origem: "Endereço da Loja A",
-        destino: {
-          rua: delivery.endereco_entrega?.rua || 'Rua não informada',
-          numero: delivery.endereco_entrega?.numero || 'N/A',
-          bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
-          cidade: delivery.endereco_entrega?.cidade || 'Cidade não informada',
-          estado: delivery.endereco_entrega?.estado || 'Estado não informado',
-        },
-        valorFrete: Number(delivery.valor_frete) || 15.00,
-        distancia: "3.5 km",
-        clienteNome: delivery.cliente?.nome || 'Cliente',
-        clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível'
-      }));
+
+      console.log(`Entregas encontradas: ${deliveries.length}`);
+
+      if (deliveries.length > 0) {
+        console.log("Exemplo da primeira mala (bruta):", JSON.stringify(deliveries[0], null, 2));
+      }
+
+      const formatted = deliveries.map(delivery => {
+        if (!delivery.endereco_entrega) {
+          console.warn(`Mala ${delivery.id} está sem endereço associado.`);
+        }
+
+        return {
+          bagId: delivery.id,
+          origem: "Endereço da Loja A",
+          destino: {
+            rua: delivery.endereco_entrega?.rua || 'Rua não informada',
+            numero: delivery.endereco_entrega?.numero || 'N/A',
+            bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
+            cidade: delivery.endereco_entrega?.cidade || 'Cidade não informada',
+            estado: delivery.endereco_entrega?.estado || 'Estado não informado',
+          },
+          valorFrete: Number(delivery.valor_frete) || 15.00,
+          distancia: "3.5 km",
+          clienteNome: delivery.cliente?.nome || 'Cliente',
+          clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível'
+        };
+      });
 
       res.json(formatted);
     } catch (error) {
