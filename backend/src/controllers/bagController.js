@@ -28,7 +28,7 @@ const storeActionSchema = Joi.object({
     .uppercase()
     .valid('ACEITAR', 'RECUSAR')
     .required(),
-  motivo: Joi.string().optional()
+  motivo: Joi.string().allow('').optional()
 });
 
 const bagController = {
