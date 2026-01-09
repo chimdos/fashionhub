@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -51,9 +51,11 @@ export const StoreDashboardScreen = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBagRequests();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchBagRequests();
+    }, [])
+  );
 
   const renderRequest = ({ item }: { item: BagRequest }) => {
     const primeiraImagem = item.itens[0]?.variacao_produto?.produto?.imagens[0]?.url_imagem;
@@ -118,6 +120,8 @@ export const StoreDashboardScreen = () => {
       <FlatList
         data={bagRequests}
         renderItem={renderRequest}
+        refreshing={isLoading}
+        onRefresh={fetchBagRequests}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
