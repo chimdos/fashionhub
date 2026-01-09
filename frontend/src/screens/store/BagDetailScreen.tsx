@@ -43,7 +43,7 @@ export const BagDetailScreen = () => {
 
   const handleAction = async (action: 'ACEITAR' | 'RECUSAR') => {
     let motivo = '';
-    
+
     setSubmitting(true);
     try {
       const payload: any = { action };
@@ -52,8 +52,8 @@ export const BagDetailScreen = () => {
         payload.motivo = "Indisponibilidade de estoque no momento.";
       }
 
-      await api.post(`/api/bags/${bagId}/store-action`, { action, motivo }); 
-      
+      await api.post(`/api/bags/${bagId}/store-action`, { action, motivo });
+
       Alert.alert("Sucesso", `A solicitação foi ${action === 'ACEITAR' ? 'aceita' : 'recusada'}.`);
       navigation.goBack();
     } catch (error: any) {
@@ -63,6 +63,23 @@ export const BagDetailScreen = () => {
       setSubmitting(false);
     }
   };
+
+  const handleRequestCourier = async () => {
+    setSubmitting(true);
+    try {
+      await api.post(`/api/bags/${bagId}/request-courier`);
+
+      Alert.alert("Sucesso", "Solicitação de entregador enviada.");
+      fetchBagDetails();
+
+      navigation.goBack();
+    } catch (error: any) {
+      console.error(error.response?.data);
+      Alert.alert("Erro", error.response?.data?.message || "Falha ao solicitar entregador.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -75,7 +92,7 @@ export const BagDetailScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Cliente</Text>
           <View style={styles.infoCard}>
@@ -101,8 +118,8 @@ export const BagDetailScreen = () => {
           <Text style={styles.sectionTitle}>Itens Solicitados ({bag.itens.length})</Text>
           {bag.itens.map((item: any) => (
             <View key={item.id} style={styles.itemRow}>
-              <Image 
-                source={{ uri: `${BASE_URL}${item.variacao_produto.produto.imagens[0]?.url_imagem}` }} 
+              <Image
+                source={{ uri: `${BASE_URL}${item.variacao_produto.produto.imagens[0]?.url_imagem}` }}
                 style={styles.itemImage}
               />
               <View style={styles.itemInfo}>
@@ -127,20 +144,39 @@ export const BagDetailScreen = () => {
 
       {bag.status === 'SOLICITADA' && (
         <View style={styles.footer}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.btnReject]} 
+          <TouchableOpacity
+            style={[styles.actionButton, styles.btnReject]}
             onPress={() => handleAction('RECUSAR')}
             disabled={submitting}
           >
             <Text style={styles.btnText}>RECUSAR</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.btnAccept]} 
+          <TouchableOpacity
+            style={[styles.actionButton, styles.btnAccept]}
             onPress={() => handleAction('ACEITAR')}
             disabled={submitting}
           >
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>ACEITAR MALA</Text>}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {bag.status === 'PREPARANDO' && (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#007bff' }]}
+            onPress={handleRequestCourier}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="bicycle" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.btnText}>MALA PRONTA - CHAMAR MOTOBOY</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       )}
