@@ -2,10 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { io, Socket } from 'socket.io-client';
-import { useAuth } from '../../contexts/AuthContext'; // Ajuste o caminho conforme seu projeto
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
-// Definição do tipo de dados que vem pelo Socket
 interface DeliveryRequest {
   bagId: string;
   origem: string;
@@ -25,28 +24,38 @@ export const CourierDashboardScreen = () => {
   const socketRef = useRef<Socket | null>(null);
   const navigation = useNavigation<any>();
 
-  // --- Conexão com Socket.io ---
-  const toggleOnline = () => {
+  const toggleOnline = async () => {
     if (isOnline) {
-      // Ficar Offline
       socketRef.current?.disconnect();
-      setRequests([]); // Limpa lista
+      setRequests([]);
       setIsOnline(false);
     } else {
-      // Ficar Online
-      // IMPORTANTE: No emulador Android use 'http://10.0.2.2:3000'
-      // No dispositivo físico, use o IP da sua máquina ex: 'http://192.168.1.5:3000'
-      const newSocket = io('http://10.0.2.2:3000'); 
+      const socketURL = api.defaults.baseURL;
+
+      const newSocket = io(socketURL);
+
+      try {
+        const response = await api.get('/api/bags/available');
+
+        if (Array.isArray(response.data)) {
+          setRequests(response.data);
+        } else {
+          console.warn("A API de malas disponíveis não retornou um Array.");
+          setRequests([]);
+        }
+
+      } catch (error) {
+        console.log("Erro ao buscar entregas disponíveis:", error);
+      }
 
       newSocket.on('connect', () => {
         console.log('⚡ Conectado ao servidor de entregas');
-        // Entra na sala específica de entregadores
         newSocket.emit('join_entregadores');
       });
 
       newSocket.on('NOVA_ENTREGA_DISPONIVEL', (data: DeliveryRequest) => {
-        console.log('📦 Nova entrega recebida:', data);
-        setRequests((prev) => [data, ...prev]); // Adiciona no topo da lista
+        console.log('📦 Nova entrega recebida via Socket:', data);
+        setRequests((prev) => [data, ...prev]);
       });
 
       socketRef.current = newSocket;
@@ -54,29 +63,27 @@ export const CourierDashboardScreen = () => {
     }
   };
 
-  // Limpeza ao sair da tela
   useEffect(() => {
     return () => {
       socketRef.current?.disconnect();
     };
   }, []);
 
-  // --- Ação de Aceitar ---
   const handleAccept = async (request: DeliveryRequest) => {
     try {
-      await api.post(`/api/bags/${request.bagId}/accept`);
-
       const response = await api.post(`/api/bags/${request.bagId}/accept`);
+
       Alert.alert('Sucesso', 'Entrega aceita! Dirija-se à loja.');
-      
-      // Remove da lista local após aceitar
+
       setRequests((prev) => prev.filter(req => req.bagId !== request.bagId));
-      
-      // TODO: Navegar para tela de "Em Rota" (Mapas)
+
       navigation.navigate('PickupScreen', { bag: request });
 
     } catch (error: any) {
-      Alert.alert('Ops', error.response?.data?.message || 'Erro ao aceitar corrida.');
+      const errorMsg = error.response?.data?.message || 'Erro ao aceitar corrida.';
+      Alert.alert('Ops!', errorMsg);
+
+      setRequests((prev) => prev.filter(req => req.bagId !== request.bagId));
     }
   };
 
@@ -86,19 +93,19 @@ export const CourierDashboardScreen = () => {
         <Text style={styles.price}>R$ {item.valorFrete.toFixed(2)}</Text>
         <Text style={styles.distance}>{item.distancia}</Text>
       </View>
-      
+
       <View style={styles.cardBody}>
         <Text style={styles.label}>Retirada:</Text>
         <Text style={styles.address}>{item.origem}</Text>
-        
+
         <View style={styles.divider} />
-        
+
         <Text style={styles.label}>Entrega:</Text>
         <Text style={styles.address}>{item.destino?.rua}, {item.destino?.numero}</Text>
       </View>
 
-      <TouchableOpacity 
-        style={styles.acceptButton} 
+      <TouchableOpacity
+        style={styles.acceptButton}
         onPress={() => handleAccept(item)}
       >
         <Text style={styles.acceptText}>ACEITAR CORRIDA</Text>
@@ -110,7 +117,7 @@ export const CourierDashboardScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Olá, {user?.nome}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.statusButton, isOnline ? styles.btnOnline : styles.btnOffline]}
           onPress={toggleOnline}
         >
@@ -145,7 +152,7 @@ const styles = StyleSheet.create({
   btnOnline: { backgroundColor: '#4CAF50' },
   btnOffline: { backgroundColor: '#ccc' },
   statusText: { color: '#fff', fontWeight: 'bold' },
-  
+
   waitingArea: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   waitingText: { marginTop: 10, color: '#666' },
 
@@ -153,7 +160,7 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   price: { fontSize: 22, fontWeight: 'bold', color: '#2ecc71' },
   distance: { fontSize: 14, color: '#666', marginTop: 6 },
-  
+
   cardBody: { marginBottom: 15 },
   label: { fontSize: 12, color: '#999', marginTop: 4 },
   address: { fontSize: 16, color: '#333' },
