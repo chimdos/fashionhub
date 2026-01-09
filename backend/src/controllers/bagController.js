@@ -563,29 +563,34 @@ const bagController = {
         where: { status: 'AGUARDANDO_MOTO' },
         include: [
           { model: Address, as: 'endereco_entrega' },
-          { model: User, as: 'cliente', attributes: ['nome'] }
-        ]
+          { model: User, as: 'cliente', attributes: ['nome', 'telefone'] }
+        ],
+        order: [['data_solicitacao', 'DESC']]
       });
       
       const formatted = deliveries.map(delivery => ({
-        bagId: bag.id,
+        bagId: delivery.id,
         origem: "Endereço da Loja A",
         destino: {
-          rua: bag.endereco_entrega?.rua,
-          numero: bag.endereco_entrega?.numero,
-          bairro: bag.endereco_entrega?.bairro,
-          cidade: bag.endereco_entrega?.cidade,
-          estado: bag.endereco_entrega?.estado,
+          rua: delivery.endereco_entrega?.rua || 'Rua não informada',
+          numero: delivery.endereco_entrega?.numero || 'N/A',
+          bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
+          cidade: delivery.endereco_entrega?.cidade || 'Cidade não informada',
+          estado: delivery.endereco_entrega?.estado || 'Estado não informado',
         },
-        valorFrete: Number(bag.valor_frete) || 15.00,
+        valorFrete: Number(delivery.valor_frete) || 15.00,
         distancia: "3.5 km",
-        clienteNome: bag.cliente?.nome || 'Cliente'
+        clienteNome: delivery.cliente?.nome || 'Cliente',
+        clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível'
       }));
 
       res.json(formatted);
     } catch (error) {
-      console.error('Erro ao buscar entregas disponíveis:', error);
-      res.status(500).json({ error: error.message });
+      console.error("ERRO NO GET_AVAILABLE_DELIVERIES:", error);
+      res.status(500).json({
+        message: 'Erro interno do servidor',
+        error: error.message
+      });
     }
   }
 };
