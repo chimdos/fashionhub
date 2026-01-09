@@ -559,7 +559,7 @@ const bagController = {
 
   async getAvailableDeliveries(req, res) {
     try {
-      console.log("Iniciando busca de entregas disponíveis...");
+      console.log("--- NOVA BUSCA DE ENTREGAS ---");
 
       const deliveries = await Bag.findAll({
         where: { status: 'AGUARDANDO_MOTO' },
@@ -571,15 +571,11 @@ const bagController = {
         logging: console.log
       });
 
-      console.log(`Entregas encontradas: ${deliveries.length}`);
-
-      if (deliveries.length > 0) {
-        console.log("Exemplo da primeira mala (bruta):", JSON.stringify(deliveries[0], null, 2));
-      }
+      console.log(`Resultado: ${deliveries.length} entregas encontradas.`);
 
       const formatted = deliveries.map(delivery => {
         if (!delivery.endereco_entrega) {
-          console.warn(`Mala ${delivery.id} está sem endereço associado.`);
+          console.log(`⚠️ Alerta: Mala ID ${delivery.id} sem endereço.`);
         }
 
         return {
@@ -599,11 +595,12 @@ const bagController = {
         };
       });
 
-      res.json(formatted);
+      return res.json(formatted);
+
     } catch (error) {
-      console.error("ERRO NO GET_AVAILABLE_DELIVERIES:", error);
-      res.status(500).json({
-        message: 'Erro interno do servidor',
+      console.error("❌ ERRO CRÍTICO NO BACKEND:", error);
+      return res.status(500).json({
+        message: 'Erro interno no servidor',
         error: error.message
       });
     }
