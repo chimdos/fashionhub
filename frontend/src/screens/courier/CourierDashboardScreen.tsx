@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DeliveryRequest {
   bagId: string;
@@ -23,6 +24,7 @@ export const CourierDashboardScreen = () => {
   const [requests, setRequests] = useState<DeliveryRequest[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const navigation = useNavigation<any>();
+  const { signOut } = useAuth();
 
   const toggleOnline = async () => {
     if (isOnline) {
@@ -115,6 +117,14 @@ export const CourierDashboardScreen = () => {
     </View>
   );
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.log('Erro sair da conta:', error);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -142,6 +152,12 @@ export const CourierDashboardScreen = () => {
           contentContainerStyle={{ padding: 16 }}
         />
       )}
+      <TouchableOpacity
+        onPress={handleLogout}
+        style={{ padding: 10, backgroundColor: '#ff4444', borderRadius: 5, marginTop: 20 }}
+      >
+        <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 'bold' }}>SAIR DA CONTA</Text>
+      </TouchableOpacity>
     </View>
   );
 };
