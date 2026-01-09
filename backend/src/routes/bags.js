@@ -44,6 +44,8 @@ router.post(
   bagController.requestCourier
 );
 
+router.get('/available', authMiddleware, bagController.getAvailableDeliveries);
+
 router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPickup);
 router.post('/:bagId/confirm-delivery', authMiddleware, bagController.confirmDelivery);
 
