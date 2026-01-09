@@ -566,9 +566,25 @@ const bagController = {
           { model: User, as: 'cliente', attributes: ['nome'] }
         ]
       });
+      
+      const formatted = deliveries.map(delivery => ({
+        bagId: bag.id,
+        origem: "Endereço da Loja A",
+        destino: {
+          rua: bag.endereco_entrega?.rua,
+          numero: bag.endereco_entrega?.numero,
+          bairro: bag.endereco_entrega?.bairro,
+          cidade: bag.endereco_entrega?.cidade,
+          estado: bag.endereco_entrega?.estado,
+        },
+        valorFrete: Number(bag.valor_frete) || 15.00,
+        distancia: "3.5 km",
+        clienteNome: bag.cliente?.nome || 'Cliente'
+      }));
 
-      res.json(deliveries);
+      res.json(formatted);
     } catch (error) {
+      console.error('Erro ao buscar entregas disponíveis:', error);
       res.status(500).json({ error: error.message });
     }
   }
