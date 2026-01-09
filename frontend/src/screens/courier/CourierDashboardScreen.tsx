@@ -36,8 +36,10 @@ export const CourierDashboardScreen = () => {
 
       try {
         const response = await api.get('/api/bags/available');
+        console.log("DADOS RECEBIDOS DA API:", response.data);
 
         if (Array.isArray(response.data)) {
+          console.log("Total de entregas encontradas:", response.data.length);
           setRequests(response.data);
         } else {
           console.warn("A API de malas disponíveis não retornou um Array.");
