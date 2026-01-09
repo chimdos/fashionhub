@@ -44,12 +44,14 @@ export const BagDetailScreen = () => {
   const handleAction = async (action: 'ACEITAR' | 'RECUSAR') => {
     let motivo = '';
     
-    if (action === 'RECUSAR') {
-      motivo = "Indisponibilidade de estoque no momento.";
-    }
-
     setSubmitting(true);
     try {
+      const payload: any = { action };
+
+      if (action === 'RECUSAR') {
+        payload.motivo = "Indisponibilidade de estoque no momento.";
+      }
+
       await api.post(`/api/bags/${bagId}/store-action`, { action, motivo }); 
       
       Alert.alert("Sucesso", `A solicitação foi ${action === 'ACEITAR' ? 'aceita' : 'recusada'}.`);
