@@ -34,7 +34,16 @@ router.post(
   requireUserType('lojista'),
   bagController.updateStatusByStore
 );
+
 router.post('/:bagId/accept', authMiddleware, requireUserType('entregador'), bagController.acceptDelivery);
+
+router.post(
+  '/:bagId/request-courier', 
+  authMiddleware, 
+  requireUserType('lojista'), 
+  bagController.requestCourier
+);
+
 router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPickup);
 router.post('/:bagId/confirm-delivery', authMiddleware, bagController.confirmDelivery);
 
