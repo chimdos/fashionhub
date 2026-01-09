@@ -180,6 +180,17 @@ export const BagDetailScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+
+      {bag.status === 'AGUARDANDO_MOTO' && (
+        <View style={[styles.infoCard, { backgroundColor: '#fff3cd', marginTop: 10 }]}>
+          <Text style={{ fontWeight: 'bold', color: '#856404' }}>
+            Aguardando entregador...
+          </Text>
+          <Text style={{ fontSize: 18, marginTop: 5 }}>
+            Token de Retirada: <Text style={{ fontWeight: 'bold' }}>{bag.token_retirada}</Text>
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
