@@ -3,19 +3,15 @@ const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize) => {
   class User extends Model {
-    // Método para verificar a senha
     async checkPassword(password) {
-      // Usa a senha_hash da instância atual para comparar
       return await bcrypt.compare(password, this.senha_hash);
     }
 
     static associate(models) {
-      // Um usuário pertence a um endereço
       this.belongsTo(models.Address, {
         foreignKey: 'endereco_id',
         as: 'endereco'
       });
-      // Um usuário (se for lojista) tem um perfil de lojista
       this.hasOne(models.Lojista, {
         foreignKey: 'id',
         as: 'lojistaProfile'
@@ -56,15 +52,22 @@ module.exports = (sequelize) => {
     ativo: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
-    }
-    // O campo endereco_id é gerenciado pela associação
+    },
+    password_reset_token: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    password_reset_expires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
   }, {
     sequelize,
     modelName: 'User',
     tableName: 'usuarios',
-    timestamps: true, // Habilitado para usar createdAt
-    createdAt: 'data_cadastro', // Mapeia createdAt para data_cadastro
-    updatedAt: false, // Desabilita updatedAt se não existir
+    timestamps: true,
+    createdAt: 'data_cadastro',
+    updatedAt: false,
     defaultScope: {
       attributes: { exclude: ['senha_hash'] }
     },
@@ -91,4 +94,3 @@ module.exports = (sequelize) => {
 
   return User;
 };
-
