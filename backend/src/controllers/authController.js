@@ -124,7 +124,7 @@ const authController = {
       console.log(`Token: ${token}`);
       console.log(`----------------------------\n`);
 
-      return res.json({ message: 'Se o e-mail exisitr, um token de recuperação foi enviado.' });
+      return res.json({ message: 'TESTE DE CONEXÃO: 12345' })
     } catch (error) {
       console.error('ERRO DURANTE O ESQUECI MINHA SENHA:', error);
       res.status(500).json({ message: 'Erro ao processar solicitação.' });
