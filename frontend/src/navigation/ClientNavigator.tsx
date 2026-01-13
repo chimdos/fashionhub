@@ -2,7 +2,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HomeScreen } from '../screens/client/HomeScreen';
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
@@ -15,19 +15,15 @@ import { BagSelectionScreen } from '../screens/client/BagSelectionScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-/**
- * 1. Primeiro, criamos as ABAS (Tabs) isoladamente.
- * Contém apenas as telas principais de navegação.
- */
 function ClientTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#000', // Preto é mais fashion que azul padrão ;)
+        tabBarActiveTintColor: '#000',
         tabBarInactiveTintColor: 'gray',
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName = 'alert-circle-outline';
+          let iconName: React.ComponentProps<typeof Ionicons>['name'] = 'alert-circle-outline';
 
           if (route.name === 'Início') {
             iconName = focused ? 'home' : 'home-outline';
@@ -51,35 +47,27 @@ function ClientTabs() {
   );
 }
 
-/**
- * 2. Navegador Principal (Stack Global)
- * Esse navegador segura as abas E todas as telas que podem ser abertas
- * de qualquer lugar (como Detalhes de Produto ou Virar Entregador).
- */
 export function ClientNavigator() {
   return (
     <Stack.Navigator>
-      {/* A tela principal é o conjunto de Abas */}
-      <Stack.Screen 
-        name="MainTabs" 
-        component={ClientTabs} 
-        options={{ headerShown: false }} 
+      <Stack.Screen
+        name="MainTabs"
+        component={ClientTabs}
+        options={{ headerShown: false }}
       />
 
-      {/* -- Telas Globais (Abrem por cima das abas) -- */}
-      
-      <Stack.Screen 
-        name="ProductDetail" 
-        component={ProductDetailScreen} 
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
         options={{ title: 'Detalhes' }}
       />
-      
+
       <Stack.Screen
         name="BecomeCourierScreen"
         component={BecomeCourierScreen}
         options={{ title: 'Trabalhe Conosco' }}
       />
-      
+
       <Stack.Screen
         name="BagSelection"
         component={BagSelectionScreen}
