@@ -563,10 +563,10 @@ const bagController = {
 
       const deliveries = await Bag.findAll({
         where: { status: 'AGUARDANDO_MOTO' },
-        include: [
+        /*include: [
           { model: Address, as: 'endereco_entrega' },
           { model: User, as: 'cliente', attributes: ['nome', 'telefone'] }
-        ],
+        ],*/
         order: [['data_solicitacao', 'DESC']],
         logging: console.log
       });
