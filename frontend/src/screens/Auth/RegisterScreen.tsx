@@ -14,19 +14,19 @@ import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
 
-const Step1 = ({ 
-  nome, setNome, email, setEmail, senha, setSenha, 
-  ddi, setDdi, telefone, setTelefone, onNext 
+const Step1 = ({
+  nome, setNome, email, setEmail, senha, setSenha,
+  ddi, setDdi, telefone, setTelefone, onNext
 }: any) => {
   return (
     <>
       <Text style={styles.title}>Crie sua Conta</Text>
       <Text style={styles.subtitle}>Vamos começar com seus dados básicos.</Text>
-      
+
       <TextInput style={styles.input} placeholder="Nome completo" value={nome} onChangeText={setNome} />
       <TextInput style={styles.input} placeholder="Seu e-mail" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
       <TextInput style={styles.input} placeholder="Crie uma senha" secureTextEntry value={senha} onChangeText={setSenha} />
-      
+
       <View style={styles.phoneRow}>
         <TextInput
           style={[styles.input, styles.ddiInput]}
@@ -52,12 +52,12 @@ const Step1 = ({
   );
 };
 
-const Step2 = ({ 
-  rua, setRua, numero, setNumero, bairro, setBairro, 
-  cidade, setCidade, estado, setEstado, cep, setCep, 
-  onRegister, isLoading 
+const Step2 = ({
+  rua, setRua, numero, setNumero, bairro, setBairro,
+  cidade, setCidade, estado, setEstado, cep, setCep,
+  onRegister, isLoading
 }: any) => {
-  
+
   const handleCepChange = async (text: string) => {
     setCep(text);
     const cleanedCep = text.replace(/\D/g, '');
@@ -85,7 +85,7 @@ const Step2 = ({
     <>
       <Text style={styles.title}>Endereço de Entrega</Text>
       <Text style={styles.subtitle}>Onde você receberá suas malas.</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="CEP"
@@ -99,7 +99,7 @@ const Step2 = ({
       <TextInput style={styles.input} placeholder="Bairro" value={bairro} onChangeText={setBairro} />
       <TextInput style={[styles.input, styles.disabledInput]} placeholder="Cidade" value={cidade} editable={false} />
       <TextInput style={[styles.input, styles.disabledInput]} placeholder="Estado" value={estado} editable={false} />
-      
+
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={onRegister}
@@ -121,7 +121,7 @@ export const RegisterScreen = ({ navigation }: any) => {
   const [senha, setSenha] = useState('');
   const [ddi, setDdi] = useState('+55');
   const [telefone, setTelefone] = useState('');
-  
+
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
   const [bairro, setBairro] = useState('');
@@ -143,6 +143,11 @@ export const RegisterScreen = ({ navigation }: any) => {
       return;
     }
 
+    if (senha.length < 8) {
+      Alert.alert('Senha muito curta', 'Para sua segurança, a senha deve ter pelo menos 8 caracteres.');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const telefoneFormatado = `${ddi}${telefone.replace(/\D/g, '')}`;

@@ -14,6 +14,11 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
       return;
     }
 
+    if (novaSenha.length < 8) {
+      Alert.alert('Atenção', 'A nova senha precisa ter no mínimo 8 caracteres.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await api.post('/api/auth/reset-password', { email, token, novaSenha });
