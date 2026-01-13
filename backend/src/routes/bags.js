@@ -19,6 +19,8 @@ router.post(
   bagController.createBagRequest
 );
 
+router.get('/available', authMiddleware, bagController.getAvailableDeliveries);
+
 router.get('/:bagId', authMiddleware, bagController.getBagById);
 
 router.post(
@@ -43,8 +45,6 @@ router.post(
   requireUserType('lojista'), 
   bagController.requestCourier
 );
-
-router.get('/available', authMiddleware, bagController.getAvailableDeliveries);
 
 router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPickup);
 router.post('/:bagId/confirm-delivery', authMiddleware, bagController.confirmDelivery);
