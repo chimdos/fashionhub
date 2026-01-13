@@ -101,6 +101,7 @@ const authController = {
   },
 
   async forgotPassword(req, res) {
+    throw new Error("EU QUERO VER ESSE ERRO NO TERMINAL!");
     const { email } = req.body;
     try {
       const user = await User.findOne({ where: { email } });
