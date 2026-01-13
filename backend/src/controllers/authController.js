@@ -2,12 +2,10 @@ const { User, Address, Lojista } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
+const crypto = require('crypto');
 
 const authController = {
-  /**
-   * Registra um novo usuário.
-   * Se o tipo de usuário for 'lojista', cria também o perfil na tabela de lojistas.
-   */
+
   async register(req, res) {
     const t = await sequelize.transaction();
     try {
@@ -22,39 +20,34 @@ const authController = {
       const newUser = await User.create({
         nome,
         email,
-        senha_hash: senha, // O hook do modelo User irá criptografar a senha
+        senha_hash: senha,
         tipo_usuario,
         telefone,
       }, { transaction: t });
 
-      // Se um endereço foi fornecido, cria e o associa ao usuário
       if (endereco) {
         const newAddress = await Address.create(endereco, { transaction: t });
         await newUser.setEndereco(newAddress, { transaction: t });
       }
 
-      // Se o usuário for um lojista, cria o seu perfil
       if (tipo_usuario === 'lojista') {
         if (!nome_loja) {
           throw new Error('O nome da loja é obrigatório para o registro de lojista.');
         }
         await Lojista.create({
-          id: newUser.id, // Usa o mesmo ID do usuário
+          id: newUser.id,
           nome_loja: nome_loja,
         }, { transaction: t });
       }
-      
-      // Confirma todas as operações no banco de dados
+
       await t.commit();
-      
-      // Gera o token de autenticação para o novo usuário
+
       const token = jwt.sign(
         { userId: newUser.id, tipo_usuario: newUser.tipo_usuario },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
-      
-      // Prepara a resposta, removendo a senha
+
       const userResponse = newUser.get({ plain: true });
       delete userResponse.senha_hash;
 
@@ -62,46 +55,39 @@ const authController = {
 
     } catch (error) {
       if (t && !t.finished) {
-      await t.rollback();
-    }
-    
-    console.error('ERRO REAL NO REGISTRO:', error);
-    return res.status(500).json({ 
-      message: 'Erro interno do servidor.',
-      error: error.message
-    });
+        await t.rollback();
+      }
+
+      console.error('ERRO REAL NO REGISTRO:', error);
+      return res.status(500).json({
+        message: 'Erro interno do servidor.',
+        error: error.message
+      });
     }
   },
 
-  /**
-   * Autentica um usuário existente.
-   */
   async login(req, res) {
     try {
       const { email, senha } = req.body;
 
-      // Busca o usuário pelo e-mail, incluindo a senha para verificação
       const user = await User.scope('withPassword').findOne({ where: { email, ativo: true } });
 
       if (!user) {
         return res.status(401).json({ message: 'Credenciais inválidas.' });
       }
 
-      // Usa o método do modelo para verificar a senha
       const isPasswordValid = await user.checkPassword(senha);
 
       if (!isPasswordValid) {
         return res.status(401).json({ message: 'Credenciais inválidas.' });
       }
 
-      // Gera o token de autenticação
       const token = jwt.sign(
         { userId: user.id, tipo_usuario: user.tipo_usuario },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN }
       );
-      
-      // Prepara a resposta, removendo a senha
+
       const userResponse = user.get({ plain: true });
       delete userResponse.senha_hash;
 
@@ -111,8 +97,65 @@ const authController = {
       console.error('ERRO DURANTE O LOGIN:', error);
       res.status(500).json({ message: 'Erro interno do servidor.' });
     }
-  }
+  },
+
+  async forgotPassword(req, res) {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado.' });
+      }
+
+      const token = crypto.randomBytes(20).toString('hex');
+
+      const expires = new Date();
+      expires.setHours(expires.getHours() + 1);
+
+      await user.update({
+        password_reset_token: token,
+        password_reset_expires: expires
+      });
+
+      console.log(`\n--- RECUPERAÇÃO DE SENHA ---`);
+      console.log(`Usuário: ${user.nome}`);
+      console.log(`Token: ${token}`);
+      console.log(`----------------------------\n`);
+
+      return res.json({ message: 'Se o e-mail exisitr, um token de recuperação foi enviado.' });
+    } catch (error) {
+      console.error('ERRO DURANTE O ESQUECI MINHA SENHA:', error);
+      res.status(500).json({ message: 'Erro ao processar solicitação.' });
+    }
+  },
+
+  async resetPassword(req, res) {
+    const { email, token, novaSenha } = req.body;
+    try {
+      const user = await User.findOne({
+        where: {
+          email,
+          password_reset_token: token,
+          password_reset_expires: { [sequelize.Op.gt]: new Date() }
+        }
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: 'Token inválido ou expirado.' });
+      }
+
+      user.senha_hash = novaSenha;
+      user.password_reset_token = null;
+      user.password_reset_expires = null;
+      await user.save();
+
+      res.json({ message: 'Senha atualizada com sucesso.' });
+
+    } catch (error) {
+      console.error('ERRO DURANTE A REDEFINIÇÃO DE SENHA:', error);
+      res.status(500).json({ message: 'Erro ao processar solicitação.' });
+    }
+  },
 };
-
 module.exports = authController;
-
