@@ -558,6 +558,8 @@ const bagController = {
   },
 
   async getAvailableDeliveries(req, res) {
+    console.log("!!! CHEGOU NA FUNÇÃO getAvailableDeliveries !!!");
+    return res.status(200).send("O backend está vivo.");
     try {
       console.log("--- NOVA BUSCA DE ENTREGAS ---");
 
