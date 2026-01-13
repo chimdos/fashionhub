@@ -558,17 +558,15 @@ const bagController = {
   },
 
   async getAvailableDeliveries(req, res) {
-    console.log("!!! CHEGOU NA FUNÇÃO getAvailableDeliveries !!!");
-    return res.status(200).send("O backend está vivo.");
     try {
       console.log("--- NOVA BUSCA DE ENTREGAS ---");
 
       const deliveries = await Bag.findAll({
         where: { status: 'AGUARDANDO_MOTO' },
-        /*include: [
+        include: [
           { model: Address, as: 'endereco_entrega' },
           { model: User, as: 'cliente', attributes: ['nome', 'telefone'] }
-        ],*/
+        ],
         order: [['data_solicitacao', 'DESC']],
         logging: console.log
       });
