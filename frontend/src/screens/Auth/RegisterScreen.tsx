@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,13 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
 
-const Step1 = ({
-  nome, setNome, email, setEmail, senha, setSenha,
-  ddi, setDdi, telefone, setTelefone, onNext
-}: any) => {
+const Step1 = ({ nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, telefone, setTelefone, onNext }: any) => {
   return (
     <>
       <Text style={styles.title}>Crie sua Conta</Text>
@@ -25,7 +22,15 @@ const Step1 = ({
 
       <TextInput style={styles.input} placeholder="Nome completo" value={nome} onChangeText={setNome} />
       <TextInput style={styles.input} placeholder="Seu e-mail" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Crie uma senha" secureTextEntry value={senha} onChangeText={setSenha} />
+
+      <TextInput
+        style={[styles.input, { marginBottom: 4 }]}
+        placeholder="Crie uma senha"
+        secureTextEntry
+        value={senha}
+        onChangeText={setSenha}
+      />
+      <Text style={styles.helperText}>A senha deve ter no mínimo 8 caracteres.</Text>
 
       <View style={styles.phoneRow}>
         <TextInput
@@ -134,6 +139,12 @@ export const RegisterScreen = ({ navigation }: any) => {
       Alert.alert('Atenção', 'Por favor, preencha todos os campos da primeira etapa.');
       return;
     }
+
+    if (senha.length < 8) {
+      Alert.alert('Senha muito curta', 'Sua senha precisa ter pelo menos 8 caracteres para garantir a segurança da sua conta.');
+      return;
+    }
+    
     setStep(2);
   };
 
@@ -147,7 +158,7 @@ export const RegisterScreen = ({ navigation }: any) => {
       Alert.alert('Senha muito curta', 'Para sua segurança, a senha deve ter pelo menos 8 caracteres.');
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const telefoneFormatado = `${ddi}${telefone.replace(/\D/g, '')}`;
@@ -235,5 +246,12 @@ const styles = StyleSheet.create({
   disabledInput: {
     backgroundColor: '#eeeeee',
     color: '#666',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#777',
+    marginBottom: 12,
+    marginLeft: 4,
+    fontStyle: 'italic'
   },
 });
