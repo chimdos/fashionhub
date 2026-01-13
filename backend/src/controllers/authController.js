@@ -138,7 +138,7 @@ const authController = {
         where: {
           email,
           password_reset_token: token,
-          password_reset_expires: { [sequelize.Op.gt]: new Date() }
+          password_reset_expires: { [Op.gt]: new Date() }
         }
       });
 
