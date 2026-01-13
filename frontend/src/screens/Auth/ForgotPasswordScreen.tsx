@@ -16,9 +16,14 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
     try {
       await api.post('/api/auth/forgot-password', { email });
       Alert.alert(
-        'Sucesso', 
-        'As instruções de recuperação foram enviadas para o seu e-mail (verifique o console do VS Code).',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        'Sucesso',
+        'Token gerado com sucesso! Verifique os logs.',
+        [
+          {
+            text: 'Digitar Token',
+            onPress: () => navigation.navigate('ResetPassword')
+          }
+        ]
       );
     } catch (error: any) {
       Alert.alert('Erro', error.response?.data?.message || 'Falha ao solicitar recuperação.');
@@ -43,8 +48,8 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
         onChangeText={setEmail}
       />
 
-      <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]} 
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleRequestReset}
         disabled={isLoading}
       >
