@@ -3,17 +3,15 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../contexts/AuthContext';
 
-// Importa os NAVEGADORES de cada perfil
 import { ClientNavigator } from './ClientNavigator';
 import { StoreNavigator } from './StoreNavigator';
 import { CourierNavigator } from './CourierNavigator';
 
-// Importa as telas individuais
 import { LoginScreen } from '../screens/Auth/LoginScreen';
 import { RegisterScreen } from '../screens/Auth/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/Auth/ForgotPasswordScreen';
+import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
 import { StoreRegisterScreen } from '../screens/Auth/StoreRegisterScreen';
-// Telas que podem ser abertas por cima das abas (ex: Detalhes do Produto)
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 
 const Stack = createNativeStackNavigator();
@@ -25,6 +23,7 @@ function AuthNavigator() {
       <Stack.Screen name="StoreRegister" component={StoreRegisterScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: 'Nova Senha' }}/>
     </Stack.Navigator>
   );
 }
