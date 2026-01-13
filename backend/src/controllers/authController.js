@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
 const crypto = require('crypto');
+const { Op } = require('sequelize');
 
 const authController = {
 
