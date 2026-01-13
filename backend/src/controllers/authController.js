@@ -41,6 +41,12 @@ const authController = {
         }, { transaction: t });
       }
 
+      if (senha && senha.length < 8) {
+        return res.status(400).json({
+          message: 'A senha deve conter no mínimo 8 caracteres.'
+        });
+      }
+
       await t.commit();
 
       const token = jwt.sign(
@@ -149,6 +155,13 @@ const authController = {
       user.senha_hash = novaSenha;
       user.password_reset_token = null;
       user.password_reset_expires = null;
+
+      if (senha && senha.length < 8) {
+        return res.status(400).json({
+          message: 'A senha deve conter no mínimo 8 caracteres.'
+        });
+      }
+
       await user.save();
 
       res.json({ message: 'Senha atualizada com sucesso.' });
