@@ -176,7 +176,7 @@ const authController = {
     console.log("--- INICIANDO VERIFICAÇÃO ---");
     console.log("Dados recebidos no Body:", req.body);
     try {
-      const { email, telefone } = req.body;
+      const { email, telefone, nome_loja, cnpj } = req.body;
       const errors = {};
 
       if (email) {
@@ -190,9 +190,9 @@ const authController = {
         if (existingPhone) errors.telefone = 'Este telefone já está em uso.';
       }
 
-      if (nomeLoja) {
+      if (nome_loja) {
         console.log("Checando nome da loja...");
-        const existingStore = await Lojista.findOne({ where: { nome_loja: nomeLoja } });
+        const existingStore = await Lojista.findOne({ where: { nome_loja } });
         if (existingStore) errors.nomeLoja = 'Este nome de loja já está em uso.';
       }
 
