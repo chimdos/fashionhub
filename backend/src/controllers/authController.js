@@ -176,6 +176,8 @@ const authController = {
     try {
       const { email, telefone } = req.body;
       const errors = {};
+      
+      console.log("Checando dados:", { email, nome_loja });
 
       if (email) {
         const existingEmail = await User.findOne({ where: { email } });
