@@ -7,6 +7,7 @@ import { ClientNavigator } from './ClientNavigator';
 import { StoreNavigator } from './StoreNavigator';
 import { CourierNavigator } from './CourierNavigator';
 
+import { WelcomeScreen } from '../screens/Auth/WelcomeScreen';
 import { LoginScreen } from '../screens/Auth/LoginScreen';
 import { RegisterScreen } from '../screens/Auth/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/Auth/ForgotPasswordScreen';
@@ -18,12 +19,13 @@ const Stack = createNativeStackNavigator();
 
 function AuthNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Register" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="StoreRegister" component={StoreRegisterScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: 'Nova Senha' }}/>
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: 'Nova Senha' }} />
     </Stack.Navigator>
   );
 }
