@@ -5,14 +5,17 @@ import {
     TouchableOpacity,
     StyleSheet,
     ImageBackground,
-    SafeAreaView
+    SafeAreaView,
+    Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+const LIGHT_GRAY_BG = '#F0F0F0';
 
 export const WelcomeScreen = ({ navigation }: any) => {
     return (
         <ImageBackground
-            source={require('../../assets/background_fashion.jpg')}
+            source={require('../../assets/welcomescreen_background.webp')}
             style={styles.background}
         >
             <SafeAreaView style={styles.overlay}>
@@ -21,28 +24,35 @@ export const WelcomeScreen = ({ navigation }: any) => {
 
                 <View style={styles.contentCard}>
 
-                    <View style={styles.neumorphicWrapperBlue}>
-                        <TouchableOpacity
-                            style={styles.buttonBlue}
-                            onPress={() => navigation.navigate('Login')}
-                        >
-                            <Text style={styles.buttonTextBlue}>JÁ TENHO UMA CONTA</Text>
-                        </TouchableOpacity>
+                    <View style={styles.blueLightWrapper}>
+                        <View style={styles.blueDarkWrapper}>
+                            <TouchableOpacity
+                                style={styles.buttonBlue}
+                                onPress={() => navigation.navigate('Login')}
+                            >
+                                <Text style={styles.buttonTextBlue}>JÁ TENHO UMA CONTA</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
-                    <View style={styles.neumorphicWrapperGray}>
-                        <TouchableOpacity
-                            style={styles.buttonGray}
-                            onPress={() => navigation.navigate('Register')}
-                        >
-                            <Text style={styles.buttonTextGray}>CRIAR UMA CONTA</Text>
-                        </TouchableOpacity>
+                    <View style={styles.neumorphicLight}>
+                        <View style={styles.neumorphicDark}>
+                            <TouchableOpacity
+                                style={styles.buttonGray}
+                                onPress={() => navigation.navigate('Register')}
+                            >
+                                <Text style={styles.buttonTextGray}>CRIAR UMA CONTA</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     <Text style={styles.socialTitle}>Acessar com</Text>
                     <View style={styles.socialRow}>
                         <TouchableOpacity style={styles.socialIcon}>
-                            <Ionicons name="logo-google" size={32} color="#DB4437" />
+                            <Image
+                                source={require('../../assets/google_g.png')}
+                                style={styles.googleImage}
+                            />
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.socialIcon}>
@@ -78,11 +88,11 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 25,
         marginBottom: 20,
-        shadowColor: "#000",
-        shadowOffset: { width: 5, height: 5 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 8,
+        shadowColor: "#4A9BCE",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.5,
+        shadowRadius: 12,
+        elevation: 12,
     },
     buttonBlue: {
         backgroundColor: '#5DADE2',
@@ -93,9 +103,9 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.3)',
     },
     buttonTextBlue: {
-        color: '#004080',
+        color: '#333333',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 20,
     },
     neumorphicWrapperGray: {
         width: '100%',
@@ -116,9 +126,9 @@ const styles = StyleSheet.create({
         borderColor: '#F0F0F0',
     },
     buttonTextGray: {
-        color: '#333',
+        color: '#333333',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 20,
     },
     socialTitle: {
         fontSize: 16,
@@ -131,7 +141,7 @@ const styles = StyleSheet.create({
         gap: 30,
     },
     socialIcon: {
-        backgroundColor: '#E0E0E0',
+        backgroundColor: LIGHT_GRAY_BG,
         padding: 10,
         borderRadius: 50,
         elevation: 4,
@@ -139,5 +149,50 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 2, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 52,
+        height: 52,
+    },
+    neumorphicLight: {
+        width: '100%',
+        borderRadius: 25,
+        marginBottom: 30,
+        shadowColor: "#FFFFFF",
+        shadowOffset: { width: -5, height: -5 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+    },
+    neumorphicDark: {
+        width: '100%',
+        borderRadius: 25,
+        shadowColor: "#000000",
+        shadowOffset: { width: 5, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    blueLightWrapper: {
+        width: '100%',
+        borderRadius: 25,
+        marginBottom: 20,
+        shadowColor: "#FFFFFF",
+        shadowOffset: { width: -4, height: -4 },
+        shadowOpacity: 0.8,
+        shadowRadius: 8,
+    },
+    blueDarkWrapper: {
+        width: '100%',
+        borderRadius: 25,
+        shadowColor: "#4A9BCE",
+        shadowOffset: { width: 6, height: 6 },
+        shadowOpacity: 0.6,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    googleImage: {
+        width: 30,
+        height: 30,
+        resizeMode: 'contain',
     }
 });
