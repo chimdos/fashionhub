@@ -14,7 +14,7 @@ import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
 
-const Step1 = ({ nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, telefone, setTelefone, onNext }: any) => {
+const Step1 = ({ nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, telefone, setTelefone, onNext, isLoading }: any) => {
   return (
     <>
       <Text style={styles.title}>Crie sua Conta</Text>
@@ -50,8 +50,16 @@ const Step1 = ({ nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, t
         />
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={onNext}>
-        <Text style={styles.buttonText}>Avançar</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={onNext}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Avançar</Text>
+        )}
       </TouchableOpacity>
     </>
   );
