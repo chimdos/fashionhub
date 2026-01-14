@@ -14,7 +14,6 @@ import axios from 'axios';
 import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 
-
 const formatCNPJ = (value: string) => {
   const cnpj = value.replace(/\D/g, '');
   return cnpj
@@ -23,6 +22,43 @@ const formatCNPJ = (value: string) => {
     .replace(/(\d{8})(\d)/, '$1/$2')
     .replace(/(\d{4})(\d)/, '$1-$2')
     .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+const validateCNPJ = (cnpj: string) => {
+  cnpj = cnpj.replace(/[^\d]+/g, '');
+
+  if (cnpj.length !== 14) return false;
+
+  if (/^(\d)\1+$/.test(cnpj)) return false;
+
+  let tamanho = cnpj.length - 2;
+  let numeros = cnpj.substring(0, tamanho);
+  let digitos = cnpj.substring(tamanho);
+  let soma = 0;
+  let pos = tamanho - 7;
+
+  for (let i = tamanho; i >= 1; i--) {
+    soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+
+  let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+  if (resultado !== parseInt(digitos.charAt(0))) return false;
+
+  tamanho = tamanho + 1;
+  numeros = cnpj.substring(0, tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+
+  for (let i = tamanho; i >= 1; i--) {
+    soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+
+  resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+  if (resultado !== parseInt(digitos.charAt(1))) return false;
+
+  return true;
 };
 
 const Step1 = ({
@@ -147,6 +183,21 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
     if (cleanCnpj.length !== 14) { Alert.alert('Erro', 'Por favor, insira um CNPJ válido.'); return; }
 
     if (!cnpj || !cep || !numero) return Alert.alert('Erro', 'Por favor, preencha os dados de endereço e CNPJ.');
+
+    if (cnpj.length < 18) {
+      Alert.alert('Erro', 'O CNPJ está incompleto.');
+      return;
+    }
+
+    if (!validateCNPJ(cnpj)) {
+      Alert.alert('CNPJ Inválido', 'Este CNPJ não é real. Por favor, verifique os números.');
+      return;
+    }
+
+    if (!numero || !cep) {
+      Alert.alert('Erro', 'Preencha os dados de endereço.');
+      return;
+    }
 
     setIsLoading(true);
     try {
