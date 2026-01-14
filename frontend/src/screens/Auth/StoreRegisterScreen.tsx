@@ -16,12 +16,13 @@ import { AuthContext } from '../../contexts/AuthContext';
 
 const formatCNPJ = (value: string) => {
   const cnpj = value.replace(/\D/g, '');
-  return cnpj
-    .replace(/^(\d{2})(\d)/, '$1.$2.$3')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3/$4')
-    .replace(/(\d{8})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2')
-    .replace(/(-\d{2})\d+?$/, '$1');
+
+  if (cnpj.length <= 2) return cnpj;
+  if (cnpj.length <= 5) return cnpj.replace(/^(\d{2})(\d)/, '$1.$2');
+  if (cnpj.length <= 8) return cnpj.replace(/^(\d{2})(\d{3})(\d)/, '$1.$2.$3');
+  if (cnpj.length <= 12) return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d)/, '$1.$2.$3/$4');
+
+  return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/, '$1.$2.$3/$4-$5');
 };
 
 const validateCNPJ = (cnpj: string) => {
