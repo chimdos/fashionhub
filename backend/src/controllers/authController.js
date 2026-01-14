@@ -173,13 +173,14 @@ const authController = {
   },
 
   async checkAvailability(req, res) {
+    console.log("--- INICIANDO VERIFICAÇÃO ---");
+    console.log("Dados recebidos no Body:", req.body);
     try {
       const { email, telefone } = req.body;
       const errors = {};
-      
-      console.log("Checando dados:", { email, nome_loja });
 
       if (email) {
+        console.log("Checando email...");
         const existingEmail = await User.findOne({ where: { email } });
         if (existingEmail) errors.email = 'Este e-mail já está em uso.';
       }
@@ -190,6 +191,7 @@ const authController = {
       }
 
       if (nomeLoja) {
+        console.log("Checando nome da loja...");
         const existingStore = await Lojista.findOne({ where: { nome_loja: nomeLoja } });
         if (existingStore) errors.nomeLoja = 'Este nome de loja já está em uso.';
       }
@@ -204,9 +206,13 @@ const authController = {
         return res.status(400).json({ errors });
       }
 
+      console.log("Tudo disponível!");
+      return res.status(200).json({ message: 'Disponível' });
+
       return res.status(200).json({ message: 'E-mail e telefone disponíveis.' });
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao verificar disponibilidade.' });
+      console.error("ERRO DETALHADO NO BACKEND:", error);
+      res.status(500).json({ message: 'Erro ao verificar disponibilidade.', detalhe: error.message });
     }
   },
 };
