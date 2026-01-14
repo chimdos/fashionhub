@@ -193,6 +193,13 @@ const authController = {
         if (existingStore) errors.nomeLoja = 'Este nome de loja já está em uso.';
       }
 
+      if (cnpj) {
+        const { Lojista } = require('../models');
+        const cleanedCpnj = cnpj.replace(/[^\d]/g, '');
+        const existingCnpj = await Lojista.findOne({ where: { cnpj: cleanedCpnj } });
+        if (existingCnpj) errors.cnpj = 'Este CNPJ já está em uso.';
+      }
+
       if (Object.keys(errors).length > 0) {
         return res.status(400).json({ errors });
       }
