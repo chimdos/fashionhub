@@ -14,6 +14,17 @@ import axios from 'axios';
 import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 
+
+const formatCNPJ = (value: string) => {
+  const cnpj = value.replace(/\D/g, '');
+  return cnpj
+    .replace(/^(\d{2})(\d)/, '$1.$2.$3')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3/$4')
+    .replace(/(\d{8})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
 const Step1 = ({
   nome, setNome, email, setEmail, senha, setSenha, nomeLoja, setNomeLoja, ddi, setDdi, telefone, setTelefone, onNext, isLoading
 }: any) => (
@@ -65,7 +76,14 @@ const Step2 = ({
       <Text style={styles.title}>Endereço da Loja</Text>
       <Text style={styles.subtitle}>Etapa 2: Localização e CNPJ</Text>
 
-      <TextInput style={styles.input} placeholder="CNPJ da Empresa" keyboardType="numeric" value={cnpj} onChangeText={setCnpj} />
+      <TextInput
+        style={styles.input}
+        placeholder="CNPJ da Empresa (00.000.000/0000-00)"
+        keyboardType="numeric"
+        maxLength={18}
+        value={cnpj}
+        onChangeText={(text) => setCnpj(formatCNPJ(text))}
+      />
       <TextInput style={styles.input} placeholder="CEP" keyboardType="numeric" maxLength={8} value={cep} onChangeText={handleCepChange} />
       <TextInput style={styles.input} placeholder="Rua / Avenida" value={rua} onChangeText={setRua} />
       <TextInput style={styles.input} placeholder="Número" keyboardType="numeric" value={numero} onChangeText={setNumero} />
