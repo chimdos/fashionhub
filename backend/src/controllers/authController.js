@@ -171,5 +171,30 @@ const authController = {
       res.status(500).json({ message: 'Erro ao processar solicitação.' });
     }
   },
+
+  async checkAvailability(req, res) {
+    try {
+      const { email, telefone } = req.body;
+      const errors = {};
+
+      if (email) {
+        const existingEmail = await User.findOne({ where: { email } });
+        if (existingEmail) errors.email = 'Este e-mail já está em uso.';
+      }
+
+      if (telefone) {
+        const existingPhone = await User.findOne({ where: { telefone } });
+        if (existingPhone) errors.telefone = 'Este telefone já está em uso.';
+      }
+
+      if (Object.keys(errors).length > 0) {
+        return res.status(400).json({ errors });
+      }
+
+      return res.status(200).json({ message: 'E-mail e telefone disponíveis.' });
+    } catch (error) {
+      res.status(500).json({ message: 'Erro ao verificar disponibilidade.' });
+    }
+  },
 };
 module.exports = authController;
