@@ -187,6 +187,12 @@ const authController = {
         if (existingPhone) errors.telefone = 'Este telefone já está em uso.';
       }
 
+      if (nomeLoja) {
+        const { Lojista } = require('../models');
+        const existingStore = await Lojista.findOne({ where: { nome_loja: nomeLoja } });
+        if (existingStore) errors.nomeLoja = 'Este nome de loja já está em uso.';
+      }
+
       if (Object.keys(errors).length > 0) {
         return res.status(400).json({ errors });
       }
