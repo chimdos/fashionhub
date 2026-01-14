@@ -143,6 +143,9 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
   };
 
   const handleRegister = async () => {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length !== 14) { Alert.alert('Erro', 'Por favor, insira um CNPJ válido.'); return; }
+
     if (!cnpj || !cep || !numero) return Alert.alert('Erro', 'Por favor, preencha os dados de endereço e CNPJ.');
 
     setIsLoading(true);
