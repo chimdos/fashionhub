@@ -134,9 +134,9 @@ export const RegisterScreen = ({ navigation }: any) => {
   const [estado, setEstado] = useState('');
   const [cep, setCep] = useState('');
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (!nome || !email || !senha || !telefone) {
-      Alert.alert('Atenção', 'Por favor, preencha todos os campos da primeira etapa.');
+      Alert.alert('Atenção', 'Por favor, preencha todos os campos.');
       return;
     }
 
@@ -144,8 +144,29 @@ export const RegisterScreen = ({ navigation }: any) => {
       Alert.alert('Senha muito curta', 'Sua senha precisa ter pelo menos 8 caracteres para garantir a segurança da sua conta.');
       return;
     }
-    
-    setStep(2);
+
+    setIsLoading(true);
+
+    try {
+      const telefoneFormatado = `${ddi}${telefone.replace(/\D/g, '')}`;
+
+      await api.post('api/auth/check-availability', {
+        email,
+        telefone: telefoneFormatado
+      });
+      setStep(2);
+    } catch (error: any) {
+      const serverErrors = error.response?.data?.errors;
+
+      if (serverErrors) {
+        const msg = serverErrors.email || serverErrors.telefone;
+        Alert.alert('Dados já cadastrados', msg);
+      } else {
+        Alert.alert('Erro', 'Não foi possível verificar os dados. Tente novamente mais tarde.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = async () => {
