@@ -188,13 +188,11 @@ const authController = {
       }
 
       if (nomeLoja) {
-        const { Lojista } = require('../models');
         const existingStore = await Lojista.findOne({ where: { nome_loja: nomeLoja } });
         if (existingStore) errors.nomeLoja = 'Este nome de loja já está em uso.';
       }
 
       if (cnpj) {
-        const { Lojista } = require('../models');
         const cleanedCpnj = cnpj.replace(/[^\d]/g, '');
         const existingCnpj = await Lojista.findOne({ where: { cnpj: cleanedCpnj } });
         if (existingCnpj) errors.cnpj = 'Este CNPJ já está em uso.';
