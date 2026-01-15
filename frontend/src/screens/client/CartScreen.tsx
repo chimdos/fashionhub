@@ -8,15 +8,22 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
-import { useBag } from '../../contexts/BagContext'; // Usando o hook personalizado
+import { useBag } from '../../contexts/BagContext';
 import api from '../../services/api';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // Importa os ícones
+import { Ionicons } from '@expo/vector-icons'
 
 export const CartScreen = () => {
-  // --- ALTERAÇÃO 1: Pegamos a função 'removeFromBag' do contexto ---
   const { items, itemCount, clearBag, removeFromBag } = useBag();
-  const [isLoading, setIsLoading] = useState(false); // Estado para o loading do botão
+  const [isLoading, setIsLoading] = useState(false);
+
+  const totalValue = items.reduce((acc, item) => acc + item.preco, 0);
+
+  const formattedTotal = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(totalValue);
 
   const handleRequestBag = async () => {
     if (itemCount === 0) {
@@ -28,19 +35,17 @@ export const CartScreen = () => {
 
     try {
       const requestData = {
-        // ATENÇÃO: O ID do endereço está fixo aqui apenas para teste.
-        // Pegue um ID de endereço válido da sua tabela 'enderecos' no pgAdmin.
-        endereco_entrega_id: "138f14a4-e4a8-4f71-a2dc-3d9a28445ae0", // Lembre-se de usar um ID real
+        endereco_entrega_id: "138f14a4-e4a8-4f71-a2dc-3d9a28445ae0",
         itens: items.map(item => ({
           variacao_produto_id: item.id,
-          quantidade: 1 // Assumindo quantidade 1 por item
+          quantidade: 1
         }))
       };
 
       await api.post('/api/bags', requestData);
 
       Alert.alert("Sucesso!", "Sua mala foi solicitada. Em breve, um lojista irá prepará-la para você.");
-      
+
       clearBag();
 
     } catch (error: any) {
@@ -52,22 +57,30 @@ export const CartScreen = () => {
   };
 
   const renderBagItem = ({ item }: { item: any }) => (
-    <View style={styles.itemContainer}>
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.nome}</Text>
-        <Text style={styles.itemVariation}>{`${item.tamanho} - ${item.cor}`}</Text>
-        <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
+    <View style={styles.itemLightWrapper}>
+      <View style={styles.itemDarkWrapper}>
+        <View style={styles.itemContainer}>
+          <View style={styles.itemDetails}>
+            <Text style={styles.itemName} numberOfLines={1}>{item.nome}</Text>
+            <Text style={styles.itemVariation}>{`${item.tamanho} - ${item.cor}`}</Text>
+            <Text style={styles.itemPrice}>R$ {item.preco.toFixed(2)}</Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => removeFromBag(item.id)}
+            style={styles.removeButton}
+          >
+            <Ionicons name="trash-outline" size={22} color="#E74C3C" />
+          </TouchableOpacity>
+        </View>
       </View>
-      {/* --- ALTERAÇÃO 2: Adicionamos um botão de lixeira para remover o item --- */}
-      <TouchableOpacity onPress={() => removeFromBag(item.id)}>
-        <Ionicons name="trash-outline" size={24} color="#dc3545" />
-      </TouchableOpacity>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
+        <Text style={styles.logoText}>FashionHub</Text>
         <Text style={styles.headerTitle}>Minha Mala</Text>
       </View>
 
@@ -75,54 +88,112 @@ export const CartScreen = () => {
         data={items}
         renderItem={renderBagItem}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <Ionicons name="bag-outline" size={80} color="#DDD" />
             <Text style={styles.emptyText}>Sua mala está vazia.</Text>
           </View>
         }
-        contentContainerStyle={styles.list}
       />
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.requestButton, (itemCount === 0 || isLoading) && styles.requestButtonDisabled]}
-          onPress={handleRequestBag}
-          disabled={itemCount === 0 || isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.requestButtonText}>Solicitar Mala ({itemCount} itens)</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Total estimado:</Text>
+          <Text style={styles.totalValue}>{formattedTotal}</Text>
+        </View>
+
+        <View style={styles.btnLightWrapper}>
+          <View style={styles.btnDarkWrapper}>
+            <TouchableOpacity
+              style={[styles.requestButton, (itemCount === 0 || isLoading) && styles.requestButtonDisabled]}
+              onPress={handleRequestBag}
+              disabled={itemCount === 0 || isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#333" />
+              ) : (
+                <Text style={styles.requestButtonText}>
+                  SOLICITAR MALA ({itemCount})
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5ff5f5' },
-  header: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee', backgroundColor: '#fff' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold' },
-  list: { padding: 20 },
+  safeArea: { flex: 1, backgroundColor: '#FBFCFD' },
+  header: { paddingHorizontal: 25, paddingTop: 20, paddingBottom: 15 },
+  logoText: { fontSize: 18, fontWeight: '900', color: '#5DADE2', marginBottom: 2 },
+  headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#333' },
+  
+  list: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 100 },
+
+  itemLightWrapper: {
+    borderRadius: 20,
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: -2, height: -2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    marginBottom: 15,
+  },
+  itemDarkWrapper: {
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+  },
   itemContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 10,
-    elevation: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
-  itemDetails: { flex: 1, marginRight: 10 },
-  itemName: { fontSize: 16, fontWeight: '600' },
-  itemVariation: { fontSize: 14, color: 'gray', marginTop: 4 },
-  itemPrice: { fontSize: 16, fontWeight: '500', marginTop: 4 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 },
-  emptyText: { fontSize: 18, color: 'gray' },
-  footer: { padding: 20, borderTopWidth: 1, borderTopColor: '#eee', backgroundColor: '#fff' },
-  requestButton: { height: 50, backgroundColor: '#007bff', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  requestButtonDisabled: { backgroundColor: '#a0c7e4' },
-  requestButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  itemDetails: { flex: 1 },
+  itemName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  itemVariation: { fontSize: 14, color: '#888', marginTop: 2 },
+  itemPrice: { fontSize: 16, fontWeight: '700', color: '#5DADE2', marginTop: 6 },
+  
+  removeButton: {
+    width: 45,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FBFCFD',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 },
+  emptyText: { fontSize: 16, color: '#AAA', marginTop: 15, fontWeight: '500' },
+
+  footer: { 
+    padding: 25, 
+    backgroundColor: 'rgba(251, 252, 253, 0.95)', 
+    borderTopWidth: 1, 
+    borderTopColor: '#F0F0F0',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%'
+  },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  totalLabel: { fontSize: 16, color: '#666', fontWeight: '500' },
+  totalValue: { fontSize: 22, fontWeight: '900', color: '#333' },
+
+  btnLightWrapper: { borderRadius: 25, shadowColor: "#FFF", shadowOffset: { width: -4, height: -4 }, shadowOpacity: 1, shadowRadius: 6 },
+  btnDarkWrapper: { borderRadius: 25, shadowColor: "#4A9BCE", shadowOffset: { width: 4, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  requestButton: { backgroundColor: '#5DADE2', height: 60, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
+  requestButtonDisabled: { backgroundColor: '#A5D1EB' },
+  requestButtonText: { color: '#333', fontSize: 16, fontWeight: 'bold' },
 });
