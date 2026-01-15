@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   cardDarkWrapper: {
     borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 2, height: 3 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 3
   },
-  productCard: { backgroundColor: '#FFF', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#F5F5F5' },
+  productCard: { backgroundColor: '#FFF', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#F5F5F5', width: '100%', },
   productImage: { width: '100%', height: COLUMN_WIDTH, backgroundColor: '#F8F9FA' },
   productInfo: { padding: 12 },
   productName: { fontSize: 14, fontWeight: '600', color: '#444', marginBottom: 4 },
