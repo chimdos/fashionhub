@@ -1,6 +1,79 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, SafeAreaView, Animated } from 'react-native';
 import api from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
+
+const FloatingInput = ({ label, value, onChangeText, secureTextEntry, ...props }: any) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: (isFocused || value) ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [isFocused, value]);
+
+  const labelTop = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [16, -12],
+  });
+
+  const labelFontSize = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [16, 12],
+  });
+
+  const labelBackgroundColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#FFFFFF', '#FBFCFD'],
+  });
+
+  return (
+    <View style={styles.inputShadowWrapper}>
+      <Animated.Text
+        style={[
+          styles.label,
+          {
+            top: labelTop,
+            fontSize: labelFontSize,
+            backgroundColor: labelBackgroundColor,
+            color: isFocused ? '#5DADE2' : '#333',
+            fontWeight: isFocused || value ? 'bold' : 'normal',
+          },
+        ]}
+      >
+        {label}
+      </Animated.Text>
+      <View style={styles.inputContainer}>
+        <TextInput
+          {...props}
+          style={styles.neumorphicInput}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={secureTextEntry && !isPasswordVisible}
+          placeholder=""
+        />
+        {secureTextEntry && (
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+          >
+            <Ionicons
+              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+              size={24}
+              color="#888"
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
 
 export const ResetPasswordScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
@@ -10,7 +83,12 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
 
   const handleReset = async () => {
     if (!email || !token || !novaSenha) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
+      Alert.alert('Atenção', 'Preencha todos os campos.');
+      return;
+    }
+
+    if (novaSenha !== novaSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
       return;
     }
 
@@ -33,26 +111,94 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Nova Senha</Text>
-      <Text style={styles.subtitle}>Insira o código enviado e sua nova senha.</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={28} color="#333" />
+        </TouchableOpacity>
 
-      <TextInput style={styles.input} placeholder="Confirme seu E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Token de Recuperação" value={token} onChangeText={setToken} />
-      <TextInput style={styles.input} placeholder="Nova Senha" value={novaSenha} onChangeText={setNovaSenha} secureTextEntry />
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <Text style={styles.logoText}>FashionHub</Text>
+            <Text style={styles.title}>Nova senha</Text>
+            <Text style={styles.subtitle}>
+              Insira o código enviado ao seu e-mail e escolha uma nova senha segura.
+            </Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleReset} disabled={isLoading}>
-        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Redefinir Senha</Text>}
-      </TouchableOpacity>
-    </View>
+            <FloatingInput
+              label="Código de verificação"
+              value={token}
+              onChangeText={setToken}
+              keyboardType="number-pad"
+            />
+
+            <FloatingInput
+              label="Nova senha"
+              value={novaSenha}
+              onChangeText={setNovaSenha}
+              secureTextEntry
+            />
+
+            <FloatingInput
+              label="Confirmar nova senha"
+              value={novaSenha}
+              onChangeText={setNovaSenha}
+              secureTextEntry
+            />
+
+            <View style={styles.buttonContainer}>
+              <View style={styles.blueLightWrapper}>
+                <View style={styles.blueDarkWrapper}>
+                  <TouchableOpacity
+                    style={styles.buttonBlue}
+                    onPress={handleReset}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#333" />
+                    ) : (
+                      <Text style={styles.buttonTextBlue}>REDEFINIR SENHA</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#f5f5f5' },
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
-  subtitle: { fontSize: 16, color: 'gray', textAlign: 'center', marginBottom: 30 },
-  input: { backgroundColor: '#fff', height: 50, borderRadius: 8, paddingHorizontal: 16, marginBottom: 15, borderWidth: 1, borderColor: '#ddd' },
-  button: { backgroundColor: '#28a745', height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
+  safeArea: { flex: 1, backgroundColor: '#FBFCFD' },
+  container: { flexGrow: 1, paddingHorizontal: 25, paddingBottom: 40 },
+  content: { width: '100%' },
+
+  backButton: { marginTop: 20, marginLeft: 15, width: 40, height: 40, justifyContent: 'center' },
+  logoText: { fontSize: 28, fontWeight: '900', color: '#5DADE2', marginTop: 20, textAlign: 'left' },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#333', marginTop: 5, textAlign: 'left' },
+  subtitle: { fontSize: 16, color: '#666', marginBottom: 45, textAlign: 'left', lineHeight: 22 },
+
+  inputShadowWrapper: {
+    width: '100%',
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', width: '100%' },
+  neumorphicInput: { flex: 1, height: 55, paddingHorizontal: 15, fontSize: 16, color: '#333', borderRadius: 18 },
+  label: { position: 'absolute', left: 15, paddingHorizontal: 5, zIndex: 2 },
+  eyeIcon: { position: 'absolute', right: 15, height: '100%', justifyContent: 'center' },
+
+  buttonContainer: { width: '100%', marginTop: 20 },
+  blueLightWrapper: { borderRadius: 25, shadowColor: "#FFF", shadowOffset: { width: -4, height: -4 }, shadowOpacity: 0.8, shadowRadius: 8 },
+  blueDarkWrapper: { borderRadius: 25, shadowColor: "#4A9BCE", shadowOffset: { width: 6, height: 6 }, shadowOpacity: 0.5, shadowRadius: 10, elevation: 10 },
+  buttonBlue: { backgroundColor: '#5DADE2', height: 55, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
+  buttonTextBlue: { color: '#333', fontWeight: 'bold', fontSize: 18 },
 });
