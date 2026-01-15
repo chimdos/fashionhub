@@ -59,7 +59,7 @@ export function ClientNavigator() {
       <Stack.Screen
         name="ProductDetail"
         component={ProductDetailScreen}
-        options={{ title: 'Detalhes' }}
+        options={{ title: 'Detalhes', headerShown: false }}
       />
 
       <Stack.Screen
