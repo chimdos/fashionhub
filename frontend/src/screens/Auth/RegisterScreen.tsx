@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,84 +9,150 @@ import {
   ActivityIndicator,
   SafeAreaView,
   ScrollView,
+  Animated,
 } from 'react-native';
 import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
 
-const Step1 = ({ nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, telefone, setTelefone, onNext, isLoading }: any) => {
+const FloatingInput = ({ label, value, onChangeText, ...props }: any) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const isFloating = isFocused || (value && value.length > 0);
+
+  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: (isFocused || value) ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+
+    Animated.parallel([
+      Animated.timing(animatedValue, {
+        toValue: (isFocused || value) ? 1 : 0,
+        duration: 200,
+        useNativeDriver: false,
+      })
+    ]).start();
+  }, [isFocused, value]);
+
+  const labelTop = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [16, -12],
+  });
+
+  const labelFontSize = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [16, 12],
+  });
+
+  const labelBackgroundColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#FFFFFF', '#FBFCFD'],
+  })
+
   return (
-    <>
-      <Text style={styles.title}>Crie sua Conta</Text>
-      <Text style={styles.subtitle}>Vamos começar com seus dados básicos.</Text>
-
-      <TextInput style={styles.input} placeholder="Nome completo" value={nome} onChangeText={setNome} />
-      <TextInput style={styles.input} placeholder="Seu e-mail" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
-
-      <TextInput
-        style={[styles.input, { marginBottom: 4 }]}
-        placeholder="Crie uma senha"
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-      />
-      <Text style={styles.helperText}>A senha deve ter no mínimo 8 caracteres.</Text>
-
-      <View style={styles.phoneRow}>
-        <TextInput
-          style={[styles.input, styles.ddiInput]}
-          placeholder="+55"
-          value={ddi}
-          onChangeText={setDdi}
-          keyboardType="phone-pad"
-          maxLength={4}
-        />
-        <TextInput
-          style={[styles.input, styles.phoneNumberInput]}
-          placeholder="(00) 00000-0000"
-          value={telefone}
-          onChangeText={setTelefone}
-          keyboardType="phone-pad"
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={onNext}
-        disabled={isLoading}
+    <View style={styles.inputShadowWrapper}>
+      <Animated.Text
+        style={[
+          styles.label,
+          {
+            top: labelTop,
+            fontSize: labelFontSize,
+            backgroundColor: labelBackgroundColor,
+            color: isFocused ? '#5DADE2' : '#333',
+            fontWeight: isFocused || value ? 'bold' : 'normal',
+          },
+        ]}
       >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Avançar</Text>
-        )}
-      </TouchableOpacity>
-    </>
+        {label}
+      </Animated.Text>
+      <TextInput
+        {...props}
+        style={styles.neumorphicInput}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder=""
+      />
+    </View>
   );
 };
 
-const Step2 = ({
-  rua, setRua, numero, setNumero, bairro, setBairro,
-  cidade, setCidade, estado, setEstado, cep, setCep,
-  onRegister, isLoading
-}: any) => {
+const Step1 = ({ nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, telefone, setTelefone, onNext, isLoading, navigation }: any) => {
+  return (
+    <View style={styles.content}>
+      <Text style={styles.logoText}>FashionHub</Text>
+      <Text style={styles.title}>Crie sua conta</Text>
+
+      <FloatingInput label="Nome completo" value={nome} onChangeText={setNome} />
+
+      <FloatingInput
+        label="Digite seu email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <View>
+        <FloatingInput
+          label="Crie uma senha"
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+        />
+        <Text style={styles.helperText}>Mínimo de 8 caracteres.</Text>
+      </View>
+
+      <View style={styles.phoneRow}>
+        <View style={{ width: '22%' }}>
+          <FloatingInput label="+55" value={ddi} onChangeText={setDdi} keyboardType="phone-pad" maxLength={4} />
+        </View>
+        <View style={{ width: '75%' }}>
+          <FloatingInput label="(00) 00000-0000" value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" />
+        </View>
+      </View>
+
+      <View style={styles.buttonRow}>
+        <View style={[styles.grayLightWrapper, styles.halfButton]}>
+          <View style={styles.grayDarkWrapper}>
+            <TouchableOpacity style={styles.buttonGray} onPress={() => navigation.goBack()}>
+              <Text style={styles.buttonTextGray}>Voltar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.blueLightWrapper, styles.halfButton]}>
+          <View style={styles.blueDarkWrapper}>
+            <TouchableOpacity style={styles.buttonBlue} onPress={onNext} disabled={isLoading}>
+              {isLoading ? <ActivityIndicator color="#333" /> : <Text style={styles.buttonTextBlue}>Avançar</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const Step2 = ({ rua, setRua, numero, setNumero, bairro, setBairro, cidade, setCidade, estado, setEstado, cep, setCep, onRegister, isLoading, setStep }: any) => {
 
   const handleCepChange = async (text: string) => {
     setCep(text);
     const cleanedCep = text.replace(/\D/g, '');
-
     if (cleanedCep.length === 8) {
       try {
         const response = await axios.get(`https://viacep.com.br/ws/${cleanedCep}/json/`);
-        const data = response.data;
-
-        if (!data.erro) {
-          setRua(data.logradouro);
-          setBairro(data.bairro);
-          setCidade(data.localidade);
-          setEstado(data.uf);
+        if (!response.data.erro) {
+          setRua(response.data.logradouro);
+          setBairro(response.data.bairro);
+          setCidade(response.data.localidade);
+          setEstado(response.data.uf);
         } else {
-          Alert.alert('CEP não encontrado', 'Por favor, verifique o número digitado.');
+          Alert.alert('CEP não encontrado', 'Verifique o número digitado.');
         }
       } catch (error) {
         console.error("Erro ao buscar CEP", error);
@@ -95,32 +161,49 @@ const Step2 = ({
   };
 
   return (
-    <>
+    <View style={styles.content}>
+      <Text style={styles.logoText}>FashionHub</Text>
       <Text style={styles.title}>Endereço de Entrega</Text>
-      <Text style={styles.subtitle}>Onde você receberá suas malas.</Text>
+      <Text style={styles.subtitle}>Onde você receberá suas compras.</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="CEP"
-        keyboardType="numeric"
-        maxLength={8}
-        value={cep}
-        onChangeText={handleCepChange}
-      />
-      <TextInput style={styles.input} placeholder="Rua / Avenida" value={rua} onChangeText={setRua} />
-      <TextInput style={styles.input} placeholder="Número" keyboardType="numeric" value={numero} onChangeText={setNumero} />
-      <TextInput style={styles.input} placeholder="Bairro" value={bairro} onChangeText={setBairro} />
-      <TextInput style={[styles.input, styles.disabledInput]} placeholder="Cidade" value={cidade} editable={false} />
-      <TextInput style={[styles.input, styles.disabledInput]} placeholder="Estado" value={estado} editable={false} />
+      <View style={styles.inputShadowWrapper}>
+        <TextInput style={styles.neumorphicInput} placeholder="CEP" keyboardType="numeric" maxLength={8} value={cep} onChangeText={handleCepChange} />
+      </View>
+      <View style={styles.inputShadowWrapper}>
+        <TextInput style={styles.neumorphicInput} placeholder="Rua / Avenida" value={rua} onChangeText={setRua} />
+      </View>
 
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={onRegister}
-        disabled={isLoading}
-      >
-        {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Criar Conta</Text>}
-      </TouchableOpacity>
-    </>
+      <View style={styles.phoneRow}>
+        <View style={[styles.inputShadowWrapper, { width: '30%' }]}>
+          <TextInput style={styles.neumorphicInput} placeholder="Nº" keyboardType="numeric" value={numero} onChangeText={setNumero} />
+        </View>
+        <View style={[styles.inputShadowWrapper, { width: '67%' }]}>
+          <TextInput style={styles.neumorphicInput} placeholder="Bairro" value={bairro} onChangeText={setBairro} />
+        </View>
+      </View>
+
+      <View style={[styles.inputShadowWrapper, styles.disabledWrapper]}>
+        <TextInput style={[styles.neumorphicInput, styles.disabledInput]} placeholder="Cidade" value={cidade} editable={false} />
+      </View>
+
+      <View style={styles.buttonRow}>
+        <View style={[styles.grayLightWrapper, styles.halfButton]}>
+          <View style={styles.grayDarkWrapper}>
+            <TouchableOpacity style={styles.buttonGray} onPress={() => setStep(1)}>
+              <Text style={styles.buttonTextGray}>Voltar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.blueLightWrapper, styles.halfButton]}>
+          <View style={styles.blueDarkWrapper}>
+            <TouchableOpacity style={styles.buttonBlue} onPress={onRegister} disabled={isLoading}>
+              {isLoading ? <ActivityIndicator color="#333" /> : <Text style={styles.buttonTextBlue}>Finalizar</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 };
 
@@ -217,70 +300,222 @@ export const RegisterScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         {step === 1 ? (
-          <Step1
-            nome={nome} setNome={setNome}
-            email={email} setEmail={setEmail}
-            senha={senha} setSenha={setSenha}
-            ddi={ddi} setDdi={setDdi}
-            telefone={telefone} setTelefone={setTelefone}
-            onNext={handleNextStep}
-          />
+          <Step1 {...{ navigation, isLoading, nome, setNome, email, setEmail, senha, setSenha, ddi, setDdi, telefone, setTelefone }} onNext={handleNextStep} />
         ) : (
-          <Step2
-            rua={rua} setRua={setRua}
-            numero={numero} setNumero={setNumero}
-            bairro={bairro} setBairro={setBairro}
-            cidade={cidade} setCidade={setCidade}
-            estado={estado} setEstado={setEstado}
-            cep={cep} setCep={setCep}
-            onRegister={handleRegister}
-            isLoading={isLoading}
-          />
+          <Step2 {...{ rua, setRua, numero, setNumero, bairro, setBairro, cidade, setCidade, estado, setEstado, cep, setCep, isLoading, setStep }} onRegister={handleRegister} />
         )}
+      </ScrollView>
 
+      <View style={styles.footer}>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
           <Text style={styles.linkText}>Já possui uma conta? Faça login</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => navigation.navigate('StoreRegister')}>
           <Text style={styles.linkText}>É um lojista? Cadastre sua loja aqui</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 32, fontWeight: 'bold', textAlign: 'center', color: '#333', marginBottom: 10 },
-  subtitle: { fontSize: 16, color: 'gray', textAlign: 'center', marginBottom: 30 },
-  input: { width: '100%', height: 50, backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 16, marginBottom: 12, borderWidth: 1, borderColor: '#ddd', fontSize: 16 },
-  button: { width: '100%', height: 50, backgroundColor: '#007bff', borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
-  buttonDisabled: { backgroundColor: '#a0c7e4' },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  linkText: { color: '#007bff', fontSize: 16, textAlign: 'center', marginTop: 20 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FBFCFD',
+  },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  content: {
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+
+  logoText: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#5DADE2',
+    marginTop: 40,
+    marginBottom: 10,
+    textAlign: 'left',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginTop: 5,
+    marginBottom: 50,
+    textAlign: 'left',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
+    textAlign: 'left',
+  },
+
+  inputShadowWrapper: {
+    width: '100%',
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 5,
+    elevation: 3,
+    justifyContent: 'center',
+  },
+  neumorphicInput: {
+    height: 55,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    color: '#333333',
+    borderRadius: 20,
+  },
+  input: {
+    width: '100%',
+    height: 55,
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#DDD',
+  },
+  disabledInput: {
+    backgroundColor: '#E9ECEF',
+    color: '#6C757D',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#555',
+    marginLeft: 15,
+    marginTop: -20,
+    marginBottom: 15,
+  },
+
   phoneRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
   },
-  ddiInput: {
-    width: '20%',
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 30,
+  },
+  halfButton: {
+    width: '48%',
+  },
+
+  button: {
+    width: '100%',
+    height: 55,
+    backgroundColor: '#5DADE2',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#A5D1EB',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+
+  blueLightWrapper: {
+    borderRadius: 25,
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: -4, height: -4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+  },
+  blueDarkWrapper: {
+    borderRadius: 25,
+    shadowColor: "#4A9BCE",
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  buttonBlue: {
+    backgroundColor: '#5DADE2',
+    height: 55,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonTextBlue: { color: '#333333', fontWeight: 'bold', fontSize: 18 },
+
+  grayLightWrapper: {
+    borderRadius: 25,
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: -5, height: -5 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+  },
+  grayDarkWrapper: {
+    borderRadius: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  buttonGray: {
+    backgroundColor: '#F0F0F0',
+    height: 55,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  buttonTextGray: { color: '#333333', fontWeight: 'bold', fontSize: 18 },
+
+  linkText: {
+    color: '#5DADE2',
+    fontSize: 15,
     textAlign: 'center',
+    marginTop: 20,
+    fontWeight: '600',
   },
-  phoneNumberInput: {
-    width: '78%',
+
+  disabledWrapper: { backgroundColor: '#E9ECEF' },
+
+  label: {
+    position: 'absolute',
+    left: 15,
+    color: '#444',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 5,
+    zIndex: 1,
   },
-  disabledInput: {
-    backgroundColor: '#eeeeee',
-    color: '#666',
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+    backgroundColor: '#F8F9FA',
+    alignItems: 'center',
   },
-  helperText: {
+  labelIdle: {
+    top: 16,
+    fontSize: 16,
+  },
+  labelFloating: {
+    top: -10,
+    left: 15,
     fontSize: 12,
-    color: '#777',
-    marginBottom: 12,
-    marginLeft: 4,
-    fontStyle: 'italic'
+    fontWeight: 'bold',
+    color: '#5DADE2',
   },
 });
