@@ -14,13 +14,16 @@ import {
 import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
-const FloatingInput = ({ label, value, onChangeText, ...props }: any) => {
+const FloatingInput = ({ label, value, onChangeText, secureTextEntry, ...props }: any) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const isFloating = isFocused || (value && value.length > 0);
 
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -76,8 +79,22 @@ const FloatingInput = ({ label, value, onChangeText, ...props }: any) => {
         onBlur={() => setIsFocused(false)}
         value={value}
         onChangeText={onChangeText}
+        secureTextEntry={secureTextEntry && !isPasswordVisible}
         placeholder=""
       />
+
+      {secureTextEntry && (
+        <TouchableOpacity
+          style={styles.eyeIcon}
+          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+        >
+          <Ionicons
+            name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+            size={24}
+            color="#888"
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -372,10 +389,11 @@ const styles = StyleSheet.create({
   },
   neumorphicInput: {
     height: 55,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
+    paddingRight: 50,
     fontSize: 16,
     color: '#333333',
-    borderRadius: 20,
+    borderRadius: 18,
   },
   input: {
     width: '100%',
@@ -498,7 +516,7 @@ const styles = StyleSheet.create({
     color: '#444',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 5,
-    zIndex: 1,
+    zIndex: 2,
   },
   footer: {
     padding: 20,
@@ -518,4 +536,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#5DADE2',
   },
+
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 15,
+    height: '100%',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+
 });
