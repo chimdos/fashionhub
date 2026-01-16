@@ -23,7 +23,9 @@ const COLUMN_WIDTH = (width - (SCREEN_PADDING * 2) - COLUMN_GAP) / 2;
 export const ExploreScreen = ({ navigation }: any) => {
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   const TRENDING_TAGS = ['Tudo', 'Malas', 'Roupas', 'Acessórios', 'Ofertas'];
 
@@ -31,7 +33,9 @@ export const ExploreScreen = ({ navigation }: any) => {
     const fetchExploreProducts = async () => {
       try {
         const response = await api.get('/api/products');
-        setProducts(response.data.products || response.data);
+        const data = response.data.products || response.data;
+        setProducts(data);
+        setFilteredProducts(data);
       } catch (error) {
         console.error("Erro ao explorar produtos:", error);
       } finally {
@@ -40,6 +44,27 @@ export const ExploreScreen = ({ navigation }: any) => {
     }
     fetchExploreProducts();
   }, []);
+
+  const handleSearch = (text: string) => {
+    setSearch(text);
+
+    if (text.length > 0) {
+      const filtered = products.filter((item) => {
+        return item.nome.toUpperCase().includes(text.toUpperCase());
+      });
+      setFilteredProducts(filtered);
+      setShowSuggestions(true);
+    } else {
+      setFilteredProducts(products);
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectSuggestion = (item: any) => {
+    setSearch(item.nome);
+    setShowSuggestions(false);
+    navigation.navigate('ProductDetail', { productId: item.id });
+  };
 
   const getSafeImage = (item: any) => {
     if (!item?.imagens || item.imagens.length === 0) return require('../../assets/placeholder.webp');
@@ -78,20 +103,50 @@ export const ExploreScreen = ({ navigation }: any) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Explorar</Text>
 
-        <View style={styles.searchLightWrapper}>
-          <View style={styles.searchDarkWrapper}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={20} color="#888" />
-              <TextInput
-                placeholder="Buscar produtos, marcas..."
-                style={styles.searchInput}
-                value={search}
-                onChangeText={setSearch}
-              />
+        <View style={styles.searchContainer}>
+          <View style={styles.searchLightWrapper}>
+            <View style={styles.searchDarkWrapper}>
+              <View style={styles.searchBar}>
+                <Ionicons name="search-outline" size={20} color="#5DADE2" />
+                <TextInput
+                  placeholder="O que você está procurando?"
+                  style={styles.searchInput}
+                  value={search}
+                  onChangeText={handleSearch}
+                  onFocus={() => search.length > 0 && setShowSuggestions(true)}
+                  placeholderTextColor="#AAA"
+                />
+              </View>
             </View>
           </View>
+
+          {showSuggestions && filteredProducts.length > 0 && (
+            <View style={styles.suggestionsWrapper}>
+              <FlatList
+                data={filteredProducts.slice(0, 5)} // Mostra apenas as 5 primeiras
+                keyExtractor={(item) => `sug-${item.id}`}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.suggestionItem}
+                    onPress={() => selectSuggestion(item)}
+                  >
+                    <Ionicons name="search-outline" size={16} color="#CCC" />
+                    <Text style={styles.suggestionText}>{item.nome}</Text>
+                    <Ionicons name="arrow-forward-outline" size={16} color="#EEE" />
+                  </TouchableOpacity>
+                )}
+                style={styles.suggestionsList}
+              />
+            </View>
+          )}
         </View>
       </View>
+
+      <TouchableOpacity
+        activeOpacity={1}
+        style={{ flex: 1 }}
+        onPress={() => setShowSuggestions(false)}
+      ></TouchableOpacity>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <ScrollView
@@ -112,13 +167,19 @@ export const ExploreScreen = ({ navigation }: any) => {
           <ActivityIndicator size="large" color="#5DADE2" style={{ marginTop: 50 }} />
         ) : (
           <FlatList
-            data={products}
+            data={filteredProducts}
             renderItem={renderProductItem}
             keyExtractor={(item) => item.id.toString()}
             numColumns={2}
             scrollEnabled={false}
             contentContainerStyle={styles.gridContainer}
             columnWrapperStyle={styles.columnWrapper}
+            ListEmptyComponent={
+              <View style={styles.noResults}>
+                <Ionicons name="search-outline" size={50} color="#DDD" />
+                <Text style={styles.noResultsText}>Nenhum produto encontrado.</Text>
+              </View>
+            }
           />
         )}
       </ScrollView>
@@ -165,5 +226,56 @@ const styles = StyleSheet.create({
   columnWrapper: {
     justifyContent: 'space-between',
     marginBottom: 5,
+  },
+
+  noResults: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  noResultsText: {
+    color: '#AAA',
+    fontSize: 16,
+    marginTop: 10,
+    fontWeight: '500'
+  },
+
+  searchContainer: {
+    zIndex: 10,
+    position: 'relative',
+  },
+  suggestionsWrapper: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden',
+  },
+  suggestionsList: {
+    maxHeight: 250,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8F9FA',
+  },
+  suggestionText: {
+    flex: 1,
+    marginLeft: 15,
+    fontSize: 15,
+    color: '#444',
   },
 });
