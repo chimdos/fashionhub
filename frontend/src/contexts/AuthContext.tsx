@@ -1,18 +1,25 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
-// 1. Importa a função 'setSignOutAction' do nosso novo interceptor
 import { setSignOutAction } from '../services/apiInterceptor';
 
-// Interface do Usuário
 interface User {
   id: string;
   nome: string;
   email: string;
   tipo_usuario: 'cliente' | 'lojista' | 'entregador';
+  telefone?: string,
+  endereco?: {
+    id: string,
+    cep: string,
+    rua: string,
+    numero: string,
+    bairro: string,
+    cidade: string,
+    estado: string,
+  };
 }
 
-// Interface dos dados do Contexto
 interface AuthContextData {
   user: User | null;
   token: string | null;
@@ -33,21 +40,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // A função de signOut agora também limpa o cabeçalho da API
   const signOut = async () => {
     await AsyncStorage.clear();
     setUser(null);
     setToken(null);
-    // Limpa o token expirado dos cabeçalhos padrão da API
     delete api.defaults.headers.common['Authorization'];
   };
 
   useEffect(() => {
-    // Isso permite que o 'apiInterceptor' chame o signOut()
-    // sem criar um loop de importação.
     setSignOutAction(signOut);
 
-    // Esta função carrega os dados do usuário do armazenamento local
     async function loadStorageData() {
       try {
         const storedToken = await AsyncStorage.getItem('userToken');
