@@ -1,17 +1,10 @@
 const { User, Address } = require('../models');
-// Objeto para agrupar todas as funções do controller
 const userController = {
-  /**
-   * Função NOVA: Busca o perfil do usuário atualmente logado.
-   * Os dados do usuário (como o ID) vêm do `authMiddleware`.
-   */
   async getCurrentUserProfile(req, res) {
     try {
-      // req.user.userId é adicionado pelo authMiddleware
       const userId = req.user.userId;
 
       const user = await User.findByPk(userId, {
-        // Ocultamos a senha por padrão no modelo, então não precisamos nos preocupar aqui.
         include: [{ model: Address, as: 'endereco' }]
       });
 
@@ -26,7 +19,6 @@ const userController = {
     }
   },
 
-  // Função para buscar um usuário pelo ID (para uso geral)
   async getUserById(req, res) {
     try {
       const { id } = req.params;
@@ -45,29 +37,66 @@ const userController = {
     }
   },
 
-  // Função para atualizar um usuário
   async updateUser(req, res) {
     try {
       const { id } = req.params;
-      // Garante que o usuário só possa atualizar seu próprio perfil
+      const { nome, email, endereco, senha_atual, nova_senha } = req.body;
+
       if (req.user.userId !== id) {
         return res.status(403).json({ message: 'Acesso negado.' });
       }
 
-      const [updatedRows] = await User.update(req.body, {
-        where: { id: id }
-      });
-
-      if (updatedRows > 0) {
-        const updatedUser = await User.findByPk(id);
-        return res.json({ message: 'Usuário atualizado com sucesso', user: updatedUser });
+      const user = await User.scope('withPassword').findByPk(id);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado. '});
       }
 
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+      if (nova_senha) {
+        if (!senha_atual) {
+          return res.status(400).json({ message: 'Para alterar a senha, informe sua senha atual' });
+        }
+
+        const isPasswordValid = await user.checkPassword(senha_atual);
+        if (!isPasswordValid) {
+          return res.status(401).json({ message: 'Senha atual incorreta.' });
+        }
+
+        user.senha_hash = nova_senha;
+      }
+
+      user.nome = nome || user.nome;
+      user.email = email || user.email;
+
+      if (endereco) {
+        if (user.endereco_id) {
+          const addr = await Address.findByPk(user.endereco_id);
+          if (addr) await addr.update(endereco);
+        } else {
+          const newAddr = await Address.create(endereco);
+          user.endereco_id = newAddr.id;
+        }
+      }
+
+      await user.save();
+
+      const userFinal = await User.findByPk(id, {
+        include: [{ model: Address, as: 'endereco' }]
+      });
+
+      return res.json({
+        message: 'Perfil atualizado com sucesso!',
+        user: userFinal
+      });
+
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
+
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        return res.status(400).json({ message: 'Este e-mail já está em uso.' });
+      }
+
+      res.status(500).json({ message: 'Erro interno do servidor ao atualizar perfil.' });
+    } 
   },
 
   async becomeCourier(req, res) {
@@ -81,17 +110,11 @@ const userController = {
         return res.status(404).json({ message: 'Usuário não encontrado' });
       }
 
-      // Validação de CNH, Placa, etc.
       if (!veiculo || !placa) {
         return res.status(400).json({ message: 'Dados do veículo são obrigatórios' });
       }
 
-      // Atualiza o usuário
-      // PENDING_APPROVAL
       user.tipo_usuario = 'entregador';
-
-      // user.veiculo_modelo = veiculo
-      // user.veiculo_placa = placa;
 
       await user.save();
 
@@ -111,6 +134,4 @@ const userController = {
   },
 };
 
-// Exporta o objeto com todas as funções
 module.exports = userController;
-
