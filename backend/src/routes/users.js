@@ -4,6 +4,7 @@ const userController = require('../controllers/userController');
 const { authMiddleware } = require('../middleware/auth');
 
 router.get('/me', authMiddleware, userController.getCurrentUserProfile);
+router.put('/:id', authMiddleware, userController.updateUser);
 router.put('/become-courier', authMiddleware, userController.becomeCourier);
 
 module.exports = router;
