@@ -30,15 +30,20 @@ export const SettingsScreen = () => {
 
         <View style={styles.profileLightWrapper}>
           <View style={styles.profileDarkWrapper}>
-            <View style={styles.profileCard}>
+            <TouchableOpacity
+              style={styles.profileCard}
+              onPress={() => navigation.navigate('EditProfileScreen')}
+              activeOpacity={0.7}
+            >
               <View style={styles.avatarContainer}>
                 <Text style={styles.avatarText}>{getInitial(user?.nome || '')}</Text>
               </View>
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{user?.nome || 'Usuário'}</Text>
                 <Text style={styles.userEmail}>{user?.email || 'email@exemplo.com'}</Text>
+                <Text style={styles.editLink}>Toque para editar</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -124,4 +129,11 @@ const styles = StyleSheet.create({
     height: 55, backgroundColor: '#FFF', borderRadius: 20, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FADBD8',
   },
   logoutText: { color: '#E74C3C', fontWeight: 'bold', fontSize: 14, letterSpacing: 0.5 },
+
+  editLink: {
+    fontSize: 12,
+    color: '#5DADE2',
+    marginTop: 5,
+    fontWeight: '600',
+  },
 });
