@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   async function updateUser(newUser: User) {
     setUser(newUser);
-    await AsyncStorage.setItem('@FashionHub:user', JSON.stringify(newUser));
+    await AsyncStorage.setItem('userData', JSON.stringify(newUser));
   }
 
   return (
