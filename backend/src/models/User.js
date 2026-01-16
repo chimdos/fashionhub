@@ -49,6 +49,14 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    endereco_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'enderecos',
+        key: 'id'
+      }
+    },
     ativo: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
