@@ -10,10 +10,17 @@ import {
   Alert,
   Image,
   Dimensions,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 import { useBag } from '../../contexts/BagContext';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +31,7 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
   const [product, setProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVariation, setSelectedVariation] = useState<any>(null);
+  const [isStoreExpanded, setIsStoreExpanded] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -45,6 +53,11 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
     };
     fetchProduct();
   }, [productId]);
+
+  const toggleStoreExpansion = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsStoreExpanded(!isStoreExpanded);
+  };
 
   const handleBagAction = () => {
     if (!selectedVariation) {
@@ -106,6 +119,54 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
           <View style={styles.titleRow}>
             <Text style={styles.productName}>{product.nome}</Text>
             <Text style={styles.productPrice}>{formattedPrice}</Text>
+          </View>
+
+          <View style={styles.storeSection}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={toggleStoreExpansion}
+              style={styles.storeHeader}
+            >
+              <View style={styles.storeInfoRow}>
+                <Ionicons name="business-outline" size={20} color="#5DADE2" />
+                <Text style={styles.storeLabel}>Vendido por: </Text>
+                {/* Ajustado para o nome real do campo: nome_loja */}
+                <Text style={styles.storeName}>
+                  {product.lojista?.nome_loja || 'FashionHub Prime'}
+                </Text>
+              </View>
+              <Ionicons
+                name={isStoreExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#888"
+              />
+            </TouchableOpacity>
+
+            {isStoreExpanded && (
+              <View style={styles.storeDetailsLightWrapper}>
+                <View style={styles.storeDetailsDarkWrapper}>
+                  <View style={styles.storeDetailsCard}>
+                    <Text style={styles.storeInfoText}>
+                      <Text style={styles.bold}>Endereço: </Text>
+                      {product.lojista?.rua}, {product.lojista?.numero} - {product.lojista?.bairro}
+                    </Text>
+                    <Text style={styles.storeInfoText}>
+                      <Text style={styles.bold}>CEP: </Text>
+                      {product.lojista?.cep}
+                    </Text>
+                    <Text style={styles.storeInfoText}>
+                      <Text style={styles.bold}>Cidade: </Text>
+                      {product.lojista?.cidade} / {product.lojista?.estado}
+                    </Text>
+
+                    <Text style={styles.storeInfoText}>
+                      <Text style={styles.bold}>Contato: </Text>
+                      {product.lojista?.user?.telefone || 'Consulte o chat'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
 
           <Text style={styles.sectionTitle}>Descrição</Text>
@@ -201,4 +262,64 @@ const styles = StyleSheet.create({
   mainButtonRemove: { backgroundColor: '#E74C3C' },
   buttonText: { color: '#333', fontWeight: 'bold', fontSize: 16 },
   buttonTextRemove: { color: '#FFF' },
+
+  storeSection: {
+    marginBottom: 20,
+    marginTop: 5,
+  },
+  storeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  storeInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  storeLabel: {
+    fontSize: 14,
+    color: '#888',
+    marginLeft: 8,
+  },
+  storeName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#5DADE2',
+  },
+  storeDetailsLightWrapper: {
+    marginTop: 15,
+    borderRadius: 20,
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: -3, height: -3 },
+    shadowOpacity: 1,
+    shadowRadius: 5,
+  },
+  storeDetailsDarkWrapper: {
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  storeDetailsCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#F8F9FA',
+  },
+  storeInfoText: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 5,
+    lineHeight: 18,
+  },
+  bold: {
+    fontWeight: 'bold',
+    color: '#444',
+  },
 });
