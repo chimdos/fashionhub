@@ -41,7 +41,8 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
         if (productData.variacoes) {
           productData.variacoes = productData.variacoes.map((v: any) => ({
             ...v,
-            produto: { nome: productData.nome, preco: productData.preco }
+            produto: { nome: productData.nome, preco: productData.preco },
+            lojista_id: productData.lojista_id
           }));
         }
         setProduct(productData);
