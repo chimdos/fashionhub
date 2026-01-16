@@ -1,4 +1,3 @@
-// frontend/src/navigation/ClientNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,6 +10,7 @@ import { CartScreen } from '../screens/client/CartScreen';
 import { SettingsScreen } from '../screens/client/SettingsScreen';
 import { BecomeCourierScreen } from '../screens/client/BecomeCourierScreen';
 import { BagSelectionScreen } from '../screens/client/BagSelectionScreen';
+import { EditProfileScreen } from '../screens/client/EditProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -63,6 +63,12 @@ export function ClientNavigator() {
       />
 
       <Stack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
         name="BecomeCourierScreen"
         component={BecomeCourierScreen}
         options={{ title: 'Trabalhe Conosco' }}
@@ -71,7 +77,7 @@ export function ClientNavigator() {
       <Stack.Screen
         name="BagSelection"
         component={BagSelectionScreen}
-        options={{ title: 'Provador em Casa 🏠' }}
+        options={{ title: 'Provador em Casa' }}
       />
 
     </Stack.Navigator>

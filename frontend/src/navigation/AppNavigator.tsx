@@ -14,6 +14,7 @@ import { ForgotPasswordScreen } from '../screens/Auth/ForgotPasswordScreen';
 import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
 import { StoreRegisterScreen } from '../screens/Auth/StoreRegisterScreen';
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
+import { EditProfileScreen } from '../screens/client/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,7 @@ function AuthNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: 'Nova Senha' }} />
+      <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
