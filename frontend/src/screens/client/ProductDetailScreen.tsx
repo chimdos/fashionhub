@@ -26,7 +26,7 @@ const { width } = Dimensions.get('window');
 
 export const ProductDetailScreen = ({ route, navigation }: any) => {
   const { productId } = route.params;
-  const { addToBag, removeFromBag, isInBag } = useBag();
+  const { addToBag, removeFromBag, isInBag, clearBag } = useBag();
 
   const [product, setProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,11 +65,38 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
       Alert.alert("Atenção", "Por favor, selecione um tamanho e cor.");
       return;
     }
+
     if (isInBag(selectedVariation.id)) {
       removeFromBag(selectedVariation.id);
       Alert.alert("Removido", `${product.nome} foi removido da sua mala.`);
     } else {
-      addToBag(selectedVariation);
+      try {
+        addToBag(selectedVariation);
+      } catch (error: any) {
+        if (error.message = "DIFERENTE_LOJISTA") {
+          Alert.alert(
+            "Produto de outra loja!",
+            "Sua mala possui itens de uma loja diferente. Deseja esvaziar a mala para adicionar esse produto?",
+            [
+              {
+                text: "Cancelar",
+                style: "cancel"
+              },
+              {
+                text: "Limpar e adicionar",
+                onPress: () => {
+                  clearBag();
+                  setTimeout(() => {
+                    addToBag(selectedVariation);
+                  }, 300);
+                }
+              }
+            ]
+          );
+        } else {
+          Alert.alert("Erro", "Não foi possível adicionar o item à mala.");
+        }
+      }
     }
   };
 
