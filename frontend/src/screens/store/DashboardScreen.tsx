@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
@@ -57,12 +58,24 @@ export const StoreDashboardScreen = () => {
     }, [])
   );
 
+  const getStatusDetails = (status: string) => {
+    switch (status) {
+      case 'SOLICITADA': return { color: '#E67E22', bg: '#FDEBD0', icon: 'time-outline' };
+      case 'PREPARANDO': return { color: '#3498DB', bg: '#EBF5FB', icon: 'Hammer-outline' };
+      case 'ENTREGUE': return { color: '#28a745', bg: '#E9F7EF', icon: 'checkmark-circle-outline' };
+      default: return { color: '#7F8C8D', bg: '#F2F4F4', icon: 'help-circle-outline' };
+    }
+  };
+
   const renderRequest = ({ item }: { item: BagRequest }) => {
     const primeiraImagem = item.itens[0]?.variacao_produto?.produto?.imagens[0]?.url_imagem;
+    const statusInfo = getStatusDetails(item.status);
 
     return (
-      <TouchableOpacity style={styles.requestCard}
+      <TouchableOpacity
+        style={styles.requestCard}
         onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
+        activeOpacity={0.7}
       >
         <Image
           source={{
@@ -75,118 +88,173 @@ export const StoreDashboardScreen = () => {
 
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Solicitação #{item.id.substring(0, 6)}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-              <Text style={styles.statusText}>{item.status}</Text>
+            <Text style={styles.cardTitle}>Mala #{item.id.substring(0, 6).toUpperCase()}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
+              <Text style={[styles.statusText, { color: statusInfo.color }]}>{item.status}</Text>
             </View>
           </View>
 
-          <Text style={styles.cardInfo}><Ionicons name="person" size={14} /> {item.cliente.nome}</Text>
-          <Text style={styles.cardInfo}><Ionicons name="shirt" size={14} /> {item.itens.length} itens na mala</Text>
+          <View style={styles.infoRow}>
+            <Ionicons name="person-outline" size={14} color="#666" />
+            <Text style={styles.cardInfo}>{item.cliente.nome}</Text>
+          </View>
 
-          <Text style={styles.cardDate}>
-            Solicitada em: {new Date(item.data_solicitacao).toLocaleDateString('pt-BR')}
-          </Text>
+          <View style={styles.infoRow}>
+            <Ionicons name="shirt-outline" size={14} color="#666" />
+            <Text style={styles.cardInfo}>{item.itens.length} {item.itens.length === 1 ? 'item' : 'itens'} selecionados</Text>
+          </View>
+
+          <View style={styles.footerRow}>
+            <Ionicons name="calendar-outline" size={12} color="#999" />
+            <Text style={styles.cardDate}>
+              {new Date(item.data_solicitacao).toLocaleDateString('pt-BR')}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.arrowIcon}>
+          <Ionicons name="chevron-forward" size={20} color="#CCC" />
         </View>
       </TouchableOpacity>
     );
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'SOLICITADA': return '#ffc107';
-      case 'PREPARANDO': return '#17a2b8';
-      case 'ENTREGUE': return '#28a745';
-      default: return '#6c757d';
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#28a745" />
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Solicitações de Mala</Text>
-        <TouchableOpacity onPress={fetchBagRequests}>
-          <Ionicons name="refresh" size={24} color="#28a745" />
+        <View>
+          <Text style={styles.welcomeText}>Painel do Lojista</Text>
+          <Text style={styles.headerTitle}>Solicitações</Text>
+        </View>
+        <TouchableOpacity style={styles.refreshButton} onPress={fetchBagRequests}>
+          <Ionicons name="refresh" size={22} color="#28a745" />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={bagRequests}
-        renderItem={renderRequest}
-        refreshing={isLoading}
-        onRefresh={fetchBagRequests}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.centerContainer}>
-            <Ionicons name="basket-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>Nenhuma solicitação pendente.</Text>
-          </View>
-        }
-      />
+
+      {isLoading && bagRequests.length === 0 ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#28a745" />
+        </View>
+      ) : (
+        <FlatList
+          data={bagRequests}
+          renderItem={renderRequest}
+          refreshing={isLoading}
+          onRefresh={fetchBagRequests}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="file-tray-outline" size={50} color="#CCC" />
+              </View>
+              <Text style={styles.emptyTitle}>Tudo limpo por aqui!</Text>
+              <Text style={styles.emptyText}>Você não tem nenhuma solicitação de mala pendente no momento.</Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
+  safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee'
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 15,
+    backgroundColor: '#F8F9FA',
   },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  list: { padding: 15 },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 16, color: 'gray', marginTop: 10 },
-  requestCard: {
-    flexDirection: 'row',
-    padding: 12,
-    backgroundColor: '#fff',
+  welcomeText: { fontSize: 14, color: '#666', fontWeight: '500' },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1A1A1A' },
+  refreshButton: {
+    padding: 10,
+    backgroundColor: '#FFF',
     borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#efefef',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
+  },
+  list: { padding: 20, paddingBottom: 40 },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  requestCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 16,
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
   },
   productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    width: 85,
+    height: 85,
+    borderRadius: 15,
+    backgroundColor: '#F1F3F5',
   },
   cardContent: {
     flex: 1,
-    marginLeft: 12,
-    justifyContent: 'center',
+    marginLeft: 15,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
-  cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#333' },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  statusText: { fontSize: 10, color: '#fff', fontWeight: 'bold' },
-  cardInfo: { fontSize: 13, color: '#666', marginBottom: 2 },
-  cardDate: { fontSize: 11, color: '#999', marginTop: 4 },
+  statusText: { fontSize: 11, fontWeight: 'bold' },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  cardInfo: { fontSize: 14, color: '#666', marginLeft: 6 },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  cardDate: { fontSize: 12, color: '#ADB5BD', marginLeft: 4 },
+  arrowIcon: {
+    marginLeft: 10,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 100,
+    paddingHorizontal: 40
+  },
+  emptyIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#FFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    elevation: 2,
+  },
+  emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 8 },
+  emptyText: { fontSize: 14, color: 'gray', textAlign: 'center', lineHeight: 20 },
 });
