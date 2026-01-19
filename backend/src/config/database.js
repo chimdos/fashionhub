@@ -8,7 +8,7 @@ const config = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT || 5432,
   dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'production' ? false : console.log,
+  logging: isProduction ? false : console.log,
   dialectOptions: {
     ssl: {
       require: true,
@@ -29,7 +29,7 @@ const sequelize = new Sequelize(
 );
 
 module.exports = {
-  development: config,
+  development: { ...config, dialectOptions: {} },
   production: config,
   sequelize: sequelize
 };
