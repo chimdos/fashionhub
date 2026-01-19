@@ -9,7 +9,7 @@ const authController = {
   async register(req, res) {
     const t = await sequelize.transaction();
     try {
-      const { nome, email, senha, tipo_usuario, telefone, endereco, nome_loja } = req.body;
+      const { nome, email, senha, tipo_usuario, telefone, endereco, nome_loja, cpnj } = req.body;
 
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
@@ -37,6 +37,7 @@ const authController = {
         await Lojista.create({
           id: newUser.id,
           nome_loja: nome_loja,
+          cnpj: cpnj,
         }, { transaction: t });
       }
 
@@ -57,8 +58,12 @@ const authController = {
       const userResponse = newUser.get({ plain: true });
       delete userResponse.senha_hash;
 
-      res.status(201).json({ message: 'Usuário criado com sucesso!', token, user: userResponse });
+      if (tipo_usuario === 'lojista') {
+        userResponse.nome_loja = nome_loja;
+        userResponse.cnpj = cnpj;
+      }
 
+      res.status(201).json({ message: 'Usuário criado com sucesso!', token, user: userResponse });
     } catch (error) {
       if (t && !t.finished) {
         await t.rollback();
