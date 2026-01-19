@@ -18,6 +18,8 @@ interface User {
     cidade: string,
     estado: string,
   };
+  nome_loja?: string,
+  cnpj?: string
 }
 
 interface AuthContextData {
