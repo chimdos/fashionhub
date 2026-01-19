@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,22 +43,14 @@ export const BagDetailScreen = () => {
   };
 
   const handleAction = async (action: 'ACEITAR' | 'RECUSAR') => {
-    let motivo = '';
-
     setSubmitting(true);
     try {
-      const payload: any = { action };
-
-      if (action === 'RECUSAR') {
-        payload.motivo = "Indisponibilidade de estoque no momento.";
-      }
-
+      let motivo = action === 'RECUSAR' ? "Indisponibilidade de estoque no momento." : '';
       await api.post(`/api/bags/${bagId}/store-action`, { action, motivo });
 
       Alert.alert("Sucesso", `A solicitação foi ${action === 'ACEITAR' ? 'aceita' : 'recusada'}.`);
       navigation.goBack();
     } catch (error: any) {
-      console.error(error.response?.data);
       Alert.alert("Erro", error.response?.data?.message || "Falha ao processar ação.");
     } finally {
       setSubmitting(false);
@@ -68,18 +61,24 @@ export const BagDetailScreen = () => {
     setSubmitting(true);
     try {
       await api.post(`/api/bags/${bagId}/request-courier`);
-
-      Alert.alert("Sucesso", "Solicitação de entregador enviada.");
-      fetchBagDetails();
-
+      Alert.alert("Sucesso", "Solicitação de entregador enviada!");
       navigation.goBack();
     } catch (error: any) {
-      console.error(error.response?.data);
       Alert.alert("Erro", error.response?.data?.message || "Falha ao solicitar entregador.");
     } finally {
       setSubmitting(false);
     }
   }
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'SOLICITADA': return { color: '#E67E22', bg: '#FDEBD0', label: 'Pendente' };
+      case 'PREPARANDO': return { color: '#3498DB', bg: '#EBF5FB', label: 'Em Preparo' };
+      case 'AGUARDANDO_MOTO': return { color: '#9B59B6', bg: '#F5EEF8', label: 'Aguardando Coleta' };
+      case 'ENTREGUE': return { color: '#28a745', bg: '#E9F7EF', label: 'Finalizado' };
+      default: return { color: '#7F8C8D', bg: '#F2F4F4', label: status };
+    }
+  };
 
   if (loading) {
     return (
@@ -89,33 +88,68 @@ export const BagDetailScreen = () => {
     );
   }
 
+  const statusStyle = getStatusStyle(bag.status);
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <StatusBar barStyle="dark-content" />
+
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerSubtitle}>Mala #{bag.id.substring(0, 6).toUpperCase()}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.statusText, { color: statusStyle.color }]}>{statusStyle.label}</Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cliente</Text>
+          <Text style={styles.sectionTitle}>Informações do Cliente</Text>
           <View style={styles.infoCard}>
-            <Text style={styles.clientName}>{bag.cliente.nome}</Text>
-            <Text style={styles.clientDetail}>{bag.cliente.email}</Text>
-            <Text style={styles.clientDetail}>{bag.cliente.telefone}</Text>
+            <View style={styles.clientHeader}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{bag.cliente.nome.charAt(0)}</Text>
+              </View>
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.clientName}>{bag.cliente.nome}</Text>
+                <Text style={styles.clientDetail}>{bag.cliente.email}</Text>
+              </View>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.contactRow}>
+              <Ionicons name="call" size={18} color="#28a745" />
+              <Text style={styles.contactText}>{bag.cliente.telefone}</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
           <View style={styles.infoCard}>
-            <Text style={styles.addressText}>
-              {bag.endereco_entrega.logradouro}, {bag.endereco_entrega.numero}
-            </Text>
-            <Text style={styles.addressText}>
-              {bag.endereco_entrega.bairro} - {bag.endereco_entrega.cidade}/{bag.endereco_entrega.estado}
-            </Text>
+            <View style={styles.addressRow}>
+              <Ionicons name="location" size={20} color="#28a745" />
+              <View style={{ marginLeft: 10, flex: 1 }}>
+                <Text style={styles.addressTextBold}>
+                  {bag.endereco_entrega.logradouro}, {bag.endereco_entrega.numero}
+                </Text>
+                <Text style={styles.addressText}>
+                  {bag.endereco_entrega.bairro}
+                </Text>
+                <Text style={styles.addressText}>
+                  {bag.endereco_entrega.cidade} - {bag.endereco_entrega.estado}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Itens Solicitados ({bag.itens.length})</Text>
+          <Text style={styles.sectionTitle}>Itens na Mala ({bag.itens.length})</Text>
           {bag.itens.map((item: any) => (
             <View key={item.id} style={styles.itemRow}>
               <Image
@@ -123,10 +157,12 @@ export const BagDetailScreen = () => {
                 style={styles.itemImage}
               />
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.variacao_produto.produto.nome}</Text>
-                <Text style={styles.itemSub}>
-                  Tam: {item.variacao_produto.tamanho} | Cor: {item.variacao_produto.cor}
-                </Text>
+                <Text style={styles.itemName} numberOfLines={1}>{item.variacao_produto.produto.nome}</Text>
+                <View style={styles.variationBadge}>
+                  <Text style={styles.variationText}>
+                    {item.variacao_produto.tamanho} • {item.variacao_produto.cor}
+                  </Text>
+                </View>
                 <Text style={styles.itemPrice}>R$ {Number(item.preco_unitario_mala).toFixed(2)}</Text>
               </View>
             </View>
@@ -135,86 +171,139 @@ export const BagDetailScreen = () => {
 
         {bag.observacoes && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Observações do Cliente</Text>
-            <Text style={styles.obsText}>{bag.observacoes}</Text>
+            <Text style={styles.sectionTitle}>Observações</Text>
+            <View style={styles.obsCard}>
+              <Ionicons name="chatbubble-ellipses-outline" size={20} color="#666" style={{ marginBottom: 5 }} />
+              <Text style={styles.obsText}>{bag.observacoes}</Text>
+            </View>
+          </View>
+        )}
+
+        {bag.status === 'AGUARDANDO_MOTO' && (
+          <View style={styles.tokenCard}>
+            <Ionicons name="shield-checkmark" size={32} color="#856404" />
+            <View style={{ marginLeft: 15 }}>
+              <Text style={styles.tokenLabel}>Token de Retirada</Text>
+              <Text style={styles.tokenValue}>{bag.token_retirada}</Text>
+              <Text style={styles.tokenHint}>Confirme este código com o motoboy.</Text>
+            </View>
           </View>
         )}
 
       </ScrollView>
 
-      {bag.status === 'SOLICITADA' && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.btnReject]}
-            onPress={() => handleAction('RECUSAR')}
-            disabled={submitting}
-          >
-            <Text style={styles.btnText}>RECUSAR</Text>
-          </TouchableOpacity>
+      <View style={styles.footer}>
+        {bag.status === 'SOLICITADA' && (
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.btnReject]}
+              onPress={() => handleAction('RECUSAR')}
+              disabled={submitting}
+            >
+              <Text style={styles.btnTextReject}>Recusar</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.btnAccept]}
-            onPress={() => handleAction('ACEITAR')}
-            disabled={submitting}
-          >
-            {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>ACEITAR MALA</Text>}
-          </TouchableOpacity>
-        </View>
-      )}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.btnAccept]}
+              onPress={() => handleAction('ACEITAR')}
+              disabled={submitting}
+            >
+              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Aceitar Mala</Text>}
+            </TouchableOpacity>
+          </>
+        )}
 
-      {bag.status === 'PREPARANDO' && (
-        <View style={styles.footer}>
+        {bag.status === 'PREPARANDO' && (
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#007bff' }]}
+            style={[styles.actionButton, styles.btnCourier]}
             onPress={handleRequestCourier}
             disabled={submitting}
           >
             {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="bicycle" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.btnText}>MALA PRONTA - CHAMAR MOTOBOY</Text>
+              <View style={styles.btnRow}>
+                <Ionicons name="bicycle" size={22} color="#fff" style={{ marginRight: 10 }} />
+                <Text style={styles.btnText}>MALA PRONTA • CHAMAR MOTOBOY</Text>
               </View>
             )}
           </TouchableOpacity>
-        </View>
-      )}
-
-      {bag.status === 'AGUARDANDO_MOTO' && (
-        <View style={[styles.infoCard, { backgroundColor: '#fff3cd', marginTop: 10 }]}>
-          <Text style={{ fontWeight: 'bold', color: '#856404' }}>
-            Aguardando entregador...
-          </Text>
-          <Text style={{ fontSize: 18, marginTop: 5 }}>
-            Token de Retirada: <Text style={{ fontWeight: 'bold' }}>{bag.token_retirada}</Text>
-          </Text>
-        </View>
-      )}
+        )}
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#F8F9FA' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 15,
+    backgroundColor: '#FFF',
+    elevation: 2,
+  },
+  backButton: { padding: 8, backgroundColor: '#F1F3F5', borderRadius: 12 },
+  headerTitleContainer: { marginLeft: 15, flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerSubtitle: { fontSize: 18, fontWeight: 'bold', color: '#1A1A1A' },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  statusText: { fontSize: 12, fontWeight: 'bold' },
+
+  scrollContent: { padding: 20, paddingBottom: 120 },
   section: { marginBottom: 25 },
-  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 },
-  infoCard: { backgroundColor: '#fff', padding: 15, borderRadius: 12, elevation: 2 },
+  sectionTitle: { fontSize: 13, fontWeight: 'bold', color: '#ADB5BD', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 },
+
+  infoCard: { backgroundColor: '#fff', padding: 16, borderRadius: 20, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 },
+
+  clientHeader: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#E9F7EF', justifyContent: 'center', alignItems: 'center' },
+  avatarText: { color: '#28a745', fontWeight: 'bold', fontSize: 20 },
   clientName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  clientDetail: { fontSize: 14, color: '#666', marginTop: 2 },
-  addressText: { fontSize: 15, color: '#444' },
-  itemRow: { flexDirection: 'row', backgroundColor: '#fff', padding: 10, borderRadius: 12, marginBottom: 10, alignItems: 'center' },
-  itemImage: { width: 60, height: 60, borderRadius: 8, backgroundColor: '#eee' },
-  itemInfo: { marginLeft: 12, flex: 1 },
-  itemName: { fontSize: 15, fontWeight: '600' },
-  itemSub: { fontSize: 12, color: '#888' },
-  itemPrice: { fontSize: 14, fontWeight: 'bold', color: '#28a745', marginTop: 2 },
-  obsText: { fontStyle: 'italic', color: '#555', backgroundColor: '#fff', padding: 15, borderRadius: 12 },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: 20, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
-  actionButton: { flex: 1, height: 50, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginHorizontal: 5 },
-  btnReject: { backgroundColor: '#dc3545' },
-  btnAccept: { backgroundColor: '#28a745' },
-  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  clientDetail: { fontSize: 14, color: '#666' },
+  divider: { height: 1, backgroundColor: '#F1F3F5', marginVertical: 12 },
+  contactRow: { flexDirection: 'row', alignItems: 'center' },
+  contactText: { marginLeft: 8, fontSize: 15, color: '#333', fontWeight: '500' },
+
+  addressRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  addressTextBold: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 2 },
+  addressText: { fontSize: 14, color: '#666' },
+
+  itemRow: { flexDirection: 'row', backgroundColor: '#fff', padding: 12, borderRadius: 18, marginBottom: 12, alignItems: 'center', elevation: 2 },
+  itemImage: { width: 70, height: 70, borderRadius: 12, backgroundColor: '#F8F9FA' },
+  itemInfo: { marginLeft: 15, flex: 1 },
+  itemName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+  variationBadge: { backgroundColor: '#F1F3F5', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginTop: 4 },
+  variationText: { fontSize: 12, color: '#666', fontWeight: '500' },
+  itemPrice: { fontSize: 16, fontWeight: 'bold', color: '#28a745', marginTop: 6 },
+
+  obsCard: { backgroundColor: '#FFF', padding: 16, borderRadius: 18, borderLeftWidth: 4, borderLeftColor: '#28a745', elevation: 2 },
+  obsText: { fontSize: 14, color: '#495057', fontStyle: 'italic', lineHeight: 20 },
+
+  tokenCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9E6',
+    padding: 20,
+    borderRadius: 20,
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: '#FFC107',
+    marginTop: 10,
+    elevation: 0,
+  },
+  tokenLabel: { fontSize: 12, color: '#856404', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: 0.5 },
+  tokenValue: { fontSize: 28, fontWeight: 'bold', color: '#1A1A1A', letterSpacing: 4 },
+  tokenHint: { fontSize: 12, color: '#856404', marginTop: 2 },
+
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: 20, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F1F3F5', paddingBottom: 35 },
+  actionButton: { flex: 1, height: 55, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginHorizontal: 8, elevation: 4 },
+  btnReject: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#FFC1C1' },
+  btnAccept: { backgroundColor: '#28a745', shadowColor: '#28a745', shadowOpacity: 0.3 },
+  btnCourier: { backgroundColor: '#007BFF', shadowColor: '#007BFF', shadowOpacity: 0.3 },
+  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  btnTextReject: { color: '#FF4D4D', fontWeight: 'bold', fontSize: 15 },
+  btnRow: { flexDirection: 'row', alignItems: 'center' },
 });
