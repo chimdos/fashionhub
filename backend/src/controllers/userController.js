@@ -5,7 +5,7 @@ const userController = {
       const userId = req.user.userId;
 
       const user = await User.findByPk(userId, {
-        include: [{ model: Address, as: 'endereco' }]
+        include: [{ model: Address, as: 'endereco' }], attributes: { exclude: ['senha_hash'] }
       });
 
       if (!user) {
