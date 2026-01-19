@@ -1,7 +1,6 @@
 const { Product, ProductVariation, ProductImage, Lojista, BagItem, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const Joi = require('joi');
-const sequelize = require('../config/database');
 
 const getProductsSchema = Joi.object({
   categoria: Joi.string().optional(),
