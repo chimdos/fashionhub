@@ -1,4 +1,4 @@
-const { User, Address } = require('../models');
+const { User, Address, sequelize } = require('../models');
 const userController = {
   async getCurrentUserProfile(req, res) {
     try {

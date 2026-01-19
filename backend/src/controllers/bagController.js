@@ -1,5 +1,4 @@
-const { Bag, BagItem, Product, ProductVariation, ProductImage, User, Address } = require('../models');
-const sequelize = require('../config/database');
+const { Bag, BagItem, Product, ProductVariation, ProductImage, User, Address, sequelize } = require('../models');
 const Joi = require('joi');
 
 const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString();
