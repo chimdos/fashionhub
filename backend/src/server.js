@@ -6,7 +6,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
-const sequelize = require('./config/database');
+const { sequelize } = require('./config/database');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
