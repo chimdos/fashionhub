@@ -81,7 +81,10 @@ const authController = {
     try {
       const { email, senha } = req.body;
 
-      const user = await User.scope('withPassword').findOne({ where: { email, ativo: true } });
+      const user = await User.scope('withPassword').findOne({
+        where: { email, ativo: true },
+        include: [{ model: Lojista, as: 'lojista' }]
+      });
 
       if (!user) {
         return res.status(401).json({ message: 'Credenciais inválidas.' });
@@ -102,8 +105,13 @@ const authController = {
       const userResponse = user.get({ plain: true });
       delete userResponse.senha_hash;
 
-      res.json({ message: 'Login realizado com sucesso!', token, user: userResponse });
+      if (userResponse.lojista) {
+        userResponse.nome_loja = userResponse.lojista.nome_loja;
+        userResponse.cnpj = userResponse.lojista.cpnj;
+        delete userResponse.lojista;
+      }
 
+      res.json({ message: 'Login realizado com sucesso!', token, user: userResponse });
     } catch (error) {
       console.error('ERRO DURANTE O LOGIN:', error);
       res.status(500).json({ message: 'Erro interno do servidor.' });
