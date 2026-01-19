@@ -14,7 +14,7 @@ module.exports = (sequelize) => {
       });
       this.hasOne(models.Lojista, {
         foreignKey: 'id',
-        as: 'lojistaProfile'
+        as: 'lojista'
       });
     }
   }
