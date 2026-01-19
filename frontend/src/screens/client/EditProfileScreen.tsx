@@ -125,7 +125,7 @@ export const EditProfileScreen = ({ navigation }: any) => {
     const loadFullUserData = async () => {
       try {
         setIsLoading(true);
-        const response = await api.get(`/api/users/me}`);
+        const response = await api.get(`/api/users/me`);
         const fullUser = response.data;
 
         setNome(fullUser.nome);
