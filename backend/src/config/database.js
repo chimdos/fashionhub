@@ -28,5 +28,8 @@ const sequelize = new Sequelize(
   config
 );
 
-module.exports = sequelize;
-module.exports.config = config;
+module.exports = {
+  development: config,
+  production: config,
+  sequelize: sequelize
+};
