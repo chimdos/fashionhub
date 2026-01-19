@@ -6,11 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Button,
   Alert,
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -44,9 +46,8 @@ export const CreateProductScreen = ({ navigation }: any) => {
 
   const handleSelectImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (status !== 'granted') {
-      Alert.alert ("Permissão negada", "Precisamos de permissão para acessar suas fotos.");
+      Alert.alert("Permissão negada", "Precisamos de permissão para acessar suas fotos.");
       return;
     }
 
@@ -64,14 +65,11 @@ export const CreateProductScreen = ({ navigation }: any) => {
 
   const handleCreateProduct = async () => {
     if (!nome || !descricao || !preco || !categoria) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos.");
+      Alert.alert("Atenção", "Preencha os campos básicos do produto.");
       return;
     }
 
     setIsLoading(true);
-
-    console.log("Imagens selecionadas para upload:", images.map(img => img.uri));
-
     try {
       const formData = new FormData();
       formData.append('nome', nome);
@@ -90,24 +88,20 @@ export const CreateProductScreen = ({ navigation }: any) => {
       images.forEach((img, index) => {
         const uri = img.uri;
         const fileType = uri.split('.').pop();
-
         formData.append('imagens', {
           uri: uri,
           name: `produto_${index}.${fileType}`,
           type: `image/${fileType}`,
         } as any);
-        });
-
-      await api.post('/api/products', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
 
-      Alert.alert("Sucesso", "Produto criado com sucesso!");
-      navigation.goBack(); // Volta para a lista de produtos
+      await api.post('/api/products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      Alert.alert("Sucesso", "Seu produto já está na vitrine!");
+      navigation.goBack();
     } catch (error: any) {
-      console.error("Erro ao criar produto:", error.response?.data || error);
       Alert.alert("Erro", "Não foi possível criar o produto.");
     } finally {
       setIsLoading(false);
@@ -115,254 +109,176 @@ export const CreateProductScreen = ({ navigation }: any) => {
   };
 
   const handleAddVariation = () => {
-    const newVariation: VariationState = {
-      id: Date.now().toString(),
-      cor: '',
-      tamanho: '',
-      estoque: '',
-      preco: '',
-    };
-
-    setVariacoes([...variacoes, newVariation]);
-  }
-
-  const handleRemoveVariation = (idToRemove: string) => {
-    const novaLista = variacoes.filter((item) => item.id !== idToRemove);
-
-    setVariacoes(novaLista);
-  }
+    setVariacoes([...variacoes, { id: Date.now().toString(), cor: '', tamanho: '', estoque: '', preco: '' }]);
+  };
 
   const handleUpdateVariation = (id: string, field: keyof VariationState, value: string) => {
-    const novaLista = variacoes.map((item) => {
-      if (item.id === id) {
-        return {
-          ...item,
-          [field]: value
-        };
-      }
-      return item;
-    });
-    setVariacoes(novaLista);
-  }
+    setVariacoes(variacoes.map(item => item.id === id ? { ...item, [field]: value } : item));
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Criar Novo Produto</Text>
-      </View>
-      <ScrollView style={styles.container}>
-        <Text style={styles.label}>Nome do Produto</Text>
-        <TextInput style={styles.input} placeholder="Ex: Camisa de Algodão" value={nome} onChangeText={setNome} />
+      <StatusBar barStyle="dark-content" />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
 
-        <Text style={styles.label}>Descrição</Text>
-        <TextInput style={[styles.input, styles.textArea]} placeholder="Descreva seu produto..." value={descricao} onChangeText={setDescricao} multiline />
-
-        <Text style={styles.label}>Preço (R$)</Text>
-        <TextInput style={styles.input} placeholder="Ex: 79.90" value={preco} onChangeText={setPreco} keyboardType="numeric" />
-
-        <Text style={styles.label}>Categoria</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={categoria}
-            onValueChange={(itemValue, itemIndex) => setCategoria(itemValue)}
-            style={styles.picker}
-          >
-            {CATEGORIAS_FIXAS.map(cat => (
-              <Picker.Item key={cat.value} label={cat.label} value={cat.value} />
-            ))}
-          </Picker>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Novo Produto</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        <Text style={styles.label}>Imagens (Até 5)</Text>
-        <TouchableOpacity style={styles.imageButton} onPress={handleSelectImages}>
-          <Ionicons name="camera" size={24} color="#007bff" />
-          <Text style={styles.imageButtonText}>Selecionar Fotos</Text>
-        </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagePreviewContainer}>
-          {images.map((img, index) => (
-            <Image key={index} source={{ uri: img.uri }} style={styles.imagePreview} />
-          ))}
-        </ScrollView>
+          <Text style={styles.sectionTitle}>Informações Gerais</Text>
+          <View style={styles.card}>
+            <View style={styles.inputContainer}>
+              <Ionicons name="pricetag-outline" size={20} color="#28a745" style={styles.icon} />
+              <TextInput style={styles.input} placeholder="Nome do Produto" value={nome} onChangeText={setNome} />
+            </View>
 
-        <Text style={styles.label}>Variações de Estoque</Text>
-        {variacoes.map((item, index) => (
-          <View key={item.id} style={styles.variationCard}>
-
-            <View style={styles.variationHeader}>
-              <Text style={styles.variationTitle}>Variação {index + 1}</Text>
-              <TouchableOpacity onPress={() => handleRemoveVariation(item.id)}>
-                <Ionicons name="trash-outline" size={20} color="red" />
-              </TouchableOpacity>
+            <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start', paddingTop: 15 }]}>
+              <Ionicons name="document-text-outline" size={20} color="#28a745" style={styles.icon} />
+              <TextInput
+                style={[styles.input, { height: 80 }]}
+                placeholder="Descrição..."
+                value={descricao}
+                onChangeText={setDescricao}
+                multiline
+              />
             </View>
 
             <View style={styles.row}>
-              <View style={[styles.col, { flex: 2 }]}>
+              <View style={[styles.inputContainer, { flex: 1, marginRight: 10 }]}>
+                <Ionicons name="cash-outline" size={20} color="#28a745" style={styles.icon} />
                 <TextInput
-                  style={styles.inputSmall}
+                  style={styles.input}
+                  placeholder="Preço R$"
+                  value={preco}
+                  onChangeText={setPreco}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={[styles.pickerWrapper, { flex: 1.2 }]}>
+                <Picker
+                  selectedValue={categoria}
+                  onValueChange={(val) => setCategoria(val)}
+                  style={styles.picker}
+                >
+                  {CATEGORIAS_FIXAS.map(cat => <Picker.Item key={cat.value} label={cat.label} value={cat.value} />)}
+                </Picker>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>Imagens (Até 5)</Text>
+          <TouchableOpacity style={styles.imageButton} onPress={handleSelectImages}>
+            <Ionicons name="cloud-upload-outline" size={28} color="#28a745" />
+            <Text style={styles.imageButtonText}>Selecionar Fotos</Text>
+          </TouchableOpacity>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagePreviewList}>
+            {images.map((img, index) => (
+              <View key={index} style={styles.imageWrapper}>
+                <Image source={{ uri: img.uri }} style={styles.imagePreview} />
+                <TouchableOpacity style={styles.removeImage} onPress={() => setImages(images.filter((_, i) => i !== index))}>
+                  <Ionicons name="close-circle" size={20} color="#FF4D4D" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+
+          <View style={styles.variationHeader}>
+            <Text style={styles.sectionTitle}>Variações e Estoque</Text>
+            <TouchableOpacity onPress={handleAddVariation} style={styles.addVariationBtn}>
+              <Ionicons name="add-circle" size={20} color="#28a745" />
+              <Text style={styles.addVariationText}>Adicionar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {variacoes.map((item, index) => (
+            <View key={item.id} style={styles.variationCard}>
+              <View style={styles.varTitleRow}>
+                <Text style={styles.varLabel}>Opção #{index + 1}</Text>
+                <TouchableOpacity onPress={() => setVariacoes(variacoes.filter(v => v.id !== item.id))}>
+                  <Ionicons name="trash-outline" size={18} color="#FF4D4D" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.row}>
+                <TextInput
+                  style={[styles.smallInput, { flex: 2 }]}
                   placeholder="Cor (ex: Azul)"
                   value={item.cor}
-                  onChangeText={(txt) => handleUpdateVariation(item.id, 'cor', txt)}
+                  onChangeText={(t) => handleUpdateVariation(item.id, 'cor', t)}
                 />
-              </View>
-
-              <View style={[styles.col, { flex: 1 }]}>
                 <TextInput
-                  style={styles.inputSmall}
+                  style={[styles.smallInput, { flex: 1 }]}
                   placeholder="Tam"
                   value={item.tamanho}
-                  onChangeText={(txt) => handleUpdateVariation(item.id, 'tamanho', txt)}
+                  onChangeText={(t) => handleUpdateVariation(item.id, 'tamanho', t)}
                 />
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.col}>
                 <TextInput
-                  style={styles.inputSmall}
+                  style={[styles.smallInput, { flex: 1 }]}
                   placeholder="Qtd"
                   keyboardType="numeric"
                   value={item.estoque}
-                  onChangeText={(txt) => handleUpdateVariation(item.id, 'estoque', txt)}
-                />
-              </View>
-
-              <View style={styles.col}>
-                <TextInput
-                  style={styles.inputSmall}
-                  placeholder="Preço (opcional)"
-                  keyboardType="numeric"
-                  value={item.preco}
-                  onChangeText={(txt) => handleUpdateVariation(item.id, 'preco', txt)}
+                  onChangeText={(t) => handleUpdateVariation(item.id, 'estoque', t)}
                 />
               </View>
             </View>
+          ))}
 
-          </View>
-        ))}
+          <TouchableOpacity
+            style={[styles.saveButton, isLoading && { backgroundColor: '#A3D9B1' }]}
+            onPress={handleCreateProduct}
+            disabled={isLoading}
+          >
+            {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Publicar Produto</Text>}
+          </TouchableOpacity>
 
-        <Button title="+ Adicionar Variação" onPress={handleAddVariation} color="#6c757d" />
-
-        <View style={styles.buttonContainer}>
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#007bff" />
-          ) : (
-            <Button title="Salvar Produto" onPress={handleCreateProduct} />
-          )}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee'
-  },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', marginLeft: 15 },
-  container: { padding: 20 },
-  label: { fontSize: 16, fontWeight: '500', color: '#333', marginBottom: 5, marginTop: 15 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-    paddingTop: 10,
-  },
-  pickerContainer: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
-    justifyContent: 'center',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  imageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 50,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#007bff',
-    borderStyle: 'dashed',
-    marginTop: 10,
-  },
-  imageButtonText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#007bff',
-    fontWeight: 'bold',
-  },
-  imagePreviewContainer: {
-    flexDirection: 'row',
-    marginTop: 15,
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  buttonContainer: {
-    marginTop: 30,
-    marginBottom: 50,
-  },
-  variationCard: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  variationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  variationTitle: {
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  col: {
-    flex: 1,
-    marginRight: 5,
-  },
-  inputSmall: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 8,
-    fontSize: 14,
-  },
+  safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, backgroundColor: '#FFF', elevation: 2 },
+  backButton: { padding: 8, backgroundColor: '#F1F3F5', borderRadius: 12 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#1A1A1A' },
+
+  scrollContainer: { padding: 20 },
+  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#ADB5BD', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 },
+
+  card: { backgroundColor: '#FFF', borderRadius: 20, padding: 15, marginBottom: 20, elevation: 4, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F3F5', borderRadius: 12, marginBottom: 12, paddingHorizontal: 12, height: 55 },
+  icon: { marginRight: 10 },
+  input: { flex: 1, fontSize: 16, color: '#333' },
+
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pickerWrapper: { backgroundColor: '#F1F3F5', borderRadius: 12, height: 55, justifyContent: 'center', marginBottom: 12, overflow: 'hidden' },
+  picker: { width: '100%', color: '#333' },
+
+  imageButton: { height: 80, borderStyle: 'dashed', borderWidth: 2, borderColor: '#28a745', borderRadius: 20, justifyContent: 'center', alignItems: 'center', backgroundColor: '#E9F7EF', marginBottom: 15 },
+  imageButtonText: { marginTop: 5, color: '#28a745', fontWeight: 'bold' },
+  imagePreviewList: { marginBottom: 20 },
+  imageWrapper: { marginRight: 12, position: 'relative' },
+  imagePreview: { width: 90, height: 90, borderRadius: 15, borderWidth: 1, borderColor: '#DDD' },
+  removeImage: { position: 'absolute', top: -5, right: -5, backgroundColor: '#FFF', borderRadius: 10 },
+
+  variationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  addVariationBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E9F7EF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  addVariationText: { marginLeft: 5, color: '#28a745', fontWeight: 'bold', fontSize: 13 },
+
+  variationCard: { backgroundColor: '#FFF', borderRadius: 15, padding: 15, marginBottom: 10, elevation: 2 },
+  varTitleRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  varLabel: { fontSize: 12, fontWeight: 'bold', color: '#666' },
+  smallInput: { backgroundColor: '#F1F3F5', borderRadius: 10, padding: 10, fontSize: 14, marginRight: 8 },
+
+  saveButton: { backgroundColor: '#28a745', height: 60, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginTop: 20, marginBottom: 40, elevation: 4, shadowColor: '#28a745', shadowOpacity: 0.3, shadowRadius: 8 },
+  saveButtonText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
 });
