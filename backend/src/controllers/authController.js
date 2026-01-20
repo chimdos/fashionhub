@@ -86,6 +86,12 @@ const authController = {
         include: [{ model: Lojista, as: 'lojista' }]
       });
 
+      console.log("--> USUÁRIO ENCONTRADO:", user?.nome);
+      console.log("--> DADOS DA LOJA:", user?.lojista ? "SIM" : "NÃO (NULL)");
+      if (user?.lojista) {
+        console.log("--> CONTEÚDO DA LOJA:", user.lojista.toJSON());
+      }
+
       if (!user) {
         return res.status(401).json({ message: 'Credenciais inválidas.' });
       }
