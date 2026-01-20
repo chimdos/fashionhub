@@ -125,6 +125,12 @@ const authController = {
       if (userResponse.lojista) {
         userResponse.nome_loja = userResponse.lojista.nome_loja;
         userResponse.cnpj = userResponse.lojista.cnpj;
+        userResponse.cep = userResponse.lojista.cep;
+        userResponse.rua = userResponse.lojista.rua;
+        userResponse.numero = userResponse.lojista.numero;
+        userResponse.bairro = userResponse.lojista.bairro;
+        userResponse.cidade = userResponse.lojista.cidade;
+        userResponse.estado = userResponse.lojista.estado;
         delete userResponse.lojista;
       }
 
