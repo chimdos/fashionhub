@@ -142,7 +142,7 @@ const userController = {
         return res.status(400).json({ error: 'O nome da loja é obrigatório.' });
       }
 
-      const lojista = await Lojista.findByPk(req.userId);
+      const lojista = await Lojista.findByPk(req.user.userId);
 
       if (!lojista) {
         return res.status(404).json({ error: 'Perfil de lojista não encontrado.' });
@@ -175,7 +175,7 @@ const userController = {
         const emailExists = await User.findOne({
           where: {
             email,
-            id: { [Op.ne]: req.userId }
+            id: { [Op.ne]: req.user.userId }
           }
         });
         if (emailExists) {
@@ -183,7 +183,7 @@ const userController = {
         }
       }
 
-      const user = await User.findByPk(req.userId);
+      const user = await User.findByPk(req.user.userId);
       if (!user) {
         return res.status(404).json({ message: 'Usuário não encontrado.' });
       }
@@ -205,7 +205,7 @@ const userController = {
     try {
       const { cep, rua, numero, bairro, cidade, estado } = req.body;
 
-      const lojista = await Lojista.findByPk(req.userId);
+      const lojista = await Lojista.findByPk(req.user.userId);
 
       if (!lojista) {
         return res.status(404).json({ error: 'Perfil de lojista não encontrado.' });
@@ -231,7 +231,7 @@ const userController = {
     try {
       const { currentPassword, newPassword } = req.body;
 
-      const user = await User.scope('withPassword').findByPk(req.userId);
+      const user = await User.scope('withPassword').findByPk(req.user.userId);
 
       if (!user) {
         return res.status(404).json({ message: 'Usuário não encontrado.' });
