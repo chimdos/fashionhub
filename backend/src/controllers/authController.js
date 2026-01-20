@@ -107,7 +107,7 @@ const authController = {
 
       if (userResponse.lojista) {
         userResponse.nome_loja = userResponse.lojista.nome_loja;
-        userResponse.cnpj = userResponse.lojista.cpnj;
+        userResponse.cnpj = userResponse.lojista.cnpj;
         delete userResponse.lojista;
       }
 
