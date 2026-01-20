@@ -18,8 +18,14 @@ interface User {
     cidade: string,
     estado: string,
   };
-  nome_loja?: string,
-  cnpj?: string
+  nome_loja?: string;
+  cnpj?: string;
+  cep?: string;
+  rua?: string;
+  numero?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 interface AuthContextData {
@@ -29,6 +35,7 @@ interface AuthContextData {
   signIn(userData: User, userToken: string): Promise<void>;
   signOut(): Promise<void>;
   updateUser: (user: User) => Promise<void>;
+  updateUserData(newData: Partial<User>): Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -84,8 +91,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await AsyncStorage.setItem('userData', JSON.stringify(newUser));
   }
 
+  const updateUserData = async (newData: Partial<User>) => {
+    try {
+      if (!user) return;
+
+      const updatedUser = { ...user, ...newData } as User;
+      setUser(updatedUser);
+
+      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
+
+      console.log("Contexto e AsyncStorage atualizados.");
+    } catch (e) {
+      console.error("Erro ao persistir dados do usuário:", e)
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, updateUser }}>
+    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, updateUser, updateUserData }}>
       {children}
     </AuthContext.Provider>
   );
