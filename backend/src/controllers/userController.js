@@ -1,4 +1,4 @@
-const { User, Address } = require('../models');
+const { User, Address, Lojista } = require('../models');
 const userController = {
   async getCurrentUserProfile(req, res) {
     try {
@@ -130,6 +130,39 @@ const userController = {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao processar solicitação.' });
+    }
+  },
+
+  async updateStoreProfile(req, res) {
+    try {
+      const { nome_loja, descricao } = req.body;
+
+      if (!nome_loja) {
+        return res.status(400).json({ error: 'O nome da loja é obrigatório.' });
+      }
+
+      const lojista = await Lojista.findByPk(req.userId);
+
+      if (!lojista) {
+        return res.status(404).json({ error: 'Perfil de lojista não encontrado.' });
+      }
+
+      await lojista.update({
+        nome_loja,
+        descricao
+      });
+      
+      return res.json({
+        message: 'Perfil da loja atualizado!',
+        lojista: {
+          nome_loja: lojista.nome_loja,
+          descricao: lojista.descricao,
+          cnpj: lojista.cnpj
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar o perfil da sua loja:', error);
+      return res.status(500).json({ error: 'Erro interno ao atualizar perfil da sua loja.' });
     }
   },
 };
