@@ -9,7 +9,7 @@ const authController = {
   async register(req, res) {
     const t = await sequelize.transaction();
     try {
-      const { nome, email, senha, tipo_usuario, telefone, endereco, nome_loja, cpnj } = req.body;
+      const { nome, email, senha, tipo_usuario, telefone, endereco, nome_loja, cnpj } = req.body;
 
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
@@ -58,7 +58,7 @@ const authController = {
       const userResponse = newUser.get({ plain: true });
       delete userResponse.senha_hash;
 
-      if (userResponse.lojista) {
+      if (tipo_usuario === 'lojista') {
         userResponse.nome_loja = nome_loja;
         userResponse.cnpj = cnpj;
       }
