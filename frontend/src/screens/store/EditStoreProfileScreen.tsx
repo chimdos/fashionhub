@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
-export const EditProfileScreen = ({ navigation }: any) => {
+export const EditStoreProfileScreen = ({ navigation }: any) => {
     const { user, setUser } = useContext(AuthContext) as any;
     const [loading, setLoading] = useState(false);
 
