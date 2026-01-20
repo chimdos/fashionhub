@@ -6,5 +6,6 @@ const { authMiddleware } = require('../middleware/auth');
 router.get('/me', authMiddleware, userController.getCurrentUserProfile);
 router.put('/:id', authMiddleware, userController.updateUser);
 router.put('/become-courier', authMiddleware, userController.becomeCourier);
+router.put('/store/profile', authMiddleware, userController.updateStoreProfile);
 
 module.exports = router;
