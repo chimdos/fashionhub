@@ -58,7 +58,7 @@ const authController = {
       const userResponse = newUser.get({ plain: true });
       delete userResponse.senha_hash;
 
-      if (tipo_usuario === 'lojista') {
+      if (userResponse.lojista) {
         userResponse.nome_loja = nome_loja;
         userResponse.cnpj = cnpj;
       }
