@@ -1,4 +1,5 @@
 const { User, Address, Lojista } = require('../models');
+const { Op } = require('sequelize');
 const userController = {
   async getCurrentUserProfile(req, res) {
     try {
@@ -48,7 +49,7 @@ const userController = {
 
       const user = await User.scope('withPassword').findByPk(id);
       if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado. '});
+        return res.status(404).json({ message: 'Usuário não encontrado. ' });
       }
 
       if (nova_senha) {
@@ -96,7 +97,7 @@ const userController = {
       }
 
       res.status(500).json({ message: 'Erro interno do servidor ao atualizar perfil.' });
-    } 
+    }
   },
 
   async becomeCourier(req, res) {
@@ -151,7 +152,7 @@ const userController = {
         nome_loja,
         descricao
       });
-      
+
       return res.json({
         message: 'Perfil da loja atualizado!',
         lojista: {
@@ -163,6 +164,40 @@ const userController = {
     } catch (error) {
       console.error('Erro ao atualizar o perfil da sua loja:', error);
       return res.status(500).json({ error: 'Erro interno ao atualizar perfil da sua loja.' });
+    }
+  },
+
+  async updateResponsibleData(req, res) {
+    try {
+      const { nome, email, telefone } = req.body;
+
+      if (email) {
+        const emailExists = await User.findOne({
+          where: {
+            email,
+            id: { [Op.ne]: req.userId }
+          }
+        });
+        if (emailExists) {
+          return res.status(400).json({ message: 'Este e-mail já está em uso!' });
+        }
+      }
+
+      const user = await User.findByPk(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado.' });
+      }
+
+      await user.update({
+        nome,
+        email,
+        telefone
+      });
+
+      return res.json({ message: 'Dados atualizados!' });
+    } catch (error) {
+      console.error('Erro ao atualizar responsável:', error);
+      return res.status(500).json({ message: 'Erro interno ao atualizar dados.' });
     }
   },
 };
