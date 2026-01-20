@@ -205,6 +205,8 @@ const userController = {
     try {
       const { cep, rua, numero, bairro, cidade, estado } = req.body;
 
+      console.log("--> DADOS RECEBIDOS PARA UPDATE:", req.body);
+
       const lojista = await Lojista.findByPk(req.user.userId);
 
       if (!lojista) {
@@ -220,7 +222,9 @@ const userController = {
         estado
       });
 
-      return res.json({ message: 'Endereço atualizado!' });
+      console.log("--> LOJISTA APÓS UPDATE NO BANCO:", lojista.toJSON());
+
+      return res.json({ message: 'Endereço atualizado!', dados: lojista });
     } catch (error) {
       console.error('Erro ao atualizar endereço:', error);
       return res.status(500).json({ error: 'Erro interno ao atualizar endereço.' });
