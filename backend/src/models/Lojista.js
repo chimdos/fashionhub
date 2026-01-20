@@ -23,6 +23,7 @@ module.exports = (sequelize) => {
     sequelize,
     modelName: 'Lojista',
     tableName: 'lojistas',
+    underscored: true,
     timestamps: true,
     createdAt: 'criado_em',
     updatedAt: false
