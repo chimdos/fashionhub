@@ -7,5 +7,6 @@ router.get('/me', authMiddleware, userController.getCurrentUserProfile);
 router.put('/:id', authMiddleware, userController.updateUser);
 router.put('/become-courier', authMiddleware, userController.becomeCourier);
 router.put('/store/profile', authMiddleware, userController.updateStoreProfile);
+router.put('/responsible', authMiddleware, userController.updateResponsibleData);
 
 module.exports = router;
