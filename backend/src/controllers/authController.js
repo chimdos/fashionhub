@@ -38,6 +38,12 @@ const authController = {
           id: newUser.id,
           nome_loja: nome_loja,
           cnpj: cnpj,
+          cep: endereco?.cep,
+          rua: endereco?.rua,
+          numero: endereco?.numero,
+          bairro: endereco?.bairro,
+          cidade: endereco?.cidade,
+          estado: endereco?.estado,
         }, { transaction: t });
       }
 
@@ -61,6 +67,11 @@ const authController = {
       if (tipo_usuario === 'lojista') {
         userResponse.nome_loja = nome_loja;
         userResponse.cnpj = cnpj;
+        userResponse.rua = endereco?.rua;
+        userResponse.numero = endereco?.numero;
+        userResponse.bairro = endereco?.bairro;
+        userResponse.cidade = endereco?.cidade;
+        userResponse.estado = endereco?.estado;
       }
 
       res.status(201).json({ message: 'Usuário criado com sucesso!', token, user: userResponse });
