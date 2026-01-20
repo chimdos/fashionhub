@@ -9,6 +9,11 @@ import { ProductManagementScreen } from '../screens/store/ProductManagementScree
 import { CreateProductScreen } from '../screens/store/CreateProductScreen';
 import { EditProductScreen } from '../screens/store/EditProductScreen';
 import { StoreSettingsScreen } from '../screens/store/StoreSettingsScreen';
+import { EditStoreProfileScreen } from '../screens/store/EditStoreProfileScreen';
+import { EditResponsibleDataScreen } from '../screens/store/EditResponsibleDataScreen';
+import { EditStoreAddressScreen } from '../screens/store/EditStoreAddressScreen';
+import { ChangePasswordScreen } from '../screens/store/ChangePasswordScreen';
+
 import { ExploreScreen } from '../screens/client/ExploreScreen';
 
 const Tab = createBottomTabNavigator();
@@ -44,6 +49,18 @@ function BagStackNavigator() {
   );
 }
 
+function SettingsStackNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SettingsHome" component={StoreSettingsScreen} />
+      <Stack.Screen name="EditStoreProfile" component={EditStoreProfileScreen} />
+      <Stack.Screen name="EditResponsibleData" component={EditResponsibleDataScreen} />
+      <Stack.Screen name="EditStoreAddress" component={EditStoreAddressScreen} />
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export function StoreNavigator() {
   return (
     <Tab.Navigator
@@ -66,6 +83,12 @@ export function StoreNavigator() {
         },
         tabBarActiveTintColor: '#28a745',
         tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          borderTopWidth: 1,
+          borderTopColor: '#F1F3F5',
+          height: 60,
+          paddingBottom: 10,
+        }
       })}
     >
       <Tab.Screen name="Explorar" component={ExploreScreen} />
@@ -74,7 +97,7 @@ export function StoreNavigator() {
       
       <Tab.Screen name="Meus Produtos" component={ProductStackNavigator} />
       
-      <Tab.Screen name="Conta" component={StoreSettingsScreen} />
+      <Tab.Screen name="Conta" component={SettingsStackNavigator} />
     </Tab.Navigator>
   );
 }
