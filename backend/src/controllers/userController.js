@@ -226,6 +226,31 @@ const userController = {
       return res.status(500).json({ error: 'Erro interno ao atualizar endereço.' });
     }
   },
+
+  async changePassword(req, res) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      const user = await User.scope('withPassword').findByPk(req.userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado.' });
+      }
+
+      const isMatch = await user.checkPassword(currentPassword);
+      if (!isMatch) {
+        return res.status(401).json({ message: 'A senha atual está incorreta.' });
+      }
+
+      user.senha_hash = newPassword;
+      await user.save();
+
+      return res.json({ message: 'Senha alterada!' });
+    } catch (error) {
+      console.error('Erro ao mudar senha:', error);
+      return res.status(500).json({ message: 'Erro interno ao processar a alteração.' });
+    }
+  },
 };
 
 module.exports = userController;
