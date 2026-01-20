@@ -37,7 +37,7 @@ const authController = {
         await Lojista.create({
           id: newUser.id,
           nome_loja: nome_loja,
-          cnpj: cpnj,
+          cnpj: cnpj,
         }, { transaction: t });
       }
 
@@ -215,8 +215,8 @@ const authController = {
       }
 
       if (cnpj) {
-        const cleanedCpnj = cnpj.replace(/[^\d]/g, '');
-        const existingCnpj = await Lojista.findOne({ where: { cnpj: cleanedCpnj } });
+        const cleanedCnpj = cnpj.replace(/[^\d]/g, '');
+        const existingCnpj = await Lojista.findOne({ where: { cnpj: cleanedCnpj } });
         if (existingCnpj) errors.cnpj = 'Este CNPJ já está em uso.';
       }
 
