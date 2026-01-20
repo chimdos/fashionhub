@@ -200,6 +200,32 @@ const userController = {
       return res.status(500).json({ message: 'Erro interno ao atualizar dados.' });
     }
   },
+
+  async updateStoreAddress(req, res) {
+    try {
+      const { cep, rua, numero, bairro, cidade, estado } = req.body;
+
+      const lojista = await Lojista.findByPk(req.userId);
+
+      if (!lojista) {
+        return res.status(404).json({ error: 'Perfil de lojista não encontrado.' });
+      }
+
+      await lojista.update({
+        cep,
+        rua,
+        numero,
+        bairro,
+        cidade,
+        estado
+      });
+
+      return res.json({ message: 'Endereço atualizado!' });
+    } catch (error) {
+      console.error('Erro ao atualizar endereço:', error);
+      return res.status(500).json({ error: 'Erro interno ao atualizar endereço.' });
+    }
+  },
 };
 
 module.exports = userController;
