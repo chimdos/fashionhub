@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 
-export const StoreSettingsScreen = () => {
+export const StoreSettingsScreen = ({ navigation }: any) => {
   const { signOut, user } = useContext(AuthContext);
   console.log("ESTRUTURA COMPLETA DO USER:", JSON.stringify(user, null, 2));
 
@@ -73,19 +73,19 @@ export const StoreSettingsScreen = () => {
           <SettingItem
             icon="person-outline"
             label="Dados do Responsável"
-            onPress={() => { }}
+            onPress={() => navigation.navigate('EditResponsibleData')}
             color="#28a745"
           />
           <SettingItem
             icon="storefront-outline"
             label="Perfil da Loja"
-            onPress={() => { }}
+            onPress={() => navigation.navigate('EditStoreProfile')}
             color="#28a745"
           />
           <SettingItem
             icon="location-outline"
             label="Endereço e Logística"
-            onPress={() => { }}
+            onPress={() => navigation.navigate('EditStoreAddress')}
             color="#28a745"
             last
           />
@@ -96,13 +96,13 @@ export const StoreSettingsScreen = () => {
           <SettingItem
             icon="shield-checkmark-outline"
             label="Alterar Senha"
-            onPress={() => { }}
+            onPress={() => navigation.navigate('ChangePassword')}
             color="#666"
           />
           <SettingItem
             icon="help-buoy-outline"
             label="Central de Ajuda"
-            onPress={() => { }}
+            onPress={() => navigation.navigate('HelpCenter')}
             color="#666"
             last
           />
