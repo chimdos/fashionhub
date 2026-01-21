@@ -4,7 +4,7 @@ const productController = require('../controllers/productController');
 const { authMiddleware, requireUserType } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
-const upload = multer({ dest: 'uploads/' });
+const upload = require('../config/multer');
 
 router.get('/', productController.getProducts);
 
@@ -37,5 +37,7 @@ router.delete(
   requireUserType('lojista'),
   productController.deleteProduct
 );
+
+router.put('/:id', authMiddleware, upload.array('files'), productController.updateProduct);
 
 module.exports = router;
