@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
     ScrollView, SafeAreaView, Alert, ActivityIndicator
@@ -9,7 +9,7 @@ import api from '../../services/api';
 import axios from 'axios';
 
 export const EditStoreAddressScreen = ({ navigation }: any) => {
-    const { user, setUser } = useContext(AuthContext) as any;
+    const { user, updateUserData } = useContext(AuthContext) as any;
     const [loading, setLoading] = useState(false);
 
     const [cep, setCep] = useState(user?.cep || '');
@@ -18,6 +18,17 @@ export const EditStoreAddressScreen = ({ navigation }: any) => {
     const [bairro, setBairro] = useState(user?.bairro || '');
     const [cidade, setCidade] = useState(user?.cidade || '');
     const [estado, setEstado] = useState(user?.estado || '');
+
+    useEffect(() => {
+        if (user) {
+            setCep(user.cep || '');
+            setRua(user.rua || '');
+            setNumero(user.numero || '');
+            setBairro(user.bairro || '');
+            setCidade(user.cidade || '');
+            setEstado(user.estado || '');
+        }
+    }, [user]);
 
     const handleFetchAddress = async (value: string) => {
         const cleanedCep = value.replace(/\D/g, '');
@@ -51,10 +62,9 @@ export const EditStoreAddressScreen = ({ navigation }: any) => {
                 cep, rua, numero, bairro, cidade, estado
             });
 
-            setUser({
-                ...user,
-                cep, rua, numero, bairro, cidade, estado
-            });
+            if (response.data.user) {
+                await updateUserData(response.data.user);
+            }
 
             Alert.alert("Sucesso", "Endereço atualizado!");
             navigation.goBack();
