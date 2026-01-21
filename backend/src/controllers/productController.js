@@ -1,6 +1,8 @@
 const { Product, ProductVariation, ProductImage, Lojista, BagItem, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const Joi = require('joi');
+const fs = require('fs').promises;
+const path = require('path');
 
 const getProductsSchema = Joi.object({
   categoria: Joi.string().optional(),
@@ -190,20 +192,77 @@ const productController = {
         return res.status(403).json({ message: 'Acesso negado. Você não é o dono deste produto.' });
       }
 
+      if (req.body.variacoes) req.body.variacoes = JSON.parse(req.body.variacoes);
+      if (req.body.deletedImageIds) req.body.deletedImageIds = JSON.parse(req.body.deletedImageIds);
+
       const { error, value } = updateProductSchema.validate(req.body);
       if (error) {
         await t.rollback();
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
       }
 
-      await product.update(value, { transaction: t });
+      const { nome, descricao, preco, categoria, estoque, variacoes, deletedImageIds } = value;
+      let filesToRemove = [];
+
+      if (deletedImageIds && deletedImageIds.length > 0) {
+        const imagesFromDb = await ProductImage.findAll({
+          where: { id: deletedImageIds, product_id: id }
+        });
+
+        filesToRemove = imagesFromDb.map(img => {
+          const parts = img.url.split('/');
+          return parts[parts.length - 1];
+        });
+
+        await ProductImage.destroy({
+          where: { id: deletedImageIds, product_id: id },
+          transaction: t
+        });
+      }
+
+      await product.update({
+        nome,
+        descricao,
+        preco: parseFloat(preco),
+        categoria,
+        estoque: parseInt(estoque)
+      }, { transaction: t });
+
+      if (req.files && req.files.length > 0) {
+        const imageRecords = req.files.map(file => ({
+          product_id: id,
+          url: `${process.env.APP_URL}/uploads/${file.filename}`
+        }));
+        await ProductImage.bulkCreate(imageRecords, { transaction: t });
+      }
+
+      if (variacoes && variacoes.length > 0) {
+        await Variation.destroy({ where: { product_id: id }, transaction: t });
+        const variationsWithId = variacoes.map(v => ({
+          tamanho: v.tamanho,
+          cor: v.cor,
+          estoque: parseInt(v.estoque),
+          product_id: id
+        }));
+        await Variation.bulkCreate(variationsWithId, { transaction: t });
+      }
+
       await t.commit();
 
-      const updatedProduct = product.get({ plain: true });
+      if (filesToRemove.length > 0) {
+        filesToRemove.forEach(async (filename) => {
+          try {
+            const filePath = path.resolve(__dirname, '..', '..', 'uploads', filename);
+            await fs.unlink(filePath);
+          } catch (err) {
+            console.error(`Erro ao remover arquivo ${filename}:`, err);
+          }
+        });
+      }
 
-      res.json({
-        message: 'Produto atualizado!',
-        product: updatedProduct
+      return res.json({
+        message: 'Produto atualizado com sucesso!',
+        product: product.get({ plain: true })
       });
     } catch (error) {
       if (t && !t.finished) await t.rollback();
