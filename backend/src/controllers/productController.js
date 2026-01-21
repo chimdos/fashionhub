@@ -199,13 +199,14 @@ const productController = {
       await product.update(value, { transaction: t });
       await t.commit();
 
+      const updatedProduct = product.get({ plain: true });
+
       res.json({
         message: 'Produto atualizado!',
-        product: product.toJSON()
-          .reload()
+        product: updatedProduct
       });
     } catch (error) {
-      if (t) await t.rollback();
+      if (t && !t.finished) await t.rollback();
       console.error('Erro ao atualizar produto:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
