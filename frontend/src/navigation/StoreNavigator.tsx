@@ -13,11 +13,42 @@ import { EditStoreProfileScreen } from '../screens/store/EditStoreProfileScreen'
 import { EditResponsibleDataScreen } from '../screens/store/EditResponsibleDataScreen';
 import { EditStoreAddressScreen } from '../screens/store/EditStoreAddressScreen';
 import { ChangePasswordScreen } from '../screens/store/ChangePasswordScreen';
-
 import { ExploreScreen } from '../screens/client/ExploreScreen';
+import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
+import { HelpCenterScreen } from '../screens/store/HelpCenterScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+function ExploreStackNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ExploreHome" component={ExploreScreen} />
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{
+          headerShown: true,
+          title: 'Detalhes do Produto',
+          headerTintColor: '#28a745'
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function SettingsStackNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SettingsHome" component={StoreSettingsScreen} />
+      <Stack.Screen name="EditStoreProfile" component={EditStoreProfileScreen} />
+      <Stack.Screen name="EditResponsibleData" component={EditResponsibleDataScreen} />
+      <Stack.Screen name="EditStoreAddress" component={EditStoreAddressScreen} />
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+      <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+    </Stack.Navigator>
+  );
+}
 
 function ProductStackNavigator() {
   return (
@@ -32,31 +63,19 @@ function ProductStackNavigator() {
 function BagStackNavigator() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="BagList" 
-        component={StoreDashboardScreen} 
-        options={{ headerShown: false }} 
+      <Stack.Screen
+        name="BagList"
+        component={StoreDashboardScreen}
+        options={{ headerShown: false }}
       />
-      <Stack.Screen 
-        name="BagDetails" 
-        component={BagDetailScreen} 
-        options={{ 
+      <Stack.Screen
+        name="BagDetails"
+        component={BagDetailScreen}
+        options={{
           title: 'Detalhes da Solicitação',
           headerTintColor: '#28a745',
-        }} 
+        }}
       />
-    </Stack.Navigator>
-  );
-}
-
-function SettingsStackNavigator() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SettingsHome" component={StoreSettingsScreen} />
-      <Stack.Screen name="EditStoreProfile" component={EditStoreProfileScreen} />
-      <Stack.Screen name="EditResponsibleData" component={EditResponsibleDataScreen} />
-      <Stack.Screen name="EditStoreAddress" component={EditStoreAddressScreen} />
-      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     </Stack.Navigator>
   );
 }
@@ -91,7 +110,7 @@ export function StoreNavigator() {
         }
       })}
     >
-      <Tab.Screen name="Explorar" component={ExploreScreen} />
+      <Tab.Screen name="Explorar" component={ExploreStackNavigator} />
       
       <Tab.Screen name="Requisições" component={BagStackNavigator} />
       
