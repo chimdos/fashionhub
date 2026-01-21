@@ -33,12 +33,12 @@ io.on('connection', (socket) => {
   });
 });
 
-app.use(helmet()); 
-app.use(cors()); 
-app.use(morgan('dev')); 
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
-app.use('/uploads', express.static('uploads'));
+app.use(helmet());
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads')));
 
 app.use((req, res, next) => {
   req.io = io;
@@ -66,14 +66,14 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('Conexão com o banco de dados estabelecida.');
 
-    await sequelize.sync({ alter: true }); 
+    await sequelize.sync({ alter: true });
     console.log('Banco de dados sincronizado (Estrutura atualizada).');
 
     server.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
       console.log(`Socket.io pronto para conexões`);
     });
-    
+
   } catch (error) {
     console.error('Erro fatal ao iniciar servidor:', error);
     process.exit(1);
