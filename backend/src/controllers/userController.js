@@ -1,6 +1,6 @@
-const { User, Address, Lojista } = require('../models');
+const { User, Address, Lojista, sequelize } = require('../models');
 const { Op } = require('sequelize');
-const { sequelize } = require('sequelize');
+
 const userController = {
   async getCurrentUserProfile(req, res) {
     try {
