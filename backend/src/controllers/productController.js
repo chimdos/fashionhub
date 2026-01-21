@@ -30,6 +30,10 @@ const updateProductSchema = Joi.object({
   descricao: Joi.string().min(10).optional(),
   preco: Joi.number().positive().optional(),
   categoria: Joi.string().optional(),
+  estoque: Joi.number().integer().min(0).optional().messages({
+    'number.base': 'O estoque deve ser um número',
+    'number.integer': 'O estoque não pode ter casas decimais'
+  }),
   ativo: Joi.boolean().optional(),
 });
 
@@ -198,7 +202,7 @@ const productController = {
       res.json({
         message: 'Produto atualizado!',
         product: product.toJSON()
-        .reload()
+          .reload()
       });
     } catch (error) {
       if (t) await t.rollback();
