@@ -1,13 +1,8 @@
-# Dependências
-/backend/node_modules
-/frontend/node_modules
-
-# Arquivos de ambiente (NUNCA envie para o GitHub)
-/backend/.env
-/frontend/.env
-
-# Arquivos do sistema operacional
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+*.log
 
-/frontend/.expo
+**/.env
+**/.env.local
