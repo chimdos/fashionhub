@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
+const path = require('path');
 
 const { sequelize } = require('./config/database');
 
