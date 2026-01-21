@@ -213,6 +213,13 @@ const userController = {
         return res.status(404).json({ error: 'Perfil de lojista não encontrado.' });
       }
 
+      if (user.endereco_id) {
+        const address = await Address.findByPk(user.endereco_id);
+        if (address) {
+          await address.update({ cep, rua, numero, bairro, cidade, estado });
+        }
+      }
+
       await lojista.update({
         cep,
         rua,
@@ -223,6 +230,7 @@ const userController = {
       });
 
       console.log("--> LOJISTA APÓS UPDATE NO BANCO:", lojista.toJSON());
+      console.log(`--> Endereço atualizado para o User ${user.id} e Lojista ${lojista.id}`);
 
       return res.json({ message: 'Endereço atualizado!', dados: lojista });
     } catch (error) {
