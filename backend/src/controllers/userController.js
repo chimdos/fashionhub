@@ -202,21 +202,22 @@ const userController = {
   },
 
   async updateStoreAddress(req, res) {
+    const t = await sequelize.transaction();
     try {
       const { cep, rua, numero, bairro, cidade, estado } = req.body;
 
-      console.log("--> DADOS RECEBIDOS PARA UPDATE:", req.body);
-
-      const lojista = await Lojista.findByPk(req.user.userId);
-
+      const lojista = await Lojista.findByPk(req.user.userId, { transaction: t });
       if (!lojista) {
+        await t.rollback();
         return res.status(404).json({ error: 'Perfil de lojista não encontrado.' });
       }
 
-      if (user.endereco_id) {
-        const address = await Address.findByPk(user.endereco_id);
+      const user = await User.findByPk(req.user.userId, { transaction: t });
+
+      if (user && user.endereco_id) {
+        const address = await Address.findByPk(user.endereco_id, { transaction: t });
         if (address) {
-          await address.update({ cep, rua, numero, bairro, cidade, estado });
+          await address.update({ cep, rua, numero, bairro, cidade, estado }, { transaction: t });
         }
       }
 
@@ -227,13 +228,13 @@ const userController = {
         bairro,
         cidade,
         estado
-      });
+      }, { transaction: t });
 
-      console.log("--> LOJISTA APÓS UPDATE NO BANCO:", lojista.toJSON());
-      console.log(`--> Endereço atualizado para o User ${user.id} e Lojista ${lojista.id}`);
+      await t.commit();
 
       return res.json({ message: 'Endereço atualizado!', dados: lojista });
     } catch (error) {
+      if (t) await t.rollback();
       console.error('Erro ao atualizar endereço:', error);
       return res.status(500).json({ error: 'Erro interno ao atualizar endereço.' });
     }
