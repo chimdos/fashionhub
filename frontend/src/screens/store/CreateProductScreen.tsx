@@ -116,6 +116,17 @@ export const CreateProductScreen = ({ navigation }: any) => {
     setVariacoes(variacoes.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
+  const formatCurrency = (value: string) => {
+    const cleanValue = value.replace(/\D/g, "");
+
+    const numberValue = Number(cleanValue) / 100;
+
+    return numberValue.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
@@ -154,9 +165,12 @@ export const CreateProductScreen = ({ navigation }: any) => {
                 <Ionicons name="cash-outline" size={20} color="#28a745" style={styles.icon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Preço R$"
+                  placeholder="0,00"
                   value={preco}
-                  onChangeText={setPreco}
+                  onChangeText={(text) => {
+                    const formatted = formatCurrency(text);
+                    setPreco(formatted);
+                  }}
                   keyboardType="numeric"
                 />
               </View>
