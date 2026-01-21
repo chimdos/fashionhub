@@ -54,11 +54,18 @@ export const EditProductScreen = ({ route, navigation }: any) => {
   };
 
   const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      Alert.alert("Permissão necessária", "Precisamos de acesso às suas fotos para cadastrar o produto.");
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.7,
     });
 
     if (!result.canceled) {
@@ -97,23 +104,40 @@ export const EditProductScreen = ({ route, navigation }: any) => {
   const handleUpdateProduct = async () => {
     setIsSaving(true);
     try {
-      const precoLimpo = parseFloat(preco.replace(/\./g, '').replace(',', '.'));
+      const formData = new FormData();
 
-      const payload = {
-        nome,
-        descricao,
-        preco: precoLimpo,
-        categoria,
-        estoque: parseInt(estoqueGeral) || 0,
-        variacoes,
-        deletedImageIds
-      };
+      formData.append('nome', nome);
+      formData.append('descricao', descricao);
+      formData.append('categoria', categoria);
+      formData.append('estoque', estoqueGeral);
 
-      await api.put(`/api/products/${productId}`, payload);
+      const precoLimpo = preco.replace(/\./g, '').replace(',', '.');
+      formData.append('preco', precoLimpo);
+
+      formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
+      formData.append('variacoes', JSON.stringify(variacoes));
+
+      newImages.forEach((img, index) => {
+        const uriParts = img.uri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+
+        formData.append('files', {
+          uri: Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri,
+          name: `photo_${index}.${fileType}`,
+          type: `image/${fileType}`,
+        } as any);
+      });
+
+      await api.put(`/api/products/${productId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       Alert.alert("Sucesso", "Produto e variações atualizados!");
       navigation.goBack();
     } catch (error) {
+      console.error("Erro no upload:", error);
       Alert.alert("Erro", "Não foi possível salvar as alterações.");
     } finally {
       setIsSaving(false);
