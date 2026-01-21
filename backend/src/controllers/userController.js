@@ -233,7 +233,27 @@ const userController = {
 
       await t.commit();
 
-      return res.json({ message: 'Endereço atualizado!', dados: lojista });
+      const userAtualizado = await User.findByPk(req.user.userId, {
+        include: [
+          { model: Address, as: 'endereco' },
+          { model: Lojista, as: 'lojista' }
+        ]
+      });
+
+      const userResponse = userAtualizado.get({ plain: true });
+      if (userResponse.lojista) {
+        userResponse.nome_loja = userResponse.lojista.nome_loja;
+        userResponse.cnpj = userResponse.lojista.cnpj;
+        userResponse.cep = userResponse.lojista.cep;
+        userResponse.rua = userResponse.lojista.rua;
+        userResponse.numero = userResponse.lojista.numero;
+        userResponse.bairro = userResponse.lojista.bairro;
+        userResponse.cidade = userResponse.lojista.cidade;
+        userResponse.estado = userResponse.lojista.estado;
+        delete userResponse.lojista;
+      }
+
+      return res.json({ message: 'Endereço atualizado!', user: userResponse });
     } catch (error) {
       if (t) await t.rollback();
       console.error('Erro ao atualizar endereço:', error);
