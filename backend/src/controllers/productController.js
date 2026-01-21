@@ -195,8 +195,11 @@ const productController = {
       await product.update(value, { transaction: t });
       await t.commit();
 
-      res.json({ message: 'Produto atualizado com sucesso.', product });
-
+      res.json({
+        message: 'Produto atualizado!',
+        product: product.toJSON()
+        .reload()
+      });
     } catch (error) {
       if (t) await t.rollback();
       console.error('Erro ao atualizar produto:', error);
