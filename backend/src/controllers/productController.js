@@ -177,15 +177,18 @@ const productController = {
 
       const product = await Product.findByPk(id);
       if (!product) {
+        await t.rollback();
         return res.status(404).json({ message: 'Produto não encontrado.' });
       }
 
       if (product.lojista_id !== lojista_id) {
+        await t.rollback();
         return res.status(403).json({ message: 'Acesso negado. Você não é o dono deste produto.' });
       }
 
       const { error, value } = updateProductSchema.validate(req.body);
       if (error) {
+        await t.rollback();
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
       }
 
@@ -195,7 +198,7 @@ const productController = {
       res.json({ message: 'Produto atualizado com sucesso.', product });
 
     } catch (error) {
-      await t.rollback();
+      if (t) await t.rollback();
       console.error('Erro ao atualizar produto:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
