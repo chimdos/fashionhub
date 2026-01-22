@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
+import { EmptyState } from '../../components/common/EmptyState';
 
 export const ProductManagementScreen = ({ navigation }: any) => {
   const [products, setProducts] = useState([]);
@@ -136,16 +137,16 @@ export const ProductManagementScreen = ({ navigation }: any) => {
           data={products}
           renderItem={renderProductItem}
           keyExtractor={(item: any) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, products.length === 0 && { flexGrow: 1 }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="shirt-outline" size={50} color="#CCC" />
-              </View>
-              <Text style={styles.emptyTitle}>Nenhum produto ainda</Text>
-              <Text style={styles.emptyText}>Toque no botão "+" para cadastrar sua primeira peça.</Text>
-            </View>
+            <EmptyState
+              icon="shirt-outline"
+              title="Nenhum produto ainda"
+              description="Toque no botão '+' acima ou no botão abaixo para cadastrar sua primeira peça no catálogo."
+              buttonText="Cadastrar Produto"
+              onPress={() => navigation.navigate('CreateProduct')}
+            />
           }
         />
       )}
@@ -249,24 +250,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F3F5',
   },
-
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 80,
-    paddingHorizontal: 40
-  },
-  emptyIconCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    elevation: 2,
-  },
-  emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 8 },
-  emptyText: { fontSize: 14, color: 'gray', textAlign: 'center', lineHeight: 20 },
 });
