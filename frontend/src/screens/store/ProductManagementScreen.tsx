@@ -18,6 +18,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 export const ProductManagementScreen = ({ navigation }: any) => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const BASE_URL = api.defaults.baseURL;
 
@@ -63,6 +64,12 @@ export const ProductManagementScreen = ({ navigation }: any) => {
       ]
     );
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchStoreProducts();
+    setRefreshing(false);
+  }
 
   const renderProductItem = ({ item }: { item: any }) => {
     const imageUrl = item.imagens && item.imagens.length > 0
@@ -137,6 +144,8 @@ export const ProductManagementScreen = ({ navigation }: any) => {
           data={products}
           renderItem={renderProductItem}
           keyExtractor={(item: any) => item.id}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
           contentContainerStyle={[styles.list, products.length === 0 && { flexGrow: 1 }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
