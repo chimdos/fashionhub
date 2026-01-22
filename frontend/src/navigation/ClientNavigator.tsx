@@ -71,7 +71,7 @@ export function ClientNavigator() {
       <Stack.Screen
         name="BecomeCourierScreen"
         component={BecomeCourierScreen}
-        options={{ title: 'Trabalhe Conosco' }}
+        options={{ title: 'Trabalhe Conosco', headerShown: false }}
       />
 
       <Stack.Screen
