@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View, Text, StyleSheet, TextInput, TouchableOpacity, Alert,
+  ActivityIndicator, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../contexts/AuthContext'; // Para atualizar o estado global do usuário
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
 export const BecomeCourierScreen = () => {
   const navigation = useNavigation<any>();
-  const { updateUser } = useAuth(); // Precisa expor uma função para atualizar o user no contexto
-  
+  const { updateUser } = useAuth();
+
   const [veiculo, setVeiculo] = useState('');
   const [placa, setPlaca] = useState('');
   const [cnh, setCnh] = useState('');
@@ -15,7 +19,7 @@ export const BecomeCourierScreen = () => {
 
   const handleSubmit = async () => {
     if (!veiculo || !placa || !cnh) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
+      Alert.alert('Atenção', 'Por favor, preencha todos os dados do veículo e habilitação.');
       return;
     }
 
@@ -27,90 +31,160 @@ export const BecomeCourierScreen = () => {
         cnh
       });
 
-      Alert.alert('Sucesso!', 'Você agora é um parceiro entregador. Faça login novamente para acessar o painel.');
-      
-      // Atualiza o tipo do usuário no estado global do aplicativo
+      Alert.alert('Sucesso!', 'Seu cadastro foi enviado! Agora você faz parte da nossa equipe de logística.');
+
       if (response.data.user) {
         await updateUser(response.data.user);
       }
 
       navigation.goBack();
-
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.message || 'Falha ao processar.');
+      Alert.alert('Erro', error.response?.data?.message || 'Falha ao processar cadastro.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Seja um Parceiro 🏍️</Text>
-      <Text style={styles.subtitle}>Faça uma renda extra entregando malas de roupas.</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={28} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Seja um Parceiro</Text>
+          <View style={{ width: 28 }} />
+        </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Modelo do Veículo (Ex: Honda CG 160)</Text>
-        <TextInput 
-          style={styles.input} 
-          value={veiculo} 
-          onChangeText={setVeiculo}
-          placeholder="Digite o modelo" 
-        />
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.infoSection}>
+            <View style={styles.iconBadge}>
+              <MaterialCommunityIcons name="motorbike" size={40} color="#28a745" />
+            </View>
+            <Text style={styles.title}>Ganhe com a FashionHub</Text>
+            <Text style={styles.subtitle}>
+              Entregue malas de roupas em Sorocaba e região com total flexibilidade de horários.
+            </Text>
+          </View>
 
-        <Text style={styles.label}>Placa</Text>
-        <TextInput 
-          style={styles.input} 
-          value={placa} 
-          onChangeText={setPlaca} 
-          placeholder="ABC-1234"
-          autoCapitalize="characters"
-        />
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Dados do Veículo</Text>
 
-        <Text style={styles.label}>Número da CNH</Text>
-        <TextInput 
-          style={styles.input} 
-          value={cnh} 
-          onChangeText={setCnh} 
-          keyboardType="numeric"
-          placeholder="Apenas números"
-        />
+            <Text style={styles.label}>MODELO DO VEÍCULO</Text>
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons name="motorbike" size={20} color="#ADB5BD" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={veiculo}
+                onChangeText={setVeiculo}
+                placeholder="Ex: Honda CG 160"
+                placeholderTextColor="#ADB5BD"
+              />
+            </View>
 
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>ENVIAR CADASTRO</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
+            <Text style={styles.label}>PLACA</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="barcode-outline" size={20} color="#ADB5BD" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={placa}
+                onChangeText={setPlaca}
+                placeholder="ABC-1234"
+                autoCapitalize="characters"
+                placeholderTextColor="#ADB5BD"
+              />
+            </View>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionTitle}>Documentação</Text>
+            <Text style={styles.label}>NÚMERO DA CNH</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="card-outline" size={20} color="#ADB5BD" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={cnh}
+                onChangeText={setCnh}
+                keyboardType="numeric"
+                placeholder="Somente números"
+                placeholderTextColor="#ADB5BD"
+              />
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>CONCLUIR CADASTRO</Text>
+                <Ionicons name="arrow-forward" size={20} color="#fff" style={{ marginLeft: 8 }} />
+              </>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.termsText}>
+            Ao se cadastrar, você concorda com nossos Termos de Parceria e Políticas de Privacidade.
+          </Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 32 },
-  form: { gap: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#444', marginBottom: 4 },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ddd', 
-    borderRadius: 8, 
-    padding: 14, 
-    fontSize: 16,
-    backgroundColor: '#f9f9f9'
+  safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#FFF',
+    borderBottomWidth: 1, borderBottomColor: '#EEE'
   },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#1A1A1A' },
+  container: { padding: 20 },
+
+  infoSection: { alignItems: 'center', marginBottom: 30, marginTop: 10 },
+  iconBadge: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: '#EFFFF4',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 15
+  },
+  title: { fontSize: 22, fontWeight: 'bold', color: '#1A1A1A', textAlign: 'center' },
+  subtitle: { fontSize: 14, color: '#6C757D', textAlign: 'center', marginTop: 8, paddingHorizontal: 20 },
+
+  card: {
+    backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 20,
+    elevation: 4, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }
+  },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 20 },
+  label: { fontSize: 11, fontWeight: 'bold', color: '#ADB5BD', marginBottom: 8, letterSpacing: 1 },
+
+  inputContainer: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F3F5',
+    borderRadius: 12, marginBottom: 20, paddingHorizontal: 15, height: 55
+  },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, fontSize: 16, color: '#333' },
+
+  divider: { height: 1, backgroundColor: '#F1F3F5', marginVertical: 10, marginBottom: 25 },
+
   button: {
-    backgroundColor: '#000',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 16
+    backgroundColor: '#28a745', height: 60, borderRadius: 16,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+    elevation: 4, shadowColor: '#28a745', shadowOpacity: 0.3, shadowRadius: 10,
+    marginTop: 10
   },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
+  buttonDisabled: { backgroundColor: '#A5D6A7' },
+  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+
+  termsText: {
+    fontSize: 12, color: '#ADB5BD', textAlign: 'center',
+    marginTop: 20, lineHeight: 18, paddingHorizontal: 30
+  }
 });
