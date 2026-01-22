@@ -112,6 +112,12 @@ const userController = {
         return res.status(404).json({ message: 'Usuário não encontrado' });
       }
 
+      if (user.tipo_usuario !== 'cliente') {
+        return res.status(400).json({
+          message: `Um usuário do tipo ${user.tipo_usuario} não pode se tornar entregador.`
+        });
+      }
+
       if (!veiculo || !placa) {
         return res.status(400).json({ message: 'Dados do veículo são obrigatórios' });
       }
