@@ -42,7 +42,7 @@ const userController = {
   async updateUser(req, res) {
     try {
       const { id } = req.params;
-      const { nome, email, endereco, senha_atual, nova_senha } = req.body;
+      const { nome, email, endereco, senha_atual, nova_senha, veiculo, placa, cnh } = req.body;
 
       if (req.user.userId !== id) {
         return res.status(403).json({ message: 'Acesso negado.' });
@@ -68,6 +68,10 @@ const userController = {
 
       user.nome = nome || user.nome;
       user.email = email || user.email;
+
+      user.veiculo = veiculo || user.veiculo;
+      user.placa = placa || user.placa;
+      user.cnh = cnh || user.cnh;
 
       if (endereco) {
         if (user.endereco_id) {
@@ -105,8 +109,6 @@ const userController = {
     const userId = req.user.userId;
     const { veiculo, placa, cnh } = req.body;
 
-    console.log("CHEGOU NA FUNÇÃO BECOMECOURIER EBAA");
-
     try {
       const user = await User.findByPk(userId);
 
@@ -120,11 +122,14 @@ const userController = {
         });
       }
 
-      if (!veiculo || !placa) {
+      if (!veiculo || !placa || !cnh) {
         return res.status(400).json({ message: 'Dados do veículo são obrigatórios' });
       }
 
       user.tipo_usuario = 'entregador';
+      user.veiculo = veiculo;
+      user.placa = placa;
+      user.cnh = cnh;
 
       await user.save();
 
@@ -134,7 +139,10 @@ const userController = {
           id: user.id,
           nome: user.nome,
           email: user.email,
-          tipo_usuario: 'entregador'
+          tipo_usuario: 'entregador',
+          veiculo: user.veiculo,
+          placa: user.placa,
+          cnh: user.cnh
         }
       });
     } catch (error) {
