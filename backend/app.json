@@ -1,3 +1,12 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "68c94555-570f-4b8b-84a2-4107989d0b82"
+      }
+    },
+    "android": {
+      "package": "com.chimdos.fashionhubbackend"
+    }
+  }
 }
