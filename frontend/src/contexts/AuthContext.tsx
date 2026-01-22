@@ -26,6 +26,9 @@ interface User {
   bairro?: string;
   cidade?: string;
   estado?: string;
+  veiculo?: string;
+  placa?: string;
+  cnh?: string;
 }
 
 interface AuthContextData {
