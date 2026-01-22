@@ -4,6 +4,9 @@
       "eas": {
         "projectId": "d5273ad5-323c-46da-b941-f4d537d83ec4"
       }
+    },
+    "android": {
+      "package": "com.chimdos.fashionhub"
     }
   }
 }
