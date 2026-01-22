@@ -57,6 +57,18 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
+    veiculo: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    placa: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    cnh: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     ativo: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
