@@ -105,6 +105,8 @@ const userController = {
     const userId = req.user.userId;
     const { veiculo, placa, cnh } = req.body;
 
+    console.log("CHEGOU NA FUNÇÃO BECOMECOURIER EBAA");
+
     try {
       const user = await User.findByPk(userId);
 
