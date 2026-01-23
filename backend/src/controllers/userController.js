@@ -117,7 +117,7 @@ const userController = {
         return res.status(404).json({ message: 'Usuário não encontrado' });
       }
 
-      if (user.tipo_usuario !== 'cliente') {
+      if (user.tipo_usuario === 'lojista') {
         return res.status(400).json({
           message: `Um usuário do tipo ${user.tipo_usuario} não pode se tornar entregador.`
         });
