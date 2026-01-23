@@ -222,22 +222,47 @@ export const CourierDashboardScreen = () => {
 
       {activeTab === 'available' ? (
         !isOnline ? (
-          <EmptyState icon="power" title="Você está Offline" description="Ative sua disponibilidade no topo para começar a ver as entregas." />
+          <EmptyState
+            icon="power"
+            title="Você está Offline"
+            description="Ative sua disponibilidade no topo para começar a ver as entregas disponíveis na região."
+            buttonText="FICAR ONLINE"
+            onPress={toggleOnline}
+          />
         ) : requests.length === 0 ? (
-          <View style={styles.waitingContainer}>
-            <ActivityIndicator size="large" color="#28a745" />
-            <Text style={styles.waitingTitle}>Buscando malas...</Text>
-          </View>
+          <EmptyState
+            icon="search"
+            title="Buscando malas..."
+            description="No momento não há novas solicitações. Fique atento, assim que uma loja solicitar, ela aparecerá aqui!"
+          />
         ) : (
-          <FlatList data={requests} keyExtractor={(item) => item.bagId} renderItem={renderItem} contentContainerStyle={styles.listContent} />
+          <FlatList
+            data={requests}
+            keyExtractor={(item) => item.bagId}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+          />
         )
       ) : (
         loading ? (
-          <ActivityIndicator style={{ marginTop: 20 }} color="#3498db" />
+          <View style={styles.waitingContainer}>
+            <ActivityIndicator size="large" color="#28a745" />
+          </View>
         ) : activeDeliveries.length === 0 ? (
-          <EmptyState icon="bicycle" title="Nada por aqui" description="Você não tem nenhuma entrega em andamento no momento." />
+          <EmptyState
+            icon="bicycle"
+            title="Nenhuma entrega ativa"
+            description="As malas que você aceitar na aba 'Disponíveis' aparecerão aqui para você gerenciar a rota."
+            buttonText="VER DISPONÍVEIS"
+            onPress={() => setActiveTab('available')}
+          />
         ) : (
-          <FlatList data={activeDeliveries} keyExtractor={(item) => item.bagId} renderItem={renderItem} contentContainerStyle={styles.listContent} />
+          <FlatList
+            data={activeDeliveries}
+            keyExtractor={(item) => item.bagId}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+          />
         )
       )}
     </SafeAreaView>
