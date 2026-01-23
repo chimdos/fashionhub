@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 import { setSignOutAction } from '../services/apiInterceptor';
@@ -39,6 +40,7 @@ interface AuthContextData {
   signOut(): Promise<void>;
   updateUser: (user: User) => Promise<void>;
   updateUserData(newData: Partial<User>): Promise<void>;
+  updateSession(newUser: User, newToken?: string): Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -109,8 +111,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const updateSession = async (newUser: User, newToken?: string) => {
+    try {
+      setUser(newUser);
+
+      await AsyncStorage.setItem('userData', JSON.stringify(newUser));
+
+      if (newToken) {
+        await AsyncStorage.setItem('userToken', newToken);
+
+        api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+        console.log("Token de entregador ativado.");
+      }
+      console.log("Sessão atualizada.");
+    } catch (e) {
+      console.error("Erro ao atualizar sessão:", e);
+      Alert.alert("Erro", "Falha ao sincronizar novos dados de acesso");
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, updateUser, updateUserData }}>
+    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, updateUser, updateUserData, updateSession }}>
       {children}
     </AuthContext.Provider>
   );
