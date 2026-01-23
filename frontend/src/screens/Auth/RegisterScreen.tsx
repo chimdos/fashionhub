@@ -180,7 +180,7 @@ const Step2 = ({ rua, setRua, numero, setNumero, bairro, setBairro, cidade, setC
   return (
     <View style={styles.content}>
       <Text style={styles.logoText}>FashionHub</Text>
-      <Text style={styles.title}>Endereço de Entrega</Text>
+      <Text style={styles.title2}>Endereço de Entrega</Text>
       <Text style={styles.subtitle}>Onde você receberá suas compras.</Text>
 
       <View style={styles.inputShadowWrapper}>
@@ -365,7 +365,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333333',
     marginTop: 5,
-    marginBottom: 50,
+    marginBottom: 40,
+    textAlign: 'left',
+  },
+  title2: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginTop: 5,
+    marginBottom: 10,
     textAlign: 'left',
   },
   subtitle: {
