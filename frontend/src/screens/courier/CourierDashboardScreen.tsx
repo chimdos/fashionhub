@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, Alert,
   ActivityIndicator, SafeAreaView, StatusBar, Switch
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { io, Socket } from 'socket.io-client';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,12 +20,17 @@ interface DeliveryRequest {
   };
   valorFrete: number;
   distancia: string;
+  status: 'AGUARDANDO_MOTO' | 'EM_ROTA_DEVOLUCAO' | 'EM_ROTA_ENTREGA' | 'ENTREGUE' | 'FINALIZADA';
+  dataSolicitacao?: string;
 }
 
 export const CourierDashboardScreen = () => {
   const { user, signOut } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
   const [requests, setRequests] = useState<DeliveryRequest[]>([]);
+  const [activeDeliveries, setActiveDeliveries] = useState<DeliveryRequest[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'available' | 'active'>('available');
   const socketRef = useRef<Socket | null>(null);
   const navigation = useNavigation<any>();
 
@@ -72,47 +77,105 @@ export const CourierDashboardScreen = () => {
     }
   };
 
-  const renderItem = ({ item }: { item: DeliveryRequest }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.priceBadge}>
-          <Text style={styles.priceLabel}>GANHO ESTIMADO</Text>
-          <Text style={styles.priceValue}>R$ {item.valorFrete.toFixed(2)}</Text>
-        </View>
-        <View style={styles.distanceBadge}>
-          <Ionicons name="map-outline" size={14} color="#666" />
-          <Text style={styles.distanceText}>{item.distancia}</Text>
-        </View>
-      </View>
+  const fetchActiveDeliveries = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/bags/active-deliveries');
+      if (Array.isArray(response.data)) {
+        setActiveDeliveries(response.data);
+      }
+    } catch (error) {
+      console.log("Erro ao buscar entregas ativas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      <View style={styles.routeContainer}>
-        <View style={styles.routeIcons}>
-          <Ionicons name="radio-button-on" size={18} color="#28a745" />
-          <View style={styles.routeLine} />
-          <Ionicons name="location" size={18} color="#dc3545" />
-        </View>
-
-        <View style={styles.routeDetails}>
-          <View style={styles.addressBlock}>
-            <Text style={styles.addressLabel}>RETIRADA (LOJA)</Text>
-            <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
-          </View>
-
-          <View style={styles.addressBlock}>
-            <Text style={styles.addressLabel}>ENTREGA (CLIENTE)</Text>
-            <Text style={styles.addressText} numberOfLines={1}>
-              {item.destino?.rua}, {item.destino?.numero} - {item.destino?.bairro}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)}>
-        <Text style={styles.acceptButtonText}>ACEITAR ENTREGA</Text>
-        <Ionicons name="flash" size={20} color="#FFF" style={{ marginLeft: 8 }} />
-      </TouchableOpacity>
-    </View>
+  useFocusEffect(
+    useCallback(() => {
+      fetchActiveDeliveries();
+    }, [])
   );
+
+  const renderItem = ({ item }: { item: DeliveryRequest }) => {
+    const isAvailable = activeTab === 'available';
+
+    const getStatusInfo = (status: string) => {
+      switch (status) {
+        case 'EM_ROTA_COLETA':
+          return { label: 'Ir até a Loja', color: '#f39c12' };
+        case 'EM_ROTA_ENTREGA':
+          return { label: 'Entregando', color: '#3498db' };
+        default:
+          return { label: 'Pendente', color: '#95a5a6' };
+      }
+    };
+
+    const statusInfo = getStatusInfo(item.status);
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.priceBadge}>
+            <Text style={styles.priceLabel}>GANHO ESTIMADO</Text>
+            <Text style={styles.priceValue}>R$ {item.valorFrete.toFixed(2)}</Text>
+          </View>
+
+          {isAvailable ? (
+            <View style={styles.distanceBadge}>
+              <Ionicons name="map-outline" size={14} color="#666" />
+              <Text style={styles.distanceText}>{item.distancia}</Text>
+            </View>
+          ) : (
+            <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
+              <Text style={styles.statusBadgeText}>{statusInfo.label}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.routeContainer}>
+          <View style={styles.routeIcons}>
+            <Ionicons name="radio-button-on" size={18} color="#28a745" />
+            <View style={styles.routeLine} />
+            <Ionicons name="location" size={18} color="#dc3545" />
+          </View>
+
+          <View style={styles.routeDetails}>
+            <View style={styles.addressBlock}>
+              <Text style={styles.addressLabel}>RETIRADA (LOJA)</Text>
+              <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
+            </View>
+
+            <View style={styles.addressBlock}>
+              <Text style={styles.addressLabel}>ENTREGA (CLIENTE)</Text>
+              <Text style={styles.addressText} numberOfLines={1}>
+                {item.destino?.rua}, {item.destino?.numero} - {item.destino?.bairro}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.acceptButton, !isAvailable && { backgroundColor: '#333' }]}
+          onPress={() =>
+            isAvailable
+              ? handleAccept(item)
+              : navigation.navigate(item.status === 'EM_ROTA_DEVOLUCAO' ? 'PickupScreen' : 'DeliveryRoute', { bag: item })
+          }
+        >
+          <Text style={styles.acceptButtonText}>
+            {isAvailable ? 'ACEITAR ENTREGA' : 'VER DETALHES'}
+          </Text>
+          <Ionicons
+            name={isAvailable ? "flash" : "chevron-forward"}
+            size={20}
+            color="#FFF"
+            style={{ marginLeft: 8 }}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -130,47 +193,52 @@ export const CourierDashboardScreen = () => {
 
       <View style={[styles.statusToggleCard, isOnline && styles.statusToggleCardOnline]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <MaterialCommunityIcons
-            name="motorbike"
-            size={32}
-            color={isOnline ? "#28a745" : "#ADB5BD"}
-            style={{ opacity: isOnline ? 1 : 0.5 }}
-          />
+          <MaterialCommunityIcons name="motorbike" size={32} color={isOnline ? "#28a745" : "#ADB5BD"} style={{ opacity: isOnline ? 1 : 0.5 }} />
           <View style={{ marginLeft: 15 }}>
             <Text style={styles.toggleTitle}>{isOnline ? 'Online para entregas' : 'Ficar Online'}</Text>
-            <Text style={styles.toggleSubtitle}>
-              {isOnline ? 'Aguardando novas malas...' : 'Ative para receber corridas'}
-            </Text>
+            <Text style={styles.toggleSubtitle}>{isOnline ? 'Aguardando novas malas...' : 'Ative para receber corridas'}</Text>
           </View>
         </View>
-        <Switch
-          trackColor={{ false: "#DEE2E6", true: "#A5D6A7" }}
-          thumbColor={isOnline ? "#28a745" : "#ADB5BD"}
-          onValueChange={toggleOnline}
-          value={isOnline}
-        />
+        <Switch trackColor={{ false: "#DEE2E6", true: "#A5D6A7" }} thumbColor={isOnline ? "#28a745" : "#ADB5BD"} onValueChange={toggleOnline} value={isOnline} />
       </View>
 
-      {!isOnline ? (
-        <EmptyState
-          icon="power"
-          title="Você está Offline"
-          description="Ative sua disponibilidade no topo para começar a ver as entregas disponíveis em Sorocaba."
-        />
-      ) : requests.length === 0 ? (
-        <View style={styles.waitingContainer}>
-          <ActivityIndicator size="large" color="#28a745" />
-          <Text style={styles.waitingTitle}>Buscando malas...</Text>
-          <Text style={styles.waitingSubtitle}>Isso pode levar alguns segundos</Text>
-        </View>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'available' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('available')}
+        >
+          <Text style={[styles.tabText, activeTab === 'available' && styles.tabTextActive]}>Disponíveis</Text>
+          {requests.length > 0 && <View style={styles.dot} />}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'active' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('active')}
+        >
+          <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>Em Andamento</Text>
+          {activeDeliveries.length > 0 && <View style={[styles.dot, { backgroundColor: '#3498db' }]} />}
+        </TouchableOpacity>
+      </View>
+
+      {activeTab === 'available' ? (
+        !isOnline ? (
+          <EmptyState icon="power" title="Você está Offline" description="Ative sua disponibilidade no topo para começar a ver as entregas." />
+        ) : requests.length === 0 ? (
+          <View style={styles.waitingContainer}>
+            <ActivityIndicator size="large" color="#28a745" />
+            <Text style={styles.waitingTitle}>Buscando malas...</Text>
+          </View>
+        ) : (
+          <FlatList data={requests} keyExtractor={(item) => item.bagId} renderItem={renderItem} contentContainerStyle={styles.listContent} />
+        )
       ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={(item) => item.bagId}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        loading ? (
+          <ActivityIndicator style={{ marginTop: 20 }} color="#3498db" />
+        ) : activeDeliveries.length === 0 ? (
+          <EmptyState icon="bicycle" title="Nada por aqui" description="Você não tem nenhuma entrega em andamento no momento." />
+        ) : (
+          <FlatList data={activeDeliveries} keyExtractor={(item) => item.bagId} renderItem={renderItem} contentContainerStyle={styles.listContent} />
+        )
       )}
     </SafeAreaView>
   );
@@ -222,5 +290,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A1A', height: 55, borderRadius: 16,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center'
   },
-  acceptButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
+  acceptButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#EEE'
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  tabButtonActive: {
+    backgroundColor: '#F8F9FA',
+    elevation: 1,
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#ADB5BD',
+    fontWeight: '600'
+  },
+  tabTextActive: {
+    color: '#1A1A1A'
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#28a745',
+    marginLeft: 6
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6
+  },
+  statusBadgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold'
+  },
 });
