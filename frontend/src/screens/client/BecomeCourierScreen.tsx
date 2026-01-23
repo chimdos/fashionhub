@@ -35,14 +35,13 @@ export const BecomeCourierScreen = () => {
 
       if (updatedUser && newToken) {
         await updateSession(updatedUser, newToken);
+
+        Alert.alert(
+          'Sucesso!',
+          'Agora você é um entregador parceiro!',
+          [{ text: 'Começar', onPress: () => { } }]
+        );
       }
-
-      Alert.alert('Sucesso!', 'Seu cadastro foi enviado! Agora você faz parte da nossa equipe de logística.');
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'CourierTabs' }],
-      });
     } catch (error: any) {
       Alert.alert('Erro', error.response?.data?.message || 'Falha ao processar cadastro.');
     } finally {
