@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { CourierDashboardScreen } from '../screens/courier/CourierDashboardScreen';
 import { CourierEarningsScreen } from '../screens/courier/CourierEarningsScreen';
+import { CourierProfileScreen } from '../screens/courier/CourierProfileScreen';
 
 const Placeholder = () => <View />; 
 
@@ -37,7 +38,7 @@ export function CourierTabNavigator() {
       />
       <Tab.Screen 
         name="Profile" 
-        component={Placeholder} 
+        component={CourierProfileScreen} 
         options={{
           tabBarLabel: 'Perfil',
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />
