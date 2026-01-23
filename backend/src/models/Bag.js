@@ -3,14 +3,11 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class Bag extends Model {
     static associate(models) {
-      // Uma mala pertence a um cliente
       this.belongsTo(models.User, { foreignKey: 'cliente_id', as: 'cliente' });
-      // Uma mala pode pertencer a um entregador
       this.belongsTo(models.User, { foreignKey: 'entregador_id', as: 'entregador' });
-      // Uma mala tem um endereço de entrega
       this.belongsTo(models.Address, { foreignKey: 'endereco_entrega_id', as: 'endereco_entrega' });
-      // Uma mala tem muitos itens
       this.hasMany(models.BagItem, { foreignKey: 'mala_id', as: 'itens' });
+      this.belongsTo(models.Lojista, { foreignKey: 'lojista_id', as: 'perfil_lojista' });
     }
   }
 
@@ -20,7 +17,6 @@ module.exports = (sequelize) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
-    
     status: {
       type: DataTypes.ENUM(
         'SOLICITADA',
@@ -37,7 +33,6 @@ module.exports = (sequelize) => {
       defaultValue: 'SOLICITADA',
       allowNull: false
     },
-
     token_retirada: {
       type: DataTypes.STRING(6),
       allowNull: true
@@ -46,7 +41,6 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(6),
       allowNull: true
     },
-
     motivo_recusa: {
       type: DataTypes.STRING,
       allowNull: true
@@ -55,7 +49,6 @@ module.exports = (sequelize) => {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0.00
     },
-
     data_solicitacao: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW
@@ -65,6 +58,18 @@ module.exports = (sequelize) => {
     },
     data_devolucao_lojista: {
       type: DataTypes.DATE
+    },
+    valor_frete: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0.00,
+    },
+    distancia_estimada: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    entregador_id: {
+      type: DataTypes.UUID,
+      allowNull: true
     },
     observacoes: {
       type: DataTypes.TEXT
