@@ -10,7 +10,7 @@ import api from '../../services/api';
 
 export const BecomeCourierScreen = () => {
   const navigation = useNavigation<any>();
-  const { updateUser } = useAuth();
+  const { updateUser, updateSession } = useAuth();
 
   const [veiculo, setVeiculo] = useState('');
   const [placa, setPlaca] = useState('');
@@ -27,17 +27,22 @@ export const BecomeCourierScreen = () => {
     try {
       const response = await api.put('/api/users/become-courier', {
         veiculo,
-        placa,
+        placa: placa.toUpperCase(),
         cnh
       });
 
-      Alert.alert('Sucesso!', 'Seu cadastro foi enviado! Agora você faz parte da nossa equipe de logística.');
+      const { user: updatedUser, token: newToken } = response.data;
 
-      if (response.data.user) {
-        await updateUser(response.data.user);
+      if (updatedUser && newToken) {
+        await updateSession(updatedUser, newToken);
       }
 
-      navigation.goBack();
+      Alert.alert('Sucesso!', 'Seu cadastro foi enviado! Agora você faz parte da nossa equipe de logística.');
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'CourierTabs' }],
+      });
     } catch (error: any) {
       Alert.alert('Erro', error.response?.data?.message || 'Falha ao processar cadastro.');
     } finally {
