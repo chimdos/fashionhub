@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { CourierDashboardScreen } from '../screens/courier/CourierDashboardScreen';
+import { CourierEarningsScreen } from '../screens/courier/CourierEarningsScreen';
 
 const Placeholder = () => <View />; 
 
@@ -28,7 +29,7 @@ export function CourierTabNavigator() {
       />
       <Tab.Screen 
         name="History" 
-        component={Placeholder} 
+        component={CourierEarningsScreen} 
         options={{
           tabBarLabel: 'Ganhos',
           tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />
