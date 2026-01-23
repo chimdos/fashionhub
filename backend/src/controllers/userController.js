@@ -133,8 +133,15 @@ const userController = {
 
       await user.save();
 
+      const newToken = jwt.sign(
+        { userId: user.id, tipo_usuario: 'entregador' },
+        proccess.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
       return res.json({
         message: 'Você agora é um entregador!',
+        token: newToken,
         user: {
           id: user.id,
           nome: user.nome,
