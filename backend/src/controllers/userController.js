@@ -136,7 +136,7 @@ const userController = {
 
       const newToken = jwt.sign(
         { userId: user.id, tipo_usuario: 'entregador' },
-        proccess.env.JWT_SECRET,
+        process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
 
