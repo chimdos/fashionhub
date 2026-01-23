@@ -1,5 +1,6 @@
 const { User, Address, Lojista, sequelize } = require('../models');
 const { Op } = require('sequelize');
+const jwt = require('jsonwebtoken');
 
 const userController = {
   async getCurrentUserProfile(req, res) {
