@@ -28,12 +28,13 @@ export const PickupScreen = ({ route, navigation }: any) => {
 
     setLoading(true);
     try {
-      await api.post(`/api/bags/${bag.bagId}/confirm-pickup`, { token });
+      const response = await api.post(`/api/bags/${bag.bagId || bag.id}/confirm-pickup`, { token });
 
       Alert.alert('Sucesso', 'Mala retirada! Inicie a entrega.');
 
-      navigation.replace('DeliveryRouteScreen', { bag });
-
+      navigation.replace('DeliveryRouteScreen', {
+        bag: response.data.bag || bag
+      });
     } catch (error: any) {
       Alert.alert('Falha', error.response?.data?.message || 'Token inválido ou erro de conexão.');
     } finally {
