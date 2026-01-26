@@ -628,6 +628,11 @@ const bagController = {
       const formattedBags = activeBags.map(bag => ({
         bagId: bag.id,
         origem: bag.lojista?.nome || 'Loja Parceira',
+        enderecoColeta: bag.lojista.endereco ?{
+          rua: bag.lojista.endereco.rua,
+          numero: bag.lojista.endereco.numero,
+          bairro: bag.lojista.endereco.bairro
+        } : null,
         destino: {
           rua: bag.endereco_entrega?.rua,
           numero: bag.endereco_entrega?.numero,
