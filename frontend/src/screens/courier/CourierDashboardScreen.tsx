@@ -13,6 +13,11 @@ import api from '../../services/api';
 interface DeliveryRequest {
   bagId: string;
   origem: string;
+  enderecoColeta?: {
+    rua: string;
+    numero: string;
+    bairro: string;
+  };
   destino: {
     rua: string;
     numero: string;
@@ -147,7 +152,11 @@ export const CourierDashboardScreen = () => {
           <View style={styles.routeDetails}>
             <View style={styles.addressBlock}>
               <Text style={styles.addressLabel}>RETIRADA (LOJA)</Text>
-              <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
+              <Text style={styles.addressText} numberOfLines={1}>
+                {item.enderecoColeta
+                  ? `${item.enderecoColeta.rua}, ${item.enderecoColeta.numero} - ${item.enderecoColeta.bairro}`
+                  : 'Endereço da loja não carregado'}
+              </Text>
             </View>
 
             <View style={styles.addressBlock}>
