@@ -2,18 +2,22 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
 import api from '../../services/api';
 
-// Recebemos os dados da rota anterior (via navigation params)
 export const PickupScreen = ({ route, navigation }: any) => {
-  const { bag } = route.params; // Objeto da mala vindo do Dashboard
+  const { bag } = route.params;
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
 
   const openMaps = () => {
-    // Abre o Google Maps/Waze com o endereço da loja
-    // Ajustar "origem" para o campo correto do endereço da loja se for um objeto
-    const address = bag.origem; 
+    const address = bag.endereco_entrega?.rua || bag.origem;
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-    Linking.openURL(url);
+
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        Alert.alert('Erro', 'Não foi possível abrir o mapa.');
+      }
+    });
   };
 
   const handleConfirmPickup = async () => {
@@ -25,12 +29,10 @@ export const PickupScreen = ({ route, navigation }: any) => {
     setLoading(true);
     try {
       await api.post(`/api/bags/${bag.bagId}/confirm-pickup`, { token });
-      
+
       Alert.alert('Sucesso', 'Mala retirada! Inicie a entrega.');
-      
-      // Navega para a próxima tela: Rota até o Cliente
-      // Passamos a mesma bag, mas agora o fluxo será de entrega
-      navigation.replace('DeliveryRouteScreen', { bag }); 
+
+      navigation.replace('DeliveryRouteScreen', { bag });
 
     } catch (error: any) {
       Alert.alert('Falha', error.response?.data?.message || 'Token inválido ou erro de conexão.');
@@ -45,7 +47,7 @@ export const PickupScreen = ({ route, navigation }: any) => {
         <Text style={styles.stepTitle}>PASSO 1: RETIRADA</Text>
         <Text style={styles.storeName}>Loja Fashion Hub</Text>
         <Text style={styles.address}>{bag.origem}</Text>
-        
+
         <TouchableOpacity onPress={openMaps} style={styles.mapButton}>
           <Text style={styles.mapButtonText}>ABRIR NO MAPA</Text>
         </TouchableOpacity>
@@ -63,8 +65,8 @@ export const PickupScreen = ({ route, navigation }: any) => {
         />
       </View>
 
-      <TouchableOpacity 
-        style={[styles.confirmButton, loading && styles.disabledBtn]} 
+      <TouchableOpacity
+        style={[styles.confirmButton, loading && styles.disabledBtn]}
         onPress={handleConfirmPickup}
         disabled={loading}
       >
@@ -84,14 +86,14 @@ const styles = StyleSheet.create({
   address: { fontSize: 16, color: '#555', marginBottom: 15 },
   mapButton: { backgroundColor: '#e3f2fd', padding: 10, borderRadius: 5, alignItems: 'center' },
   mapButtonText: { color: '#2196F3', fontWeight: 'bold' },
-  
+
   inputContainer: { marginBottom: 30 },
   label: { fontSize: 16, marginBottom: 10, textAlign: 'center', color: '#333' },
-  input: { 
+  input: {
     backgroundColor: '#fff', fontSize: 32, textAlign: 'center', letterSpacing: 5,
-    padding: 15, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' 
+    padding: 15, borderRadius: 8, borderWidth: 1, borderColor: '#ddd'
   },
-  
+
   confirmButton: { backgroundColor: '#2ecc71', padding: 18, borderRadius: 8, alignItems: 'center' },
   disabledBtn: { opacity: 0.7 },
   confirmText: { color: '#fff', fontWeight: 'bold', fontSize: 18 }
