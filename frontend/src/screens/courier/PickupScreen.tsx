@@ -21,8 +21,8 @@ export const PickupScreen = ({ route, navigation }: any) => {
   };
 
   const handleConfirmPickup = async () => {
-    if (token.length < 4) {
-      Alert.alert('Erro', 'Digite o código de 6 dígitos fornecido pelo lojista.');
+    if (token.length < 6) {
+      Alert.alert('Atenção', 'O código deve ter exatamente 6 dígitos!');
       return;
     }
 
