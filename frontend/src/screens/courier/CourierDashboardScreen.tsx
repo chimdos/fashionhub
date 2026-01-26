@@ -118,7 +118,7 @@ export const CourierDashboardScreen = () => {
         <View style={styles.cardHeader}>
           <View style={styles.priceBadge}>
             <Text style={styles.priceLabel}>GANHO ESTIMADO</Text>
-            <Text style={styles.priceValue}>R$ {item.valorFrete.toFixed(2)}</Text>
+            <Text style={styles.priceValue}>R$ {Number(item.valorFrete || 0).toFixed(2)}</Text>
           </View>
 
           {isAvailable ? (
