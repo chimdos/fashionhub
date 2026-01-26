@@ -378,7 +378,7 @@ const bagController = {
       }
 
       await bag.update({
-        status: 'EM_ROTA_ENTREGA',
+        status: 'AGUARDANDO_MOTO',
         entregador_id: entregadorId
       }, { transaction: t });
 
