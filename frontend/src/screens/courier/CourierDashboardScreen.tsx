@@ -102,12 +102,16 @@ export const CourierDashboardScreen = () => {
 
     const getStatusInfo = (status: string) => {
       switch (status) {
-        case 'EM_ROTA_COLETA':
+        case 'AGUARDANDO_MOTO':
           return { label: 'Ir até a Loja', color: '#f39c12' };
         case 'EM_ROTA_ENTREGA':
           return { label: 'Entregando', color: '#3498db' };
+        case 'EM_ROTA_DEVOLUCAO':
+          return { label: 'Devolvendo', color: '#e74c3c' };
+        case 'ENTREGUE':
+          return { label: 'Entregue', color: '#2ecc71' };
         default:
-          return { label: 'Pendente', color: '#95a5a6' };
+          return { label: 'Processando', color: '#95a5a6' };
       }
     };
 
@@ -157,11 +161,14 @@ export const CourierDashboardScreen = () => {
 
         <TouchableOpacity
           style={[styles.acceptButton, !isAvailable && { backgroundColor: '#333' }]}
-          onPress={() =>
-            isAvailable
-              ? handleAccept(item)
-              : navigation.navigate(item.status === 'EM_ROTA_DEVOLUCAO' ? 'PickupScreen' : 'DeliveryRoute', { bag: item })
-          }
+          onPress={() => {
+            if (isAvailable) {
+              handleAccept(item);
+            } else {
+              const targetScreen = item.status === 'AGUARDANDO_MOTO' ? 'PickupScreen' : 'DeliveryRoute';
+              navigation.navigate(targetScreen, { bag: item });
+            }
+          }}
         >
           <Text style={styles.acceptButtonText}>
             {isAvailable ? 'ACEITAR ENTREGA' : 'VER DETALHES'}
