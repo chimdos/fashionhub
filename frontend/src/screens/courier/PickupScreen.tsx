@@ -7,6 +7,11 @@ export const PickupScreen = ({ route, navigation }: any) => {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const nomeLoja = bag.origem || 'Loja Parceira';
+  const enderecoColeta = bag.enderecoColeta
+    ? `${bag.enderecoColeta.rua}, ${bag.enderecoColeta.numero} - ${bag.enderecoColeta.bairro}`
+    : 'Endereço não informado';
+
   const openMaps = () => {
     const address = bag.endereco_entrega?.rua || bag.origem;
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -46,8 +51,8 @@ export const PickupScreen = ({ route, navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.stepTitle}>PASSO 1: RETIRADA</Text>
-        <Text style={styles.storeName}>Loja Fashion Hub</Text>
-        <Text style={styles.address}>{bag.origem}</Text>
+        <Text style={styles.storeName}>{nomeLoja}</Text>
+        <Text style={styles.address}>{enderecoColeta}</Text>
 
         <TouchableOpacity onPress={openMaps} style={styles.mapButton}>
           <Text style={styles.mapButtonText}>ABRIR NO MAPA</Text>
