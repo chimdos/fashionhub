@@ -71,10 +71,7 @@ function BagStackNavigator() {
       <Stack.Screen
         name="BagDetails"
         component={BagDetailScreen}
-        options={{
-          title: 'Detalhes da Solicitação',
-          headerTintColor: '#28a745',
-        }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
