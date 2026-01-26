@@ -49,7 +49,7 @@ export const BagDetailScreen = () => {
       await api.post(`/api/bags/${bagId}/store-action`, { action, motivo });
 
       Alert.alert("Sucesso", `A solicitação foi ${action === 'ACEITAR' ? 'aceita' : 'recusada'}.`);
-      navigation.goBack();
+      await fetchBagDetails();
     } catch (error: any) {
       Alert.alert("Erro", error.response?.data?.message || "Falha ao processar ação.");
     } finally {
@@ -62,7 +62,7 @@ export const BagDetailScreen = () => {
     try {
       await api.post(`/api/bags/${bagId}/request-courier`);
       Alert.alert("Sucesso", "Solicitação de entregador enviada!");
-      navigation.goBack();
+      await fetchBagDetails();
     } catch (error: any) {
       Alert.alert("Erro", error.response?.data?.message || "Falha ao solicitar entregador.");
     } finally {
