@@ -607,20 +607,20 @@ const bagController = {
     }
   },
 
-  async getActiveDeliveries(req,res) {
+  async getActiveDeliveries(req, res) {
     try {
       const entregadorId = req.user.userId;
 
       const activeBags = await Bag.findAll({
-        where: {
-          entregador_id: entregadorId,
-          status : {
-            [Op.in]: ['EM_ROTA_DEVOLUCAO', 'EM_ROTA_ENTREGA', 'ENTREGUE']
-          }
-        },
+        where: { entregador_id: entregadorId, status: { [Op.in]: ['AGUARDANDO_MOTO', 'EM_ROTA_RETIRADA'] } },
         include: [
-          { model: Address, as: 'endereco_entrega' },
-          { model: User, as: 'lojista', attributes: ['nome'] }
+          {
+            model: User,
+            as: 'lojista',
+            attributes: ['nome'],
+            include: [{ model: Address, as: 'endereco' }]
+          },
+          { model: Address, as: 'endereco_entrega' }
         ],
         order: [['data_solicitacao', 'DESC']]
       });
@@ -637,7 +637,7 @@ const bagController = {
         distancia: bag.distancia_estimada || '--- km',
         status: bag.status,
       }));
-      
+
       return res.json(formattedBags);
     } catch (error) {
       console.error('Erro ao buscar entregas ativas:', error);
