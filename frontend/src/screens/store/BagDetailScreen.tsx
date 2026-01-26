@@ -135,7 +135,7 @@ export const BagDetailScreen = () => {
               <Ionicons name="location" size={20} color="#28a745" />
               <View style={{ marginLeft: 10, flex: 1 }}>
                 <Text style={styles.addressTextBold}>
-                  {bag.endereco_entrega.logradouro}, {bag.endereco_entrega.numero}
+                  {bag.endereco_entrega.rua}, {bag.endereco_entrega.numero}
                 </Text>
                 <Text style={styles.addressText}>
                   {bag.endereco_entrega.bairro}
