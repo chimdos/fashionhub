@@ -416,6 +416,7 @@ const bagController = {
 
       await bag.update({
         data_retirada: new Date(),
+        status: 'EM_ROTA_ENTREGA'
       });
 
       // TODO: Avisar cliente via Socket que o entregador retirou a mala e está a camihno
