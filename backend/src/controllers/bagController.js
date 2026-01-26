@@ -612,7 +612,7 @@ const bagController = {
       const entregadorId = req.user.userId;
 
       const activeBags = await Bag.findAll({
-        where: { entregador_id: entregadorId, status: { [Op.in]: ['AGUARDANDO_MOTO', 'EM_ROTA_RETIRADA'] } },
+        where: { entregador_id: entregadorId, status: { [Op.in]: ['AGUARDANDO_MOTO', 'EM_ROTA_ENTREGA', 'ENTREGUE', 'EM_ROTA_DEVOLUCAO'] } },
         include: [
           {
             model: User,
