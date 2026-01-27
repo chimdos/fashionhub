@@ -671,5 +671,43 @@ const bagController = {
       return res.status(500).json({ error: 'Erro ao processar devolução!' });
     }
   },
+
+  async getActiveWithClient(req, res) {
+    try {
+      const userId = req.user.userId;
+
+      const bag = await Bag.findOne({
+        where: {
+          cliente_id: userId,
+          status: {
+            [Op.in]: ['ENTREGUE', 'AGUARDANDO_MOTO_DEVOLUCAO', 'EM_ROTA_DEVOLUCAO']
+          }
+        },
+        include: [
+          {
+            model: BagItem,
+            as: 'itens',
+            include: [{
+              model: ProductVariation,
+              as: 'variacao_produto',
+              include: [{
+                model: Product,
+                as: 'produto',
+                include: [{ model: ProductImage, as: 'imagens', limit: 1 }]
+              }]
+            }]
+          }
+        ],
+        order: [['created_at', 'DESC']]
+      });
+
+      if (!bag) return res.json(null);
+
+      return res.json(bag);
+    } catch (error) {
+      console.error('Erro ao buscar mala ativa:', error);
+      return res.status(500).json({ error: 'Erro interno no servidor.' });
+    }
+  },
 };
 module.exports = bagController;
