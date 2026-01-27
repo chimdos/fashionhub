@@ -11,6 +11,7 @@ import { SettingsScreen } from '../screens/client/SettingsScreen';
 import { BecomeCourierScreen } from '../screens/client/BecomeCourierScreen';
 import { BagSelectionScreen } from '../screens/client/BagSelectionScreen';
 import { EditProfileScreen } from '../screens/client/EditProfileScreen';
+import { BagHistoryDetailsScreen } from '../screens/client/BagHistoryDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -79,6 +80,13 @@ export function ClientNavigator() {
         component={BagSelectionScreen}
         options={{ title: 'Provador em Casa' }}
       />
+
+      <Stack.Screen
+        name="BagHistoryDetails"
+        component={BagHistoryDetailsScreen}
+        options={{ title: 'Detalhes da Entrega' }}
+      />
+
 
     </Stack.Navigator>
   );
