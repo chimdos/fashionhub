@@ -12,6 +12,7 @@ import { BecomeCourierScreen } from '../screens/client/BecomeCourierScreen';
 import { BagSelectionScreen } from '../screens/client/BagSelectionScreen';
 import { EditProfileScreen } from '../screens/client/EditProfileScreen';
 import { BagHistoryDetailsScreen } from '../screens/client/BagHistoryDetailsScreen';
+import { BagDetailsScreen } from '../screens/client/BagDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -60,7 +61,7 @@ export function ClientNavigator() {
       <Stack.Screen
         name="ProductDetail"
         component={ProductDetailScreen}
-        options={{ title: 'Detalhes', headerShown: false }}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen
@@ -72,7 +73,7 @@ export function ClientNavigator() {
       <Stack.Screen
         name="BecomeCourierScreen"
         component={BecomeCourierScreen}
-        options={{ title: 'Trabalhe Conosco', headerShown: false }}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen
@@ -84,10 +85,14 @@ export function ClientNavigator() {
       <Stack.Screen
         name="BagHistoryDetails"
         component={BagHistoryDetailsScreen}
-        options={{ title: 'Detalhes da Entrega' }}
+        options={{ title: 'Histórico de Malas' }}
       />
 
-
+      <Stack.Screen
+        name="BagDetails"
+        component={BagDetailsScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
