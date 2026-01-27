@@ -14,8 +14,10 @@ import {
 import { useBag } from '../../contexts/BagContext';
 import api from '../../services/api';
 import { Ionicons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native';
 
 export const CartScreen = () => {
+  const navigation = useNavigation<any>();
   const { items, itemCount, clearBag, removeFromBag } = useBag();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -102,16 +104,33 @@ export const CartScreen = () => {
     return (
       <View style={styles.itemLightWrapper}>
         <View style={styles.itemDarkWrapper}>
-          <View style={styles.historyCard}>
+          <TouchableOpacity
+            style={styles.historyCard}
+            onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
+            activeOpacity={0.7}
+          >
             <View style={styles.historyHeader}>
-              <Text style={styles.historyId}>Mala #{item.id.substring(0, 8)}</Text>
+              <Text style={styles.historyId}>Mala #{item.id.substring(0, 8).toUpperCase()}</Text>
               <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] || '#95A5A6' }]}>
                 <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
               </View>
             </View>
-            <Text style={styles.historyDate}>Data: {new Date(item.created_at).toLocaleDateString('pt-BR')}</Text>
-            <Text style={styles.historyItemsCount}>{item.itens?.length || 0} itens solicitados</Text>
-          </View>
+
+            <View style={styles.historyInfoRow}>
+              <Ionicons name="calendar-outline" size={14} color="#888" />
+              <Text style={styles.historyDate}> {new Date(item.created_at).toLocaleDateString('pt-BR')}</Text>
+            </View>
+
+            <View style={styles.historyInfoRow}>
+              <Ionicons name="shirt-outline" size={14} color="#333" />
+              <Text style={styles.historyItemsCount}> {item.itens?.length || 0} itens solicitados</Text>
+            </View>
+
+            <View style={styles.viewDetailsRow}>
+              <Text style={styles.viewDetailsText}>Ver detalhes e Token</Text>
+              <Ionicons name="chevron-forward" size={14} color="#5DADE2" />
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     )
@@ -142,7 +161,7 @@ export const CartScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.logoText}>FashionHub</Text>
-        <Text style={styles.headerTitle}>Minha Mala</Text>
+        <Text style={styles.headerTitle}>Minhas Malas</Text>
       </View>
 
       <View style={styles.tabContainer}>
@@ -276,4 +295,24 @@ const styles = StyleSheet.create({
   requestButton: { backgroundColor: '#5DADE2', height: 60, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
   requestButtonDisabled: { backgroundColor: '#A5D1EB' },
   requestButtonText: { color: '#333', fontSize: 16, fontWeight: 'bold' },
+  historyInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5
+  },
+  viewDetailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    paddingTop: 10
+  },
+  viewDetailsText: {
+    fontSize: 12,
+    color: '#5DADE2',
+    fontWeight: 'bold',
+    marginRight: 5
+  },
 });
