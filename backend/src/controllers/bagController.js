@@ -617,8 +617,8 @@ const bagController = {
           {
             model: User,
             as: 'lojista',
-            attributes: ['nome'],
-            include: [{ model: Address, as: 'endereco' }]
+            attributes: ['nome', 'endereco'],
+            include: [{ model: Address, as: 'endereco_id' }]
           },
           { model: Address, as: 'endereco_entrega' }
         ],
