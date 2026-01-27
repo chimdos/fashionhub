@@ -37,7 +37,7 @@ export const PickupScreen = ({ route, navigation }: any) => {
 
       Alert.alert('Sucesso', 'Mala retirada! Inicie a entrega.');
 
-      navigation.replace('DeliveryRouteScreen', {
+      navigation.replace('DeliveryRoute', {
         bag: response.data.bag || bag
       });
     } catch (error: any) {
