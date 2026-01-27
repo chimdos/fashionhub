@@ -93,7 +93,7 @@ export const BagSelectionScreen = () => {
             text: 'Entendi',
             onPress: () => navigation.reset({
               index: 0,
-              routes: [{ name: 'Home' }],
+              routes: [{ name: 'MainTabs', params: { screen: 'Mala' } }],
             })
           }
         ]
