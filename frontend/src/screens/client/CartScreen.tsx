@@ -25,6 +25,13 @@ export const CartScreen = () => {
   const [requestedBags, setRequestedBags] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const [activeBagWithClient, setActiveBagWithClient] = useState<any>(null);
+
+  const checkActiveBag = async () => {
+    const response = await api.get('/api/bags/active-with-client');
+    setActiveBagWithClient(response.data);
+  }
+
   const totalValue = items.reduce((acc, item) => acc + item.preco, 0);
 
   const formattedTotal = new Intl.NumberFormat('pt-BR', {
@@ -49,6 +56,10 @@ export const CartScreen = () => {
       fetchRequestedBags();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    checkActiveBag();
+  }, []);
 
   const handleRequestBag = async () => {
     if (itemCount === 0) {
@@ -182,37 +193,72 @@ export const CartScreen = () => {
 
       {activeTab === 'current' ? (
         <>
-          <FlatList
-            data={items}
-            renderItem={renderCurrentBagItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Ionicons name="bag-outline" size={80} color="#DDD" />
-                <Text style={styles.emptyText}>Sua mala está vazia.</Text>
-              </View>
-            }
-          />
-          {itemCount > 0 && (
-            <View style={styles.footer}>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total estimado:</Text>
-                <Text style={styles.totalValue}>{formattedTotal}</Text>
-              </View>
-              <View style={styles.btnLightWrapper}>
-                <View style={styles.btnDarkWrapper}>
+          {activeBagWithClient ? (
+            <View style={styles.activeBagContainer}>
+              <Text style={styles.sectionTitle}>A mala está com você! 🏠</Text>
+              <View style={styles.itemLightWrapper}>
+                <View style={styles.itemDarkWrapper}>
                   <TouchableOpacity
-                    style={[styles.requestButton, isLoading && styles.requestButtonDisabled]}
-                    onPress={handleRequestBag}
-                    disabled={isLoading}
+                    style={styles.manageCard}
+                    onPress={() => navigation.navigate('BagSelection', { bag: activeBagWithClient })}
+                    activeOpacity={0.8}
                   >
-                    {isLoading ? <ActivityIndicator color="#333" /> : <Text style={styles.requestButtonText}>SOLICITAR MALA ({itemCount})</Text>}
+                    <View style={styles.manageHeader}>
+                      <View style={styles.iconCircle}>
+                        <Ionicons name="shirt" size={24} color="#FFF" />
+                      </View>
+                      <View style={styles.manageTextContent}>
+                        <Text style={styles.manageTitle}>Finalizar Provador</Text>
+                        <Text style={styles.manageSubtitle}>
+                          Escolha o que vai comprar e peça a coleta.
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#5DADE2" />
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
+          ) : (
+            <>
+              <FlatList
+                data={items}
+                renderItem={renderCurrentBagItem}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="bag-outline" size={80} color="#DDD" />
+                    <Text style={styles.emptyText}>Sua mala está vazia.</Text>
+                  </View>
+                }
+              />
+
+              {itemCount > 0 && (
+                <View style={styles.footer}>
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>Total estimado:</Text>
+                    <Text style={styles.totalValue}>{formattedTotal}</Text>
+                  </View>
+                  <View style={styles.btnLightWrapper}>
+                    <View style={styles.btnDarkWrapper}>
+                      <TouchableOpacity
+                        style={[styles.requestButton, isLoading && styles.requestButtonDisabled]}
+                        onPress={handleRequestBag}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <ActivityIndicator color="#333" />
+                        ) : (
+                          <Text style={styles.requestButtonText}>SOLICITAR MALA ({itemCount})</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </>
           )}
         </>
       ) : (
@@ -221,7 +267,13 @@ export const CartScreen = () => {
           renderItem={renderHistoryItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={fetchRequestedBags} tintColor="#5DADE2" />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={fetchRequestedBags}
+              tintColor="#5DADE2"
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="time-outline" size={80} color="#DDD" />
@@ -314,5 +366,52 @@ const styles = StyleSheet.create({
     color: '#5DADE2',
     fontWeight: 'bold',
     marginRight: 5
+  },
+  activeBagContainer: {
+    paddingHorizontal: 25,
+    marginTop: 10,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ADB5BD',
+    textTransform: 'uppercase',
+    marginBottom: 15,
+    letterSpacing: 1,
+  },
+  manageCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+  },
+  manageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#5DADE2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#5DADE2',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  manageTextContent: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  manageTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  manageSubtitle: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 2,
   },
 });
