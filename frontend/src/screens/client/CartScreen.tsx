@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
 import { useBag } from '../../contexts/BagContext';
 import api from '../../services/api';
 import { Ionicons } from '@expo/vector-icons'
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export const CartScreen = () => {
   const navigation = useNavigation<any>();
@@ -28,9 +28,19 @@ export const CartScreen = () => {
   const [activeBagWithClient, setActiveBagWithClient] = useState<any>(null);
 
   const checkActiveBag = async () => {
-    const response = await api.get('/api/bags/active-with-client');
-    setActiveBagWithClient(response.data);
-  }
+    try {
+      const response = await api.get('/api/bags/active-with-client');
+      setActiveBagWithClient(response.data);
+    } catch (error) {
+      console.error("Erro ao verificar mala ativa:", error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      checkActiveBag();
+    }, [])
+  );
 
   const totalValue = items.reduce((acc, item) => acc + item.preco, 0);
 
