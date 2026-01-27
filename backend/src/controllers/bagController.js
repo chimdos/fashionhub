@@ -522,6 +522,8 @@ const bagController = {
         include: [
           { model: User, as: 'cliente', attributes: ['id', 'nome', 'email', 'telefone'] },
           { model: Address, as: 'endereco_entrega' },
+          { model: User, as: 'entregador', attributes: ['id', 'nome', 'foto_perfil', 'veiculo'] },
+          { model: User, as: 'lojista', attributes: ['id', 'nome'] },
           {
             model: BagItem,
             as: 'itens',
@@ -549,9 +551,7 @@ const bagController = {
       if (bag.cliente_id !== req.user.userId && req.user.tipo_usuario !== 'lojista') {
         return res.status(403).json({ message: 'Você não tem permissão para acessar esta mala.' });
       }
-
       return res.json(bag);
-
     } catch (error) {
       console.error('Erro ao buscar mala por ID:', error);
       return res.status(500).json({ error: 'Erro ao buscar mala.' });
