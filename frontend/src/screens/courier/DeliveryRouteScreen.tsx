@@ -8,7 +8,6 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(false);
 
   const openMaps = () => {
-    // Monta o endereço completo para o GPS
     const dest = bag.destino;
     const addressQuery = `${dest.rua}, ${dest.numero} - ${dest.bairro}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressQuery)}`;
@@ -24,13 +23,12 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
     setLoading(true);
     try {
       await api.post(`/api/bags/${bag.bagId}/confirm-delivery`, { token });
-      
+
       Alert.alert('Parabéns!', 'Corrida finalizada com sucesso.');
-      
-      // Volta para o Dashboard para pegar novas corridas
+
       navigation.reset({
         index: 0,
-        routes: [{ name: 'CourierDashboardScreen' }],
+        routes: [{ name: 'CourierDashboard' }],
       });
 
     } catch (error: any) {
@@ -44,8 +42,8 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.headerCard}>
         <Text style={styles.stepTitle}>PASSO 2: ENTREGA AO CLIENTE</Text>
-        <Text style={styles.clientName}>Cliente</Text> 
-        
+        <Text style={styles.clientName}>Cliente</Text>
+
         <View style={styles.addressBox}>
           <Text style={styles.addressLabel}>Endereço:</Text>
           <Text style={styles.addressText}>
@@ -73,8 +71,8 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
           onChangeText={setToken}
         />
 
-        <TouchableOpacity 
-          style={[styles.finishButton, loading && styles.disabledBtn]} 
+        <TouchableOpacity
+          style={[styles.finishButton, loading && styles.disabledBtn]}
           onPress={handleFinishDelivery}
           disabled={loading}
         >
@@ -89,10 +87,10 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#34495e' }, // Fundo escuro para diferenciar da coleta
-  headerCard: { 
-    backgroundColor: '#fff', 
-    padding: 24, 
-    borderBottomLeftRadius: 30, 
+  headerCard: {
+    backgroundColor: '#fff',
+    padding: 24,
+    borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 5
   },
@@ -102,11 +100,11 @@ const styles = StyleSheet.create({
   addressLabel: { color: '#7f8c8d', fontSize: 12 },
   addressText: { fontSize: 18, color: '#34495e', fontWeight: '500' },
   addressSubText: { fontSize: 14, color: '#95a5a6' },
-  
-  mapButton: { 
-    backgroundColor: '#2980b9', 
-    padding: 15, 
-    borderRadius: 10, 
+
+  mapButton: {
+    backgroundColor: '#2980b9',
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center'
@@ -115,12 +113,12 @@ const styles = StyleSheet.create({
 
   actionArea: { flex: 1, padding: 24, justifyContent: 'center' },
   instruction: { color: '#ecf0f1', textAlign: 'center', marginBottom: 20, fontSize: 16 },
-  input: { 
-    backgroundColor: '#fff', 
-    fontSize: 24, 
-    textAlign: 'center', 
-    padding: 15, 
-    borderRadius: 10, 
+  input: {
+    backgroundColor: '#fff',
+    fontSize: 24,
+    textAlign: 'center',
+    padding: 15,
+    borderRadius: 10,
     letterSpacing: 5,
     marginBottom: 20,
     fontWeight: 'bold'
