@@ -522,7 +522,7 @@ const bagController = {
         include: [
           { model: User, as: 'cliente', attributes: ['id', 'nome', 'email', 'telefone'] },
           { model: Address, as: 'endereco_entrega' },
-          { model: User, as: 'entregador', attributes: ['id', 'nome', 'foto_perfil', 'veiculo'] },
+          { model: User, as: 'entregador', attributes: ['id', 'nome', 'veiculo'] },
           { model: User, as: 'lojista', attributes: ['id', 'nome'] },
           {
             model: BagItem,
