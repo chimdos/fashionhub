@@ -27,6 +27,7 @@ module.exports = (sequelize) => {
         'AGUARDANDO_MOTO',
         'EM_ROTA_ENTREGA',
         'ENTREGUE',
+        'AGUARDANDO_MOTO_DEVOLUCAO',
         'EM_ROTA_DEVOLUCAO',
         'FINALIZADA',
         'CANCELADA'
