@@ -43,6 +43,10 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(6),
       allowNull: true
     },
+    token_devolucao: {
+      type: DataTypes.STRING(6),
+      allowNull: true
+    },
     motivo_recusa: {
       type: DataTypes.STRING,
       allowNull: true
