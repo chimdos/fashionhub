@@ -8,6 +8,7 @@ router.get('/available', authMiddleware, bagController.getAvailableDeliveries);
 router.get('/active-deliveries', authMiddleware, bagController.getActiveDeliveries);
 router.get('/', authMiddleware, bagController.getClientBags);
 router.post('/', authMiddleware, requireUserType('cliente'), bagController.createBagRequest);
+router.get('/finalize-selection', authMiddleware, bagController.finalizeSelection);
 
 router.get('/:bagId', authMiddleware, bagController.getBagById);
 router.post('/:bagId/confirm-purchase', authMiddleware, requireUserType('cliente'), bagController.confirmPurchase);
