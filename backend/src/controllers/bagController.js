@@ -649,5 +649,27 @@ const bagController = {
       return res.status(500).json({ error: 'Erro interno ao buscar suas entregas.' });
     }
   },
+
+  async finalizeSelection(req, res) {
+    try {
+      const { bagId } = req.params;
+      const { itens_comprados } = req.body;
+
+      const tokenDevolucao = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const bag = await Bag.findByPk(bagId);
+      await bag.update({
+        status: 'AGUARDANDO_MOTO_DEVOLUCAO',
+        token_devolucao: tokenDevolucao,
+      });
+
+      return res.json({
+        message: 'Coleta solicitada!',
+        tokenDevolucao
+      });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao processar devolução!' });
+    }
+  },
 };
 module.exports = bagController;
