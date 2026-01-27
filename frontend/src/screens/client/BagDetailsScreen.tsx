@@ -83,23 +83,21 @@ export const BagDetailsScreen = () => {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Seu Entregador</Text>
                     {bag.entregador ? (
-                        <TouchableOpacity
-                            style={styles.courierCard}
-                            onPress={() => navigation.navigate('CourierProfileScreen', { courierId: bag.entregador.id })}
-                        >
-                            <Image
-                                source={{ uri: bag.entregador.foto || 'https://via.placeholder.com/150' }}
-                                style={styles.courierThumb}
-                            />
+                        <View style={styles.courierCard}>
+                            <View style={[styles.courierThumb, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#E9F7EF' }]}>
+                                <Ionicons name="person" size={28} color="#27AE60" />
+                            </View>
+
                             <View style={styles.courierMeta}>
                                 <Text style={styles.courierName}>{bag.entregador.nome}</Text>
-                                <Text style={styles.courierSub}>Veículo: {bag.entregador.veiculo || 'Moto Parceira'}</Text>
+                                <Text style={styles.courierSub}>Entregador Parceiro FashionHub</Text>
                             </View>
+
                             <View style={styles.expandTrigger}>
-                                <Text style={styles.expandText}>Ver Perfil</Text>
-                                <Ionicons name="chevron-forward" size={16} color="#27AE60" />
+                                <Ionicons name="checkmark-circle" size={18} color="#27AE60" />
+                                <Text style={[styles.expandText, { color: '#27AE60', marginLeft: 4 }]}>Identificado</Text>
                             </View>
-                        </TouchableOpacity>
+                        </View>
                     ) : (
                         <View style={styles.waitingCourier}>
                             <Ionicons name="time-outline" size={20} color="#999" />
