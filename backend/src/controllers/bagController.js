@@ -274,15 +274,13 @@ const bagController = {
         }
       }
 
-      const novoTokenRetirada = Math.floor(100000 + Math.random() * 900000).toString();
+      const tokenDevolucao = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Muda o status para EM_ROTA_DEVOLUCAO (assumindo que o motoboy busca depois)
-      // Ou 'AGUARDANDO_RETIRADA' se o sistema gera nova corrida automática
       await bag.update({
-        status: 'AGUARDANDO_MOTO',
-        token_retirada: novoTokenRetirada,
+        status: 'AGUARDANDO_MOTO_DEVOLUCAO',
+        token_retirada: tokenDevolucao,
         entregador_id: null,
-        data_entrega: null,
+        data_entrega_cliente: bag.data_entrega_cliente,
         data_retirada: null
       }, { transaction: t });
 
@@ -294,14 +292,15 @@ const bagController = {
           tipo: 'DEVOLUCAO',
           origem: "Casa do Cliente",
           destino: "Loja Tal",
-          valorFrete: 12.00
+          valorFrete: 12.00,
+          tokenDevolucao: tokenDevolucao
         });
       }
 
       return res.json({
         message: 'Compra confirmada! Um entregador virá buscar a mala.',
         valorTotal: valorFinal,
-        tokenDevolucao: novoTokenRetirada
+        tokenDevolucao: tokenDevolucao
       });
 
     } catch (error) {
