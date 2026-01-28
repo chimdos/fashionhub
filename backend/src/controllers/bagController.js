@@ -562,10 +562,11 @@ const bagController = {
       console.log("--- NOVA BUSCA DE ENTREGAS ---");
 
       const deliveries = await Bag.findAll({
-        where: { status: 'AGUARDANDO_MOTO' },
+        where: { status: { [Op.in]: ['AGUARDANDO_MOTO', 'AGUARDANDO_MOTO_DEVOLUCAO'] } },
         include: [
           { model: Address, as: 'endereco_entrega' },
-          { model: User, as: 'cliente', attributes: ['nome', 'telefone'] }
+          { model: User, as: 'cliente', attributes: ['nome', 'telefone'] },
+          { model: User, as: 'lojista', attributes: ['nome'] }
         ],
         order: [['data_solicitacao', 'DESC']],
         logging: console.log
@@ -574,14 +575,22 @@ const bagController = {
       console.log(`Resultado: ${deliveries.length} entregas encontradas.`);
 
       const formatted = deliveries.map(delivery => {
+        const isReturn = delivery.status === 'AGUARDANDO_MOTO_DEVOLUCAO';
+
+        const enderecoCliente = delivery.endereco_entrega
+          ? `${delivery.endereco_entrega.rua}, ${delivery.endereco_entrega.numero} - ${delivery.endereco_entrega.bairro}`
+          : 'Endereço não cadastrado!';
+
         if (!delivery.endereco_entrega) {
-          console.log(`⚠️ Alerta: Mala ID ${delivery.id} sem endereço.`);
+          console.log(`Alerta: Mala ID ${delivery.id} sem endereço.`);
         }
 
         return {
           bagId: delivery.id,
-          origem: "Endereço da Loja A",
-          destino: {
+          tipo: isReturn ? 'COLETA' : 'ENTREGA',
+
+          origem: isReturn ? enderecoCliente : `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}`,
+          destino: isReturn ? `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}` : {
             rua: delivery.endereco_entrega?.rua || 'Rua não informada',
             numero: delivery.endereco_entrega?.numero || 'N/A',
             bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
@@ -589,16 +598,15 @@ const bagController = {
             estado: delivery.endereco_entrega?.estado || 'Estado não informado',
           },
           valorFrete: Number(delivery.valor_frete) || 15.00,
-          distancia: "3.5 km",
+          distancia: delivery.distancia_estimada || "Calculando...",
           clienteNome: delivery.cliente?.nome || 'Cliente',
-          clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível'
+          clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível',
+          statusOriginal: delivery.status
         };
       });
-
       return res.json(formatted);
-
     } catch (error) {
-      console.error("❌ ERRO CRÍTICO NO BACKEND:", error);
+      console.error("ERRO CRÍTICO NO BACKEND:", error);
       return res.status(500).json({
         message: 'Erro interno no servidor',
         error: error.message
