@@ -698,7 +698,7 @@ const bagController = {
             }]
           }
         ],
-        order: [['created_at', 'DESC']]
+        order: [['data_solicitacao', 'DESC']]
       });
 
       if (!bag) return res.json(null);
