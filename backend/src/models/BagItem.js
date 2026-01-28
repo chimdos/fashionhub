@@ -26,7 +26,7 @@ module.exports = (sequelize) => {
       defaultValue: 0
     },
     status_item: {
-      type: DataTypes.ENUM('incluido', 'comprado', 'devolvido', 'nao_incluido'),
+      type: DataTypes.ENUM('incluido', 'nao_incluido', 'COMPRADO', 'DEVOLVIDO'),
       allowNull: false,
       defaultValue: 'nao_incluido'
     },
