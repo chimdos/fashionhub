@@ -292,6 +292,41 @@ export const CartScreen = () => {
           }
         />
       )}
+
+      {activeBagWithClient?.status === 'ENTREGUE' ? (
+        <TouchableOpacity
+          style={styles.manageCard}
+          onPress={() => navigation.navigate('BagSelection', { bag: activeBagWithClient })}
+        >
+          <View style={styles.manageHeader}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="shirt" size={24} color="#FFF" />
+            </View>
+            <View style={styles.manageTextContent}>
+              <Text style={styles.manageTitle}>Finalizar Provador</Text>
+              <Text style={styles.manageSubtitle}>Escolha o que vai comprar e peça a coleta.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#5DADE2" />
+          </View>
+        </TouchableOpacity>
+      ) : (
+        <View style={[styles.manageCard, { borderColor: '#27AE60', borderWidth: 1 }]}>
+          <View style={styles.manageHeader}>
+            <View style={[styles.iconCircle, { backgroundColor: '#27AE60' }]}>
+              <Ionicons name="bicycle" size={24} color="#FFF" />
+            </View>
+            <View style={styles.manageTextContent}>
+              <Text style={[styles.manageTitle, { color: '#27AE60' }]}>Aguardando Coleta</Text>
+              <Text style={styles.manageSubtitle}>Mostre o token abaixo ao entregador.</Text>
+            </View>
+          </View>
+
+          <View style={styles.tokenContainer}>
+            <Text style={styles.tokenLabel}>TOKEN DE DEVOLUÇÃO</Text>
+            <Text style={styles.tokenValue}>{activeBagWithClient?.token_devolucao}</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -423,5 +458,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#888',
     marginTop: 2,
+  },
+
+  tokenContainer: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#F1F9F4',
+    borderRadius: 12,
+    alignItems: 'center',
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: '#27AE60',
+  },
+  tokenLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#27AE60',
+    marginBottom: 5,
+  },
+  tokenValue: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#333',
+    letterSpacing: 5,
   },
 });
