@@ -149,7 +149,7 @@ export const BagSelectionScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>O que você vai amar? 😍</Text>
+        <Text style={styles.headerTitle}>O que você vai levar?</Text>
         <Text style={styles.headerSubtitle}>Selecione as peças para comprar.</Text>
       </View>
 
