@@ -38,35 +38,35 @@ export const CourierSettingsScreen = () => {
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>CONTA</Text>
-                    <SettingItem 
-                        icon="person-outline" 
-                        label="Dados do Perfil" 
+                    <SettingItem
+                        icon="person-outline"
+                        label="Dados do Perfil"
                         subLabel="Nome, Veículo, Placa e CNH"
                         color="#28a745"
-                        onPress={() => navigation.navigate('CourierEditProfileScreen')} 
+                        onPress={() => navigation.navigate('CourierEditProfileScreen')}
                     />
-                    <SettingItem 
-                        icon="lock-closed-outline" 
-                        label="Segurança" 
+                    <SettingItem
+                        icon="lock-closed-outline"
+                        label="Segurança"
                         subLabel="Alterar senha e biometria"
                         color="#5DADE2"
-                        onPress={() => Alert.alert("Em breve", "Funcionalidade em desenvolvimento")} 
+                        onPress={() => navigation.navigate('CourierChangePasswordScreen')}
                     />
                 </View>
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>SUPORTE E LEGAL</Text>
-                    <SettingItem 
-                        icon="help-circle-outline" 
-                        label="Central de Ajuda" 
+                    <SettingItem
+                        icon="help-circle-outline"
+                        label="Central de Ajuda"
                         color="#F39C12"
-                        onPress={() => {}} 
+                        onPress={() => { }}
                     />
-                    <SettingItem 
-                        icon="document-text-outline" 
-                        label="Termos de Uso" 
+                    <SettingItem
+                        icon="document-text-outline"
+                        label="Termos de Uso"
                         color="#6C757D"
-                        onPress={() => {}} 
+                        onPress={() => { }}
                     />
                 </View>
 
@@ -74,7 +74,7 @@ export const CourierSettingsScreen = () => {
                     <Ionicons name="log-out-outline" size={22} color="#dc3545" />
                     <Text style={styles.logoutText}>Sair da Conta</Text>
                 </TouchableOpacity>
-                
+
                 <Text style={styles.versionText}>FashionHub Courier v1.0.4</Text>
             </ScrollView>
         </SafeAreaView>
@@ -89,16 +89,16 @@ const styles = StyleSheet.create({
     headerInfo: { marginLeft: 15 },
     userName: { fontSize: 18, fontWeight: 'bold', color: '#1A1A1A' },
     userEmail: { fontSize: 14, color: '#6C757D' },
-    
+
     section: { marginBottom: 25, paddingHorizontal: 20 },
     sectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#ADB5BD', marginBottom: 10, letterSpacing: 1 },
-    
+
     item: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFF', padding: 15, borderRadius: 16, marginBottom: 10 },
     itemLeft: { flexDirection: 'row', alignItems: 'center' },
     iconContainer: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
     itemLabel: { fontSize: 16, fontWeight: '600', color: '#333' },
     itemSubLabel: { fontSize: 12, color: '#ADB5BD' },
-    
+
     logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, padding: 20 },
     logoutText: { color: '#dc3545', fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
     versionText: { textAlign: 'center', color: '#CCC', fontSize: 12, marginBottom: 30 }
