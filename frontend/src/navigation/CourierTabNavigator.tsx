@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CourierDashboardScreen } from '../screens/courier/CourierDashboardScreen';
@@ -9,20 +9,23 @@ import { CourierSettingsScreen } from '../screens/courier/CourierSettingsScreen'
 import { CourierEditProfileScreen } from '../screens/courier/CourierEditProfileScreen';
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 function ProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="CourierSettingsScreen" component={CourierSettingsScreen} />
+      <Stack.Screen
+        name="CourierSettingsScreen"
+        component={CourierSettingsScreen}
+      />
       <Stack.Screen
         name="CourierEditProfileScreen"
         component={CourierEditProfileScreen}
         options={{
           headerShown: true,
           title: 'Editar Perfil',
-          headerBackTitleVisible: false,
-          headerTintColor: '#28a745'
+          headerTintColor: '#28a745',
+          headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
     </Stack.Navigator>
