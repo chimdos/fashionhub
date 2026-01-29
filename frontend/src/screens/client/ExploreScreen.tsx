@@ -67,9 +67,23 @@ export const ExploreScreen = ({ navigation }: any) => {
   };
 
   const getSafeImage = (item: any) => {
-    if (!item?.imagens || item.imagens.length === 0) return require('../../assets/placeholder.webp');
+    if (!item || !item.imagens || item.imagens.length === 0) {
+      return require('../../assets/placeholder.webp');
+    }
+
     const img = item.imagens[0];
-    return typeof img === 'string' ? { uri: img } : { uri: img.url };
+
+    const imageUrl = typeof img === 'string' ? img : (img.url_imagem || img.url);
+
+    if (!imageUrl) {
+      return require('../../assets/placeholder.webp');
+    }
+
+    const finalUri = imageUrl.startsWith('http')
+      ? imageUrl
+      : `${api.defaults.baseURL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+
+    return { uri: finalUri };
   };
 
   const renderProductItem = ({ item }: any) => {
