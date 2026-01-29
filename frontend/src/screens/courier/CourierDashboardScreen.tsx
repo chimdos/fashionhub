@@ -18,15 +18,13 @@ interface DeliveryRequest {
     numero: string;
     bairro: string;
   };
-  destino: {
-    rua: string;
-    numero: string;
-    bairro: string;
-  };
+  destino: any;
   valorFrete: number;
   distancia: string;
-  status: 'AGUARDANDO_MOTO' | 'EM_ROTA_DEVOLUCAO' | 'EM_ROTA_ENTREGA' | 'ENTREGUE' | 'FINALIZADA';
+  status: 'AGUARDANDO_MOTO' | 'EM_ROTA_DEVOLUCAO' | 'EM_ROTA_ENTREGA' | 'ENTREGUE' | 'FINALIZADA' | 'MOTO_A_CAMINHO_LOJA' | 'MOTO_A_CAMINHO_COLETA';
   dataSolicitacao?: string;
+  tipo: 'ENTREGA' | 'COLETA';
+  clienteNome?: string;
 }
 
 export const CourierDashboardScreen = () => {
@@ -72,9 +70,18 @@ export const CourierDashboardScreen = () => {
 
   const handleAccept = async (request: DeliveryRequest) => {
     try {
+      const isReturn = request.tipo === 'COLETA';
       await api.post(`/api/bags/${request.bagId}/accept`);
-      Alert.alert('Sucesso', 'Entrega aceita! Dirija-se à loja.');
+
+      Alert.alert(
+        'Sucesso',
+        isReturn
+          ? 'Coleta aceita! Dirija-se à casa do cliente.'
+          : 'Entrega aceita! Dirija-se à loja.'
+      );
+
       setRequests((prev) => prev.filter(req => req.bagId !== request.bagId));
+
       navigation.navigate('PickupScreen', { bag: request });
     } catch (error: any) {
       Alert.alert('Ops!', error.response?.data?.message || 'Erro ao aceitar.');
@@ -104,19 +111,23 @@ export const CourierDashboardScreen = () => {
 
   const renderItem = ({ item }: { item: DeliveryRequest }) => {
     const isAvailable = activeTab === 'available';
+    const isReturn = item.tipo === 'COLETA';
 
     const getStatusInfo = (status: string) => {
       switch (status) {
         case 'AGUARDANDO_MOTO':
           return { label: 'Ir até a Loja', color: '#f39c12' };
+        case 'AGUARDANDO_MOTO_DEVOLUCAO':
+          return { label: 'Coleta na Casa', color: '#E67E22' };
+        case 'MOTO_A_CAMINHO_LOJA':
+          return { label: 'Indo p/ Loja', color: '#3498db' };
+        case 'MOTO_A_CAMINHO_COLETA':
+          return { label: 'Indo p/ Cliente', color: '#9b59b6' };
         case 'EM_ROTA_ENTREGA':
-          return { label: 'Entregando', color: '#3498db' };
         case 'EM_ROTA_DEVOLUCAO':
-          return { label: 'Devolvendo', color: '#e74c3c' };
-        case 'ENTREGUE':
-          return { label: 'Entregue', color: '#2ecc71' };
+          return { label: 'Em Trajeto', color: '#2ecc71' };
         default:
-          return { label: 'Processando', color: '#95a5a6' };
+          return { label: 'Em Andamento', color: '#95a5a6' };
       }
     };
 
@@ -125,9 +136,13 @@ export const CourierDashboardScreen = () => {
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <View style={styles.priceBadge}>
-            <Text style={styles.priceLabel}>GANHO ESTIMADO</Text>
-            <Text style={styles.priceValue}>R$ {Number(item.valorFrete || 0).toFixed(2)}</Text>
+          <View style={[styles.priceBadge, isReturn && { backgroundColor: '#FFF4ED' }]}>
+            <Text style={[styles.priceLabel, isReturn && { color: '#E67E22' }]}>
+              {isReturn ? 'COLETA (VOLTA)' : 'ENTREGA (IDA)'}
+            </Text>
+            <Text style={[styles.priceValue, isReturn && { color: '#E67E22' }]}>
+              R$ {Number(item.valorFrete || 0).toFixed(2)}
+            </Text>
           </View>
 
           {isAvailable ? (
@@ -144,50 +159,39 @@ export const CourierDashboardScreen = () => {
 
         <View style={styles.routeContainer}>
           <View style={styles.routeIcons}>
-            <Ionicons name="radio-button-on" size={18} color="#28a745" />
+            <Ionicons name={isReturn ? "home" : "business"} size={18} color={isReturn ? "#E67E22" : "#28a745"} />
             <View style={styles.routeLine} />
-            <Ionicons name="location" size={18} color="#dc3545" />
+            <Ionicons name={isReturn ? "business" : "location"} size={18} color={isReturn ? "#28a745" : "#dc3545"} />
           </View>
 
           <View style={styles.routeDetails}>
             <View style={styles.addressBlock}>
-              <Text style={styles.addressLabel}>RETIRADA (LOJA)</Text>
-              <Text style={styles.addressText} numberOfLines={1}>
-                {item.enderecoColeta
-                  ? `${item.enderecoColeta.rua}, ${item.enderecoColeta.numero} - ${item.enderecoColeta.bairro}`
-                  : 'Endereço da loja não carregado'}
-              </Text>
+              <Text style={styles.addressLabel}>{isReturn ? 'RETIRAR COM CLIENTE' : 'RETIRAR NA LOJA'}</Text>
+              <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
             </View>
 
             <View style={styles.addressBlock}>
-              <Text style={styles.addressLabel}>ENTREGA (CLIENTE)</Text>
+              <Text style={styles.addressLabel}>{isReturn ? 'ENTREGAR NA LOJA' : 'ENTREGAR AO CLIENTE'}</Text>
               <Text style={styles.addressText} numberOfLines={1}>
-                {item.destino?.rua}, {item.destino?.numero} - {item.destino?.bairro}
+                {typeof item.destino === 'string' ? item.destino : `${item.destino?.rua}, ${item.destino?.numero}`}
               </Text>
             </View>
           </View>
         </View>
 
         <TouchableOpacity
-          style={[styles.acceptButton, !isAvailable && { backgroundColor: '#333' }]}
+          style={[styles.acceptButton, isReturn && { backgroundColor: '#E67E22' }, !isAvailable && { backgroundColor: '#333' }]}
           onPress={() => {
             if (isAvailable) {
               handleAccept(item);
             } else {
-              const targetScreen = item.status === 'AGUARDANDO_MOTO' ? 'PickupScreen' : 'DeliveryRoute';
-              navigation.navigate(targetScreen, { bag: item });
+              navigation.navigate('PickupScreen', { bag: item });
             }
           }}
         >
           <Text style={styles.acceptButtonText}>
-            {isAvailable ? 'ACEITAR ENTREGA' : 'VER DETALHES'}
+            {isAvailable ? (isReturn ? 'ACEITAR COLETA' : 'ACEITAR ENTREGA') : 'VER DETALHES'}
           </Text>
-          <Ionicons
-            name={isAvailable ? "flash" : "chevron-forward"}
-            size={20}
-            color="#FFF"
-            style={{ marginLeft: 8 }}
-          />
         </TouchableOpacity>
       </View>
     );
@@ -252,12 +256,21 @@ export const CourierDashboardScreen = () => {
             description="No momento não há novas solicitações. Fique atento, assim que uma loja solicitar, ela aparecerá aqui!"
           />
         ) : (
-          <FlatList
-            data={requests}
-            keyExtractor={(item) => item.bagId}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContent}
-          />
+          <>
+            <View style={styles.infoAlert}>
+              <Ionicons name="information-circle" size={18} color="#004085" />
+              <Text style={styles.infoAlertText}>
+                Toque em um card para **aceitar a entrega** automaticamente.
+              </Text>
+            </View>
+
+            <FlatList
+              data={requests}
+              keyExtractor={(item) => item.bagId}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+            />
+          </>
         )
       ) : (
         loading ? (
@@ -378,5 +391,22 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 10,
     fontWeight: 'bold'
+  },
+  infoAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E7F3FF',
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#B8DAFF',
+  },
+  infoAlertText: {
+    fontSize: 13,
+    color: '#004085',
+    marginLeft: 8,
+    flex: 1,
   },
 });
