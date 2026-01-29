@@ -366,7 +366,7 @@ const bagController = {
       const entregadorId = req.user.userId;
 
       const bag = await Bag.findOne({
-        where: { id: bagId, status: 'AGUARDANDO_MOTO' },
+        where: { id: bagId, status: { [Op.in]: ['AGUARDANDO_MOTO', 'AGUARDANDO_MOTO_DEVOLUCAO'] } },
         transaction: t,
         lock: t.LOCK.UPDATE
       });
@@ -376,19 +376,33 @@ const bagController = {
         return res.status(409).json({ message: 'Esta entrega já foi aceita por outro parceiro.' })
       }
 
+      const isReturn = bag.status === 'AGUARDANDO_MOTO_DEVOLUCAO';
+
+      const novoStatus = isReturn ? 'MOTO_A_CAMINHO_COLETA' : 'MOTO_A_CAMINHO_LOJA';
+
       await bag.update({
-        status: 'AGUARDANDO_MOTO',
+        status: novoStatus,
         entregador_id: entregadorId
       }, { transaction: t });
 
       await t.commit();
 
-      req.io.to(bag.lojista_id).emit('ENTREGA_ACEITA', { entregadorId });
+      req.io.to(bag.lojista_id).emit('ENTREGA_ACEITA', {
+        bagId: bag.id,
+        entregadorId,
+        tipo: isReturn ? 'COLETA' : 'ENTREGA'
+      });
+
+      if (isReturn) {
+        req.io.to(bag.cliente_id).emit('MOTOBOY_A_CAMINHO', {
+          message: 'Um entregador aceitou sua coleta e está a caminho!'
+        });
+      }
 
       return res.json({ message: 'Entrega aceita! Dirija-se à loja.', bag });
     } catch (error) {
-      await t.rollback();
-      console.error(error);
+      if (t) await t.rollback();
+      console.error("ERRO AO ACEITAR CORRIDA:", error);
       return res.status(500).json({ error: 'Erro ao aceitar entrega.' });
     }
   },
