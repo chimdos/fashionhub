@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
+import Toast from 'react-native-toast-message';
 
 const formatCNPJ = (value: string) => {
   const cnpj = value.replace(/\D/g, '');
@@ -90,6 +91,12 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
           setBairro(res.data.bairro);
           setCidade(res.data.localidade);
           setEstado(res.data.uf);
+        } else {
+          Toast.show({
+            type: 'info',
+            text1: 'CEP não encontrado',
+            text2: 'Verifique os números digitados.'
+          });
         }
       } catch (e) { console.error(e); }
     }
@@ -97,11 +104,30 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
 
   const handleNextStep = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!nome || !email || !senha || !telefone || !nomeLoja) {
-      return Alert.alert('Atenção', 'Preencha todos os campos básicos.');
+      return Toast.show({
+        type: 'info',
+        text1: 'Campos incompletos',
+        text2: 'Preencha os dados básicos da loja. 🏢'
+      });
     }
-    if (!emailRegex.test(email)) return Alert.alert('Erro', 'E-mail inválido.');
-    if (senha.length < 8) return Alert.alert('Erro', 'Senha muito curta.');
+
+    if (!emailRegex.test(email)) {
+      return Toast.show({
+        type: 'error',
+        text1: 'E-mail inválido',
+        text2: 'Digite um endereço de e-mail válido.'
+      });
+    }
+
+    if (senha.length < 8) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Senha curta',
+        text2: 'A senha deve ter pelo menos 8 caracteres. 🛡️'
+      });
+    }
 
     setIsLoading(true);
     try {
@@ -114,15 +140,32 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
       setStep(2);
     } catch (error: any) {
       const errs = error.response?.data?.errors;
-      Alert.alert('Atenção', errs?.email || errs?.telefone || errs?.nome_loja || 'Erro ao validar dados.');
+      Toast.show({
+        type: 'error',
+        text1: 'Verificação falhou',
+        text2: errs?.email || errs?.telefone || errs?.nome_loja || 'Erro ao validar dados.'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRegister = async () => {
-    if (!validateCNPJ(cnpj)) return Alert.alert('Erro', 'CNPJ Inválido.');
-    if (!cep || !numero || !rua) return Alert.alert('Erro', 'Complete o endereço.');
+    if (!validateCNPJ(cnpj)) {
+      return Toast.show({
+        type: 'error',
+        text1: 'CNPJ Inválido',
+        text2: 'Por favor, confira o número informado. 💳'
+      });
+    }
+
+    if (!cep || !numero || !rua) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Endereço incompleto',
+        text2: 'Preencha o CEP e o número da loja.'
+      });
+    }
 
     setIsLoading(true);
     try {
@@ -135,9 +178,20 @@ export const StoreRegisterScreen = ({ navigation }: any) => {
       };
 
       const response = await api.post('/api/auth/register', payload);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Loja Cadastrada!',
+        text2: 'Bem-vindo ao ecossistema FashionHub.'
+      });
+
       await signIn(response.data.user, response.data.token);
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.message || 'Falha no cadastro.');
+      Toast.show({
+        type: 'error',
+        text1: 'Falha no cadastro',
+        text2: error.response?.data?.message || 'Tente novamente em instantes.'
+      });
     } finally {
       setIsLoading(false);
     }
