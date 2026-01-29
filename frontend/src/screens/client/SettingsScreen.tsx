@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, SafeAreaView } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, SafeAreaView, Modal } from 'react-native';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,16 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 export const SettingsScreen = () => {
   const navigation = useNavigation<any>();
   const { signOut, user } = useContext(AuthContext);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleLogout = () => {
-    Alert.alert(
-      "Sair",
-      "Você tem certeza que deseja sair da sua conta?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Sair", onPress: () => signOut(), style: "destructive" }
-      ]
-    );
+    setModalVisible(true);
   };
 
   const SettingItem = ({ icon, label, subLabel, color, onPress }: any) => (
@@ -37,6 +31,44 @@ export const SettingsScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="log-out" size={30} color="#E74C3C" />
+              </View>
+
+              <Text style={styles.modalTitle}>Sair da conta?</Text>
+              <Text style={styles.modalSubtitle}>
+                Você precisará fazer login novamente para acessar suas malas.
+              </Text>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={() => {
+                    setModalVisible(false);
+                    signOut();
+                  }}
+                >
+                  <Text style={styles.confirmButtonText}>Sair</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         <View style={styles.header}>
           <View style={styles.avatar}>
@@ -160,5 +192,70 @@ const styles = StyleSheet.create({
   versionText: {
     textAlign: 'center', color: '#CCC', fontSize: 12,
     marginBottom: 40, marginTop: 10
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 25,
+    alignItems: 'center',
+    elevation: 10,
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FDEDEC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 10
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6C757D',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 30
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 15
+  },
+  cancelButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA'
+  },
+  cancelButtonText: {
+    color: '#6C757D',
+    fontWeight: 'bold'
+  },
+  confirmButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E74C3C'
+  },
+  confirmButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold'
   }
 });
