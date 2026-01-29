@@ -122,6 +122,17 @@ export const CartScreen = () => {
       'cancelado': '#E74C3C'
     };
 
+    const rawDate = item.data_solicitacao || item.created_at || item.createdAt;
+
+    const formattedDate = rawDate
+      ? new Date(rawDate).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).replace(',', ' às')
+      : 'Data indisponível';
+
     return (
       <View style={styles.itemLightWrapper}>
         <View style={styles.itemDarkWrapper}>
@@ -139,7 +150,7 @@ export const CartScreen = () => {
 
             <View style={styles.historyInfoRow}>
               <Ionicons name="calendar-outline" size={14} color="#888" />
-              <Text style={styles.historyDate}> {new Date(item.created_at).toLocaleDateString('pt-BR')}</Text>
+              <Text style={styles.historyDate}> {formattedDate}</Text>
             </View>
 
             <View style={styles.historyInfoRow}>
