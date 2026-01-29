@@ -60,7 +60,8 @@ const productController = {
       const { count, rows } = await Product.findAndCountAll({
         where: whereClause,
         include: [
-          { model: Lojista, as: 'lojista', attributes: ['nome_loja'] }
+          { model: Lojista, as: 'lojista', attributes: ['nome_loja'] },
+          { model: ProductImage, as: 'imagens' }
         ],
         limit,
         offset,
@@ -182,14 +183,9 @@ const productController = {
       const lojista_id = req.user.userId;
 
       const product = await Product.findByPk(id);
-      if (!product) {
+      if (!product || product.lojista_id !== lojista_id) {
         await t.rollback();
-        return res.status(404).json({ message: 'Produto não encontrado.' });
-      }
-
-      if (product.lojista_id !== lojista_id) {
-        await t.rollback();
-        return res.status(403).json({ message: 'Acesso negado. Você não é o dono deste produto.' });
+        return res.status(404).json({ message: 'Produto não encontrado ou acesso negado.' });
       }
 
       if (req.body.variacoes) req.body.variacoes = JSON.parse(req.body.variacoes);
@@ -198,72 +194,64 @@ const productController = {
       const { error, value } = updateProductSchema.validate(req.body);
       if (error) {
         await t.rollback();
-        return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
+        return res.status(400).json({ message: 'Dados inválidos', details: error.details });
       }
 
-      const { nome, descricao, preco, categoria, estoque, variacoes, deletedImageIds } = value;
+      const { nome, descricao, preco, categoria, variacoes, deletedImageIds } = value;
       let filesToRemove = [];
 
       if (deletedImageIds && deletedImageIds.length > 0) {
         const imagesFromDb = await ProductImage.findAll({
-          where: { id: deletedImageIds, product_id: id }
+          where: { id: deletedImageIds, produto_id: id }
         });
 
         filesToRemove = imagesFromDb.map(img => {
-          const parts = img.url.split('/');
+          const parts = img.url_imagem.split('/');
           return parts[parts.length - 1];
         });
 
         await ProductImage.destroy({
-          where: { id: deletedImageIds, product_id: id },
+          where: { id: deletedImageIds, produto_id: id },
           transaction: t
         });
       }
 
       await product.update({
-        nome,
-        descricao,
-        preco: parseFloat(preco),
-        categoria,
-        estoque: parseInt(estoque)
+        nome: nome || product.nome,
+        descricao: descricao || product.descricao,
+        preco: preco ? parseFloat(preco) : product.preco,
+        categoria: categoria || product.categoria,
+        estoque: estoque !== undefined ? parseInt(estoque) : product.estoque
       }, { transaction: t });
 
       if (req.files && req.files.length > 0) {
-        const imageRecords = req.files.map(file => ({
-          product_id: id,
-          url: `${process.env.APP_URL}/uploads/${file.filename}`
+        const imageRecords = req.files.map((file, index) => ({
+          produto_id: id,
+          url_imagem: `/uploads/${file.filename}`,
+          ordem: index
         }));
         await ProductImage.bulkCreate(imageRecords, { transaction: t });
       }
 
       if (variacoes && variacoes.length > 0) {
-        await Variation.destroy({ where: { product_id: id }, transaction: t });
+        await ProductVariation.destroy({ where: { produto_id: id }, transaction: t });
         const variationsWithId = variacoes.map(v => ({
-          tamanho: v.tamanho,
-          cor: v.cor,
-          estoque: parseInt(v.estoque),
-          product_id: id
+          ...v,
+          produto_id: id
         }));
-        await Variation.bulkCreate(variationsWithId, { transaction: t });
+        await ProductVariation.bulkCreate(variationsWithId, { transaction: t });
       }
 
       await t.commit();
 
-      if (filesToRemove.length > 0) {
-        filesToRemove.forEach(async (filename) => {
-          try {
-            const filePath = path.resolve(__dirname, '..', '..', 'uploads', filename);
-            await fs.unlink(filePath);
-          } catch (err) {
-            console.error(`Erro ao remover arquivo ${filename}:`, err);
-          }
-        });
-      }
-
-      return res.json({
-        message: 'Produto atualizado com sucesso!',
-        product: product.get({ plain: true })
+      filesToRemove.forEach(async (filename) => {
+        try {
+          const filePath = path.resolve(__dirname, '..', '..', 'uploads', filename);
+          await fs.unlink(filePath);
+        } catch (err) { console.error(`Erro ao remover arquivo:`, err); }
       });
+
+      return res.json({ message: 'Produto atualizado com sucesso!' });
     } catch (error) {
       if (t && !t.finished) await t.rollback();
       console.error('Erro ao atualizar produto:', error);
