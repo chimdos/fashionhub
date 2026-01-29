@@ -300,8 +300,7 @@ const userController = {
         return res.status(401).json({ message: 'A senha atual está incorreta.' });
       }
 
-      user.senha_hash = newPassword;
-      await user.save();
+      await user.update({ senha_hash: newPassword });
 
       return res.json({ message: 'Senha alterada!' });
     } catch (error) {
