@@ -15,6 +15,7 @@ import { useBag } from '../../contexts/BagContext';
 import api from '../../services/api';
 import { Ionicons } from '@expo/vector-icons'
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 export const CartScreen = () => {
   const navigation = useNavigation<any>();
@@ -73,7 +74,12 @@ export const CartScreen = () => {
 
   const handleRequestBag = async () => {
     if (itemCount === 0) {
-      Alert.alert("Atenção", "Sua mala está vazia. Adicione alguns itens primeiro!");
+      Toast.show({
+        type: 'info',
+        text1: 'Mala Vazia',
+        text2: 'Adicione alguns itens antes de solicitar!',
+        position: 'bottom'
+      });
       return;
     }
     setIsLoading(true);
@@ -86,12 +92,20 @@ export const CartScreen = () => {
         }))
       };
       await api.post('/api/bags', requestData);
-      Alert.alert("Sucesso!", "Sua mala foi solicitada. Em breve, um lojista irá prepará-la para você.");
+      Toast.show({
+        type: 'success',
+        text1: 'Mala Solicitada!',
+        text2: 'O lojista preparará tudo em breve.',
+      });
       clearBag();
       setActiveTab('history');
     } catch (error: any) {
       console.error("Erro ao solicitar a mala:", error.response?.data || error);
-      Alert.alert("Erro", "Não foi possível solicitar a sua mala. Tente novamente.");
+      Toast.show({
+        type: 'error',
+        text1: 'Ops! Algo deu errado',
+        text2: 'Não conseguimos solicitar sua mala agora.',
+      });
     } finally {
       setIsLoading(false);
     }
