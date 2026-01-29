@@ -109,12 +109,23 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
   };
 
   const getProductImage = () => {
-    if (!product.imagens || product.imagens.length === 0) {
+    if (!product || !product.imagens || product.imagens.length === 0) {
       return require('../../assets/placeholder.webp');
     }
 
     const img = product.imagens[0];
-    return typeof img === 'string' ? { uri: img } : { uri: img.url };
+
+    const imageUrl = typeof img === 'string' ? img : (img.url_imagem || img.url);
+
+    if (!imageUrl) {
+      return require('../../assets/placeholder.webp');
+    }
+
+    const finalUri = imageUrl.startsWith('http')
+      ? imageUrl
+      : `${api.defaults.baseURL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+
+    return { uri: finalUri };
   };
 
   if (isLoading || !product) {
