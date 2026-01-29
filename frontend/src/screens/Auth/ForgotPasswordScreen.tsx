@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView, Animated } from 'react-native';
 import api from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 const FloatingInput = ({ label, value, onChangeText, ...props }: any) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -65,25 +66,34 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
 
   const handleRequestReset = async () => {
     if (!email) {
-      Alert.alert('Atenção', 'Por favor, insira seu e-mail.');
+      Toast.show({
+        type: 'info',
+        text1: 'E-mail necessário',
+        text2: 'Digite seu e-mail para receber o token.'
+      });
       return;
     }
 
     setIsLoading(true);
     try {
       await api.post('/api/auth/forgot-password', { email });
-      Alert.alert(
-        'E-mail Enviado',
-        'Você receberá um token para redefinir sua senha em instantes.',
-        [
-          {
-            text: 'Digitar Token',
-            onPress: () => navigation.navigate('ResetPassword')
-          }
-        ]
-      );
+
+      Toast.show({
+        type: 'success',
+        text1: 'E-mail Enviado!',
+        text2: 'Verifique sua caixa de entrada ou spam.'
+      });
+
+      setTimeout(() => {
+        navigation.navigate('ResetPassword', { email });
+      }, 1000);
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.message || 'Falha ao solicitar recuperação.');
+      const msg = error.response?.data?.message || 'Falha ao solicitar recuperação.';
+      Toast.show({
+        type: 'error',
+        text1: 'Ops!',
+        text2: msg
+      });
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +114,7 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
             <Text style={styles.logoText}>FashionHub</Text>
             <Text style={styles.title}>Recuperar senha</Text>
             <Text style={styles.subtitle}>
-              Digite seu e-mail abaixo. Enviaremos um link com as instruções para criar uma nova senha.
+              Digite seu e-mail abaixo. Enviaremos um código com as instruções para criar uma nova senha.
             </Text>
 
             <FloatingInput
@@ -126,7 +136,7 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
                     {isLoading ? (
                       <ActivityIndicator color="#333" />
                     ) : (
-                      <Text style={styles.buttonTextBlue}>ENVIAR TOKEN</Text>
+                      <Text style={styles.buttonTextBlue}>ENVIAR CÓDIGO</Text>
                     )}
                   </TouchableOpacity>
                 </View>
