@@ -124,14 +124,22 @@ export const CartScreen = () => {
 
     const rawDate = item.data_solicitacao || item.created_at || item.createdAt;
 
-    const formattedDate = rawDate
-      ? new Date(rawDate).toLocaleString('pt-BR', {
+    const formattedDate = (() => {
+      if (!rawDate) return 'Data indisponível';
+
+      const dateString = rawDate.endsWith('Z') ? rawDate : `${rawDate}Z`;
+      const date = new Date(dateString);
+
+      if (isNaN(date.getTime())) return 'Data inválida';
+
+      return date.toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-      }).replace(',', ' às')
-      : 'Data indisponível';
+        timeZone: 'America/Sao_Paulo',
+      }).replace(',', ' às');
+    })();
 
     return (
       <View style={styles.itemLightWrapper}>
