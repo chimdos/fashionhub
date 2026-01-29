@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 import { useBag } from '../../contexts/BagContext';
+import Toast from 'react-native-toast-message';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -62,18 +63,31 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
 
   const handleBagAction = () => {
     if (!selectedVariation) {
-      Alert.alert("Atenção", "Por favor, selecione um tamanho e cor.");
+      Toast.show({
+        type: 'info',
+        text1: 'Selecione uma opção',
+        text2: 'Por favor, escolha o tamanho e a cor antes de adicionar. 👕'
+      });
       return;
     }
 
     if (isInBag(selectedVariation.id)) {
       removeFromBag(selectedVariation.id);
-      Alert.alert("Removido", `${product.nome} foi removido da sua mala.`);
+      Toast.show({
+        type: 'success',
+        text1: 'Removido!',
+        text2: `${product.nome} saiu da sua mala.`
+      });
     } else {
       try {
         addToBag(selectedVariation);
+        Toast.show({
+          type: 'success',
+          text1: 'Adicionado!',
+          text2: `${product.nome} já está na sua mala.`
+        });
       } catch (error: any) {
-        if (error.message = "DIFERENTE_LOJISTA") {
+        if (error.message === "DIFERENTE_LOJISTA") {
           Alert.alert(
             "Produto de outra loja!",
             "Sua mala possui itens de uma loja diferente. Deseja esvaziar a mala para adicionar esse produto?",
@@ -88,13 +102,22 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
                   clearBag();
                   setTimeout(() => {
                     addToBag(selectedVariation);
+                    Toast.show({
+                      type: 'success',
+                      text1: 'Mala Reiniciada',
+                      text2: 'Itens antigos removidos e novo produto adicionado!'
+                    });
                   }, 300);
                 }
               }
             ]
           );
         } else {
-          Alert.alert("Erro", "Não foi possível adicionar o item à mala.");
+          Toast.show({
+            type: 'error',
+            text1: 'Erro',
+            text2: 'Não foi possível adicionar o item à mala. ❌'
+          });
         }
       }
     }

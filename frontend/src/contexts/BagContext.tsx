@@ -41,7 +41,6 @@ export const BagProvider = ({ children }: BagProviderProps) => {
     };
 
     if (items.some(item => item.id === newItem.id)) {
-      Alert.alert("Atenção", "Este item já está na sua mala.");
       return;
     }
 
@@ -54,7 +53,6 @@ export const BagProvider = ({ children }: BagProviderProps) => {
     }
 
     setItems(prevItems => [...prevItems, newItem]);
-    Alert.alert("Sucesso", `${newItem.nome} foi adicionado à sua mala!`);
   };
 
   const removeFromBag = (itemId: string) => {
