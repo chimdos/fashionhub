@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, SafeAreaView, Animated } from 'react-native';
 import api from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 const FloatingInput = ({ label, value, onChangeText, secureTextEntry, ...props }: any) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -75,36 +76,60 @@ const FloatingInput = ({ label, value, onChangeText, secureTextEntry, ...props }
   );
 };
 
-export const ResetPasswordScreen = ({ navigation }: any) => {
-  const [email, setEmail] = useState('');
+export const ResetPasswordScreen = ({ route, navigation }: any) => {
+  const { email } = route.params || { email: '' };
   const [token, setToken] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleReset = async () => {
-    if (!email || !token || !novaSenha) {
-      Alert.alert('Atenção', 'Preencha todos os campos.');
+    if (!token || !novaSenha || !confirmarSenha) {
+      Toast.show({
+        type: 'info',
+        text1: 'Campos incompletos',
+        text2: 'Por favor, preencha o código e a nova senha.'
+      });
       return;
     }
 
-    if (novaSenha !== novaSenha) {
-      Alert.alert('Erro', 'As senhas não coincidem.');
+    if (novaSenha !== confirmarSenha) {
+      Toast.show({
+        type: 'error',
+        text1: 'Senhas diferentes',
+        text2: 'A confirmação deve ser igual à nova senha.'
+      });
       return;
     }
 
     if (novaSenha.length < 8) {
-      Alert.alert('Atenção', 'A nova senha precisa ter no mínimo 8 caracteres.');
+      Toast.show({
+        type: 'info',
+        text1: 'Senha muito curta',
+        text2: 'Escolha uma senha com pelo menos 8 caracteres.'
+      });
       return;
     }
 
     setIsLoading(true);
     try {
       await api.post('/api/auth/reset-password', { email, token, novaSenha });
-      Alert.alert('Sucesso', 'Sua senha foi alterada!', [
-        { text: 'Ir para Login', onPress: () => navigation.navigate('Login') }
-      ]);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Senha Redefinida! 🎉',
+        text2: 'Agora você já pode acessar sua conta.'
+      });
+
+      setTimeout(() => {
+        navigation.navigate('Login');
+      }, 1500);
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.message || 'Falha ao redefinir senha.');
+      Toast.show({
+        type: 'error',
+        text1: 'Falha na redefinição',
+        text2: error.response?.data?.message || 'Código inválido ou expirado.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +147,7 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
             <Text style={styles.logoText}>FashionHub</Text>
             <Text style={styles.title}>Nova senha</Text>
             <Text style={styles.subtitle}>
-              Insira o código enviado ao seu e-mail e escolha uma nova senha segura.
+              Insira o código enviado para <Text style={{ fontWeight: 'bold' }}>{email}</Text> e escolha uma nova senha.
             </Text>
 
             <FloatingInput
@@ -141,8 +166,8 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
 
             <FloatingInput
               label="Confirmar nova senha"
-              value={novaSenha}
-              onChangeText={setNovaSenha}
+              value={confirmarSenha}
+              onChangeText={setConfirmarSenha}
               secureTextEntry
             />
 
