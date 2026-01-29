@@ -29,11 +29,6 @@ export const EditProfileScreen = ({ navigation }: any) => {
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
 
-  const [senhaAtual, setSenhaAtual] = useState('');
-  const [novaSenha, setNovaSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-
   const handleCepChange = async (text: string) => {
     setCep(text);
     const cleaned = text.replace(/\D/g, '');
@@ -58,11 +53,6 @@ export const EditProfileScreen = ({ navigation }: any) => {
       return;
     }
 
-    if (novaSenha && novaSenha !== confirmarSenha) {
-      Alert.alert("Erro", "A nova senha e a confirmação não coincidem.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -77,8 +67,6 @@ export const EditProfileScreen = ({ navigation }: any) => {
           cidade,
           estado
         },
-        senha_atual: senhaAtual,
-        nova_senha: novaSenha
       };
 
       const response = await api.put(`/api/users/${user?.id}`, payload);
@@ -186,39 +174,6 @@ export const EditProfileScreen = ({ navigation }: any) => {
             <CustomInput label="UF" value={estado} onChangeText={setEstado} editable={false} />
           </View>
         </View>
-
-        <Text style={styles.sectionTitle}>Segurança</Text>
-        <CustomInput
-          label="Senha Atual"
-          value={senhaAtual}
-          onChangeText={setSenhaAtual}
-          secureTextEntry={!showPassword}
-          placeholder="Digite para autorizar mudanças"
-        />
-        <CustomInput
-          label="Nova Senha"
-          value={novaSenha}
-          onChangeText={setNovaSenha}
-          secureTextEntry={!showPassword}
-          placeholder="Mínimo 8 caracteres"
-        />
-        <CustomInput
-          label="Confirmar Nova Senha"
-          value={confirmarSenha}
-          onChangeText={setConfirmarSenha}
-          secureTextEntry={!showPassword}
-        />
-
-        <View style={styles.buttonContainer}>
-          <View style={styles.btnLightWrapper}>
-            <View style={styles.btnDarkWrapper}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color="#333" /> : <Text style={styles.saveButtonText}>SALVAR TUDO</Text>}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
       </ScrollView>
     </SafeAreaView>
   );
