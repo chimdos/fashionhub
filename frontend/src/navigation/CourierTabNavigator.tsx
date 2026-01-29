@@ -1,14 +1,33 @@
 import React from 'react';
-import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+
 import { CourierDashboardScreen } from '../screens/courier/CourierDashboardScreen';
 import { CourierEarningsScreen } from '../screens/courier/CourierEarningsScreen';
-import { CourierProfileScreen } from '../screens/courier/CourierProfileScreen';
-
-const Placeholder = () => <View />; 
+import { CourierSettingsScreen } from '../screens/courier/CourierSettingsScreen';
+import { CourierEditProfileScreen } from '../screens/courier/CourierEditProfileScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function ProfileStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="CourierSettingsScreen" component={CourierSettingsScreen} />
+      <Stack.Screen
+        name="CourierEditProfileScreen"
+        component={CourierEditProfileScreen}
+        options={{
+          headerShown: true,
+          title: 'Editar Perfil',
+          headerBackTitleVisible: false,
+          headerTintColor: '#28a745'
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 export function CourierTabNavigator() {
   return (
@@ -20,25 +39,25 @@ export function CourierTabNavigator() {
         tabBarStyle: { height: 65, paddingBottom: 10, paddingTop: 10 }
       }}
     >
-      <Tab.Screen 
-        name="Dashboard" 
-        component={CourierDashboardScreen} 
+      <Tab.Screen
+        name="Dashboard"
+        component={CourierDashboardScreen}
         options={{
           tabBarLabel: 'Corridas',
           tabBarIcon: ({ color, size }) => <Ionicons name="flash" size={size} color={color} />
         }}
       />
-      <Tab.Screen 
-        name="History" 
-        component={CourierEarningsScreen} 
+      <Tab.Screen
+        name="History"
+        component={CourierEarningsScreen}
         options={{
           tabBarLabel: 'Ganhos',
           tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
-        component={CourierProfileScreen} 
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStack}
         options={{
           tabBarLabel: 'Perfil',
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />
