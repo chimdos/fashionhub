@@ -15,6 +15,7 @@ import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 const FloatingInput = ({ label, value, onChangeText, secureTextEntry, ...props }: any) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -169,7 +170,11 @@ const Step2 = ({ rua, setRua, numero, setNumero, bairro, setBairro, cidade, setC
           setCidade(response.data.localidade);
           setEstado(response.data.uf);
         } else {
-          Alert.alert('CEP não encontrado', 'Verifique o número digitado.');
+          Toast.show({
+            type: 'info',
+            text1: 'CEP não encontrado',
+            text2: 'Verifique os números e tente novamente.'
+          });
         }
       } catch (error) {
         console.error("Erro ao buscar CEP", error);
@@ -244,12 +249,20 @@ export const RegisterScreen = ({ navigation }: any) => {
 
   const handleNextStep = async () => {
     if (!nome || !email || !senha || !telefone) {
-      Alert.alert('Atenção', 'Por favor, preencha todos os campos.');
+      Toast.show({
+        type: 'info',
+        text1: 'Campos incompletos',
+        text2: 'Por favor, preencha todos os dados pessoais.'
+      });
       return;
     }
 
     if (senha.length < 8) {
-      Alert.alert('Senha muito curta', 'Sua senha precisa ter pelo menos 8 caracteres para garantir a segurança da sua conta.');
+      Toast.show({
+        type: 'info',
+        text1: 'Senha fraca',
+        text2: 'Use pelo menos 8 caracteres para sua segurança.'
+      });
       return;
     }
 
@@ -268,9 +281,17 @@ export const RegisterScreen = ({ navigation }: any) => {
 
       if (serverErrors) {
         const msg = serverErrors.email || serverErrors.telefone;
-        Alert.alert('Dados já cadastrados', msg);
+        Toast.show({
+          type: 'error',
+          text1: 'Dados já em uso',
+          text2: serverErrors.email || serverErrors.telefone
+        });
       } else {
-        Alert.alert('Erro', 'Não foi possível verificar os dados. Tente novamente mais tarde.');
+        Toast.show({
+          type: 'error',
+          text1: 'Erro de conexão',
+          text2: 'Não foi possível verificar seus dados agora.'
+        });
       }
     } finally {
       setIsLoading(false);
@@ -279,12 +300,20 @@ export const RegisterScreen = ({ navigation }: any) => {
 
   const handleRegister = async () => {
     if (!rua || !numero || !bairro || !cidade || !estado || !cep) {
-      Alert.alert('Atenção', 'Por favor, preencha todos os campos do endereço.');
+      Toast.show({
+        type: 'info',
+        text1: 'Endereço incompleto',
+        text2: 'Preencha todos os campos para a entrega. 📍'
+      });
       return;
     }
 
     if (senha.length < 8) {
-      Alert.alert('Senha muito curta', 'Para sua segurança, a senha deve ter pelo menos 8 caracteres.');
+      Toast.show({
+        type: 'info',
+        text1: 'Senha fraca',
+        text2: 'Use pelo menos 8 caracteres para sua segurança.'
+      });
       return;
     }
 
@@ -306,7 +335,11 @@ export const RegisterScreen = ({ navigation }: any) => {
       await signIn(user, token);
     } catch (error: any) {
       console.error('Erro no registro:', error.response?.data || error.message);
-      Alert.alert('Erro no Registro', error.response?.data?.message || 'Não foi possível criar a conta.');
+      Toast.show({
+        type: 'error',
+        text1: 'Falha no cadastro',
+        text2: error.response?.data?.message || 'Tente novamente em instantes.'
+      });
       setStep(1);
     } finally {
       setIsLoading(false);

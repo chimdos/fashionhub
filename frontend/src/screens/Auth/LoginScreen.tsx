@@ -15,6 +15,7 @@ import api from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Animated } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 const FloatingInput = ({ label, value, onChangeText, secureTextEntry, ...props }: any) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -96,17 +97,31 @@ export const LoginScreen = ({ navigation }: any) => {
 
   const handleLogin = async () => {
     if (!email || !senha) {
-      Alert.alert('Atenção', 'Por favor, preencha o e-mail e a senha.');
+      Toast.show({
+        type: 'info',
+        text1: 'Campos vazios',
+        text2: 'Por favor, preencha seu e-mail e senha.',
+        position: 'bottom'
+      });
       return;
     }
     setIsLoading(true);
     try {
       const response = await api.post('/api/auth/login', { email, senha });
       const { token, user } = response.data;
+      Toast.show({
+        type: 'success',
+        text1: `Olá, ${user.nome.split(' ')[0]}!`,
+        text2: 'Login realizado com sucesso.',
+      });
       await signIn(user, token);
     } catch (error: any) {
       console.error('Erro no login:', error.response?.data || error.message);
-      Alert.alert('Erro no Login', error.response?.data?.message || 'E-mail ou senha incorretos.');
+      Toast.show({
+        type: 'error',
+        text1: 'Falha no acesso',
+        text2: error.response?.data?.message || 'E-mail ou senha incorretos.',
+      });
     } finally {
       setIsLoading(false);
     }
