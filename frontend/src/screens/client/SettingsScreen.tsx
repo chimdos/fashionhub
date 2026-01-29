@@ -66,7 +66,7 @@ export const SettingsScreen = () => {
             label="Segurança"
             subLabel="Alterar senha da conta"
             color="#AF7AC5"
-            onPress={() => navigation.navigate('CourierChangePasswordScreen')}
+            onPress={() => navigation.navigate('ChangePasswordScreen')}
           />
         </View>
 
