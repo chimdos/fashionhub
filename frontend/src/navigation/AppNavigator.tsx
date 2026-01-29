@@ -2,6 +2,8 @@ import React, { useContext } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../contexts/AuthContext';
+import { BaseToast, ErrorToast } from 'react-native-toast-message';
+import Toast from 'react-native-toast-message';
 
 import { ClientNavigator } from './ClientNavigator';
 import { StoreNavigator } from './StoreNavigator';
@@ -17,6 +19,34 @@ import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { EditProfileScreen } from '../screens/client/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
+
+const toastConfig = {
+  success: (props: any) => (
+    <BaseToast
+      {...props}
+      style={{ borderLeftColor: '#2ECC71', height: 70, borderLeftWidth: 10 }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{ fontSize: 16, fontWeight: 'bold' }}
+      text2Style={{ fontSize: 13, color: '#666' }}
+    />
+  ),
+  error: (props: any) => (
+    <ErrorToast
+      {...props}
+      style={{ borderLeftColor: '#E74C3C', height: 70, borderLeftWidth: 10 }}
+      text1Style={{ fontSize: 16, fontWeight: 'bold' }}
+      text2Style={{ fontSize: 13, color: '#666' }}
+    />
+  ),
+  info: (props: any) => (
+    <BaseToast
+      {...props}
+      style={{ borderLeftColor: '#5DADE2', height: 70, borderLeftWidth: 10 }}
+      text1Style={{ fontSize: 16, fontWeight: 'bold' }}
+      text2Style={{ fontSize: 13, color: '#666' }}
+    />
+  )
+};
 
 function AuthNavigator() {
   return (
@@ -44,26 +74,29 @@ export const AppNavigator = () => {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {!token || !user ? (
-        <Stack.Screen name="AuthFlow" component={AuthNavigator} />
-      ) : (
-        <>
-          {user.tipo_usuario === 'cliente' && (
-            <>
-              <Stack.Screen name="ClientApp" component={ClientNavigator} />
-              <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-            </>
-          )}
-          {user.tipo_usuario === 'lojista' && (
-            <Stack.Screen name="StoreApp" component={StoreNavigator} />
-          )}
-          {user.tipo_usuario === 'entregador' && (
-            <Stack.Screen name="CourierApp" component={CourierNavigator} />
-          )}
-        </>
-      )}
-    </Stack.Navigator>
+    <>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!token || !user ? (
+          <Stack.Screen name="AuthFlow" component={AuthNavigator} />
+        ) : (
+          <>
+            {user.tipo_usuario === 'cliente' && (
+              <>
+                <Stack.Screen name="ClientApp" component={ClientNavigator} />
+                <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+              </>
+            )}
+            {user.tipo_usuario === 'lojista' && (
+              <Stack.Screen name="StoreApp" component={StoreNavigator} />
+            )}
+            {user.tipo_usuario === 'entregador' && (
+              <Stack.Screen name="CourierApp" component={CourierNavigator} />
+            )}
+          </>
+        )}
+      </Stack.Navigator>
+      <Toast config={toastConfig} />
+    </>
   );
 };
 
