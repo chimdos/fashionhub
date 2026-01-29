@@ -278,7 +278,7 @@ const bagController = {
 
       await bag.update({
         status: 'AGUARDANDO_MOTO_DEVOLUCAO',
-        token_retirada: tokenDevolucao,
+        token_devolucao: tokenDevolucao,
         entregador_id: null,
         data_entrega_cliente: bag.data_entrega_cliente,
         data_retirada: null
