@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,8 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 export const SettingsScreen = () => {
   const navigation = useNavigation<any>();
   const { signOut, user } = useContext(AuthContext);
-
-  const getInitial = (name: string) => name ? name.charAt(0).toUpperCase() : '?';
 
   const handleLogout = () => {
     Alert.alert(
@@ -22,118 +19,146 @@ export const SettingsScreen = () => {
     );
   };
 
+  const SettingItem = ({ icon, label, subLabel, color, onPress }: any) => (
+    <TouchableOpacity style={styles.item} onPress={onPress}>
+      <View style={styles.itemLeft}>
+        <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
+          <Ionicons name={icon} size={22} color={color} />
+        </View>
+        <View>
+          <Text style={styles.itemLabel}>{label}</Text>
+          {subLabel ? <Text style={styles.itemSubLabel}>{subLabel}</Text> : null}
+        </View>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color="#CCC" />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}>
 
-        <Text style={styles.headerTitle}>Configurações</Text>
-
-        <View style={styles.profileLightWrapper}>
-          <View style={styles.profileDarkWrapper}>
-            <TouchableOpacity
-              style={styles.profileCard}
-              onPress={() => navigation.navigate('EditProfileScreen')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.avatarContainer}>
-                <Text style={styles.avatarText}>{getInitial(user?.nome || '')}</Text>
-              </View>
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>{user?.nome || 'Usuário'}</Text>
-                <Text style={styles.userEmail}>{user?.email || 'email@exemplo.com'}</Text>
-                <Text style={styles.editLink}>Toque para editar</Text>
-              </View>
-            </TouchableOpacity>
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {user?.nome ? user.nome.substring(0, 2).toUpperCase() : '?'}
+            </Text>
+          </View>
+          <View style={styles.headerInfo}>
+            <Text style={styles.userName}>{user?.nome || 'Usuário'}</Text>
+            <Text style={styles.userEmail}>{user?.email || 'Acesse sua conta'}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Conta</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SUA CONTA</Text>
 
-        <View style={styles.optionLightWrapper}>
-          <View style={styles.optionDarkWrapper}>
-            <TouchableOpacity
-              style={styles.optionButton}
-              onPress={() => navigation.navigate('BecomeCourierScreen')}
-            >
-              <View style={[styles.iconBox, { backgroundColor: '#EBF5FB' }]}>
-                <Ionicons name="bicycle-outline" size={24} color="#5DADE2" />
-              </View>
-              <View style={styles.optionTextContainer}>
-                <Text style={styles.optionTitle}>Trabalhe Conosco</Text>
-                <Text style={styles.optionSubtitle}>Vire um entregador FashionHub</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#CCC" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.logoutLightWrapper}>
-          <View style={styles.logoutDarkWrapper}>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={22} color="#E74C3C" style={{ marginRight: 10 }} />
-              <Text style={styles.logoutText}>SAIR DA CONTA</Text>
-            </TouchableOpacity>
-          </View>
+          <SettingItem
+            icon="person-outline"
+            label="Dados do Perfil"
+            subLabel="Nome, email e endereço"
+            color="#5DADE2"
+            onPress={() => navigation.navigate('EditProfileScreen')}
+          />
+
+          <SettingItem
+            icon="lock-closed-outline"
+            label="Segurança"
+            subLabel="Alterar senha da conta"
+            color="#AF7AC5"
+            onPress={() => navigation.navigate('CourierChangePasswordScreen')}
+          />
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>FASHIONHUB +</Text>
+
+          <SettingItem
+            icon="bicycle-outline"
+            label="Trabalhe Conosco"
+            subLabel="Seja um entregador parceiro"
+            color="#28a745"
+            onPress={() => navigation.navigate('BecomeCourierScreen')}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SUPORTE E LEGAL</Text>
+
+          <SettingItem
+            icon="help-circle-outline"
+            label="Central de Ajuda"
+            color="#F39C12"
+            onPress={() => Alert.alert("Suporte", "Em breve: Chat direto com a central.")}
+          />
+
+          <SettingItem
+            icon="document-text-outline"
+            label="Termos de Uso"
+            color="#6C757D"
+            onPress={() => { }}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={22} color="#E74C3C" />
+          <Text style={styles.logoutText}>Sair da Conta</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.versionText}>FashionHub v1.2.0 (Stable)</Text>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FBFCFD' },
-  container: { padding: 25, paddingBottom: 40 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 30 },
+  safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
 
-  profileLightWrapper: {
-    borderRadius: 25, shadowColor: "#FFF", shadowOffset: { width: -5, height: -5 }, shadowOpacity: 1, shadowRadius: 10, marginBottom: 40,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 25,
+    backgroundColor: '#FFF',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0'
   },
-  profileDarkWrapper: {
-    borderRadius: 25, shadowColor: "#000", shadowOffset: { width: 5, height: 10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 5,
+  avatar: {
+    width: 60, height: 60, borderRadius: 30,
+    backgroundColor: '#EBF5FB', justifyContent: 'center', alignItems: 'center'
   },
-  profileCard: {
-    backgroundColor: '#FFF', borderRadius: 25, padding: 20, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)',
-  },
-  avatarContainer: {
-    width: 65, height: 65, borderRadius: 33, backgroundColor: '#5DADE2', justifyContent: 'center', alignItems: 'center',
-    shadowColor: "#5DADE2", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5,
-  },
-  avatarText: { fontSize: 28, fontWeight: 'bold', color: '#FFF' },
-  userInfo: { marginLeft: 20 },
-  userName: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  userEmail: { fontSize: 14, color: '#888', marginTop: 2 },
+  avatarText: { fontSize: 20, fontWeight: 'bold', color: '#5DADE2' },
+  headerInfo: { marginLeft: 15 },
+  userName: { fontSize: 18, fontWeight: 'bold', color: '#1A1A1A' },
+  userEmail: { fontSize: 14, color: '#6C757D' },
 
+  section: { marginBottom: 25, paddingHorizontal: 20 },
+  sectionTitle: {
+    fontSize: 12, fontWeight: 'bold', color: '#ADB5BD',
+    marginBottom: 10, letterSpacing: 1
+  },
 
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#AAA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20, marginLeft: 5 },
-  optionLightWrapper: {
-    borderRadius: 20, shadowColor: "#FFF", shadowOffset: { width: -3, height: -3 }, shadowOpacity: 1, shadowRadius: 5, marginBottom: 20,
+  item: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#FFF', padding: 15, borderRadius: 16, marginBottom: 10,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, shadowRadius: 5, elevation: 2
   },
-  optionDarkWrapper: {
-    borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 3, height: 5 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+  itemLeft: { flexDirection: 'row', alignItems: 'center' },
+  iconContainer: {
+    width: 40, height: 40, borderRadius: 10,
+    justifyContent: 'center', alignItems: 'center', marginRight: 15
   },
-  optionButton: {
-    backgroundColor: '#FFF', borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#F0F0F0',
-  },
-  iconBox: { width: 45, height: 45, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  optionTextContainer: { flex: 1 },
-  optionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  optionSubtitle: { fontSize: 12, color: '#999', marginTop: 2 },
+  itemLabel: { fontSize: 16, fontWeight: '600', color: '#333' },
+  itemSubLabel: { fontSize: 12, color: '#ADB5BD', marginTop: 1 },
 
-  logoutLightWrapper: {
-    marginTop: 20, borderRadius: 20, shadowColor: "#FFF", shadowOffset: { width: -4, height: -4 }, shadowOpacity: 1, shadowRadius: 6,
-  },
-  logoutDarkWrapper: {
-    borderRadius: 20, shadowColor: "#E74C3C", shadowOffset: { width: 4, height: 6 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4,
-  },
   logoutButton: {
-    height: 55, backgroundColor: '#FFF', borderRadius: 20, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FADBD8',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    marginTop: 10, padding: 20
   },
-  logoutText: { color: '#E74C3C', fontWeight: 'bold', fontSize: 14, letterSpacing: 0.5 },
-
-  editLink: {
-    fontSize: 12,
-    color: '#5DADE2',
-    marginTop: 5,
-    fontWeight: '600',
-  },
+  logoutText: { color: '#E74C3C', fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
+  versionText: {
+    textAlign: 'center', color: '#CCC', fontSize: 12,
+    marginBottom: 40, marginTop: 10
+  }
 });
