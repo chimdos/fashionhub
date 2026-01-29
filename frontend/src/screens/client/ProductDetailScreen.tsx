@@ -66,7 +66,7 @@ export const ProductDetailScreen = ({ route, navigation }: any) => {
       Toast.show({
         type: 'info',
         text1: 'Selecione uma opção',
-        text2: 'Por favor, escolha o tamanho e a cor antes de adicionar. 👕'
+        text2: 'Por favor, escolha o tamanho e a cor antes de adicionar.'
       });
       return;
     }
