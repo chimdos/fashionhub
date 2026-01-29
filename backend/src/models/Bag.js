@@ -28,6 +28,8 @@ module.exports = (sequelize) => {
         'EM_ROTA_ENTREGA',
         'ENTREGUE',
         'AGUARDANDO_MOTO_DEVOLUCAO',
+        'MOTO_A_CAMINHO_LOJA',
+        'MOTO_A_CAMINHO_COLETA',
         'EM_ROTA_DEVOLUCAO',
         'FINALIZADA',
         'CANCELADA'
