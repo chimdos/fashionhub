@@ -7,6 +7,7 @@ import { CourierDashboardScreen } from '../screens/courier/CourierDashboardScree
 import { CourierEarningsScreen } from '../screens/courier/CourierEarningsScreen';
 import { CourierSettingsScreen } from '../screens/courier/CourierSettingsScreen';
 import { CourierEditProfileScreen } from '../screens/courier/CourierEditProfileScreen';
+import { CourierChangePasswordScreen } from '../screens/courier/CourierChangePasswordScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -27,6 +28,11 @@ function ProfileStack() {
           headerTintColor: '#28a745',
           headerTitleStyle: { fontWeight: 'bold' },
         }}
+      />
+      <Stack.Screen
+        name="CourierChangePasswordScreen"
+        component={CourierChangePasswordScreen}
+        options={{ headerShown: true, title: 'Segurança' }}
       />
     </Stack.Navigator>
   );
