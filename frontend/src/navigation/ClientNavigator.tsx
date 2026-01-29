@@ -13,6 +13,7 @@ import { BagSelectionScreen } from '../screens/client/BagSelectionScreen';
 import { EditProfileScreen } from '../screens/client/EditProfileScreen';
 import { BagHistoryDetailsScreen } from '../screens/client/BagHistoryDetailsScreen';
 import { BagDetailsScreen } from '../screens/client/BagDetailsScreen';
+import { ChangePasswordScreen } from '../screens/store/ChangePasswordScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -67,6 +68,12 @@ export function ClientNavigator() {
       <Stack.Screen
         name="EditProfileScreen"
         component={EditProfileScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="ChangePasswordScreen"
+        component={ChangePasswordScreen}
         options={{ headerShown: false }}
       />
 
