@@ -205,29 +205,44 @@ export const CartScreen = () => {
         <>
           {activeBagWithClient ? (
             <View style={styles.activeBagContainer}>
-              <Text style={styles.sectionTitle}>A mala está com você! 🏠</Text>
-              <View style={styles.itemLightWrapper}>
-                <View style={styles.itemDarkWrapper}>
-                  <TouchableOpacity
-                    style={styles.manageCard}
-                    onPress={() => navigation.navigate('BagSelection', { bag: activeBagWithClient })}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.manageHeader}>
-                      <View style={styles.iconCircle}>
-                        <Ionicons name="shirt" size={24} color="#FFF" />
-                      </View>
-                      <View style={styles.manageTextContent}>
-                        <Text style={styles.manageTitle}>Finalizar Provador</Text>
-                        <Text style={styles.manageSubtitle}>
-                          Escolha o que vai comprar e peça a coleta.
-                        </Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#5DADE2" />
+              <Text style={styles.sectionTitle}>Status da sua mala</Text>
+
+              {activeBagWithClient.status === 'ENTREGUE' ? (
+                <TouchableOpacity
+                  style={styles.manageCard}
+                  onPress={() => navigation.navigate('BagSelection', { bag: activeBagWithClient })}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.manageHeader}>
+                    <View style={styles.iconCircle}>
+                      <Ionicons name="shirt" size={24} color="#FFF" />
                     </View>
-                  </TouchableOpacity>
+                    <View style={styles.manageTextContent}>
+                      <Text style={styles.manageTitle}>Finalizar Provador</Text>
+                      <Text style={styles.manageSubtitle}>Escolha o que vai comprar e peça a coleta.</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#5DADE2" />
+                  </View>
+                </TouchableOpacity>
+              ) : (
+                <View style={[styles.manageCard, { borderColor: '#27AE60', borderWidth: 1 }]}>
+                  <View style={styles.manageHeader}>
+                    <View style={[styles.iconCircle, { backgroundColor: '#27AE60' }]}>
+                      <Ionicons name="bicycle" size={24} color="#FFF" />
+                    </View>
+                    <View style={styles.manageTextContent}>
+                      <Text style={[styles.manageTitle, { color: '#27AE60' }]}>
+                        {activeBagWithClient.status === 'EM_ROTA_DEVOLUCAO' ? 'Mala em Coleta' : 'Aguardando Coleta'}
+                      </Text>
+                      <Text style={styles.manageSubtitle}>Mostre o token abaixo ao entregador.</Text>
+                    </View>
+                  </View>
+                  <View style={styles.tokenContainer}>
+                    <Text style={styles.tokenLabel}>TOKEN DE DEVOLUÇÃO</Text>
+                    <Text style={styles.tokenValue}>{activeBagWithClient.token_devolucao || '------'}</Text>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
           ) : (
             <>
@@ -278,11 +293,7 @@ export const CartScreen = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={fetchRequestedBags}
-              tintColor="#5DADE2"
-            />
+            <RefreshControl refreshing={isRefreshing} onRefresh={fetchRequestedBags} tintColor="#5DADE2" />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -291,41 +302,6 @@ export const CartScreen = () => {
             </View>
           }
         />
-      )}
-
-      {activeBagWithClient?.status === 'ENTREGUE' ? (
-        <TouchableOpacity
-          style={styles.manageCard}
-          onPress={() => navigation.navigate('BagSelection', { bag: activeBagWithClient })}
-        >
-          <View style={styles.manageHeader}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="shirt" size={24} color="#FFF" />
-            </View>
-            <View style={styles.manageTextContent}>
-              <Text style={styles.manageTitle}>Finalizar Provador</Text>
-              <Text style={styles.manageSubtitle}>Escolha o que vai comprar e peça a coleta.</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#5DADE2" />
-          </View>
-        </TouchableOpacity>
-      ) : (
-        <View style={[styles.manageCard, { borderColor: '#27AE60', borderWidth: 1 }]}>
-          <View style={styles.manageHeader}>
-            <View style={[styles.iconCircle, { backgroundColor: '#27AE60' }]}>
-              <Ionicons name="bicycle" size={24} color="#FFF" />
-            </View>
-            <View style={styles.manageTextContent}>
-              <Text style={[styles.manageTitle, { color: '#27AE60' }]}>Aguardando Coleta</Text>
-              <Text style={styles.manageSubtitle}>Mostre o token abaixo ao entregador.</Text>
-            </View>
-          </View>
-
-          <View style={styles.tokenContainer}>
-            <Text style={styles.tokenLabel}>TOKEN DE DEVOLUÇÃO</Text>
-            <Text style={styles.tokenValue}>{activeBagWithClient?.token_devolucao}</Text>
-          </View>
-        </View>
       )}
     </SafeAreaView>
   );
