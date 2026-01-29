@@ -1,19 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
+  View, Text, StyleSheet, SafeAreaView, TouchableOpacity,
+  TextInput, ScrollView, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import axios from 'axios';
+import Toast from 'react-native-toast-message';
 
 export const EditProfileScreen = ({ navigation }: any) => {
   const { user, updateUser } = useContext(AuthContext);
@@ -49,7 +43,7 @@ export const EditProfileScreen = ({ navigation }: any) => {
 
   const handleUpdate = async () => {
     if (!nome || !email) {
-      Alert.alert("Erro", "Nome e E-mail são obrigatórios.");
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Nome e E-mail são obrigatórios.' });
       return;
     }
 
@@ -59,52 +53,35 @@ export const EditProfileScreen = ({ navigation }: any) => {
       const payload = {
         nome,
         email,
-        endereco: {
-          cep,
-          rua,
-          numero,
-          bairro,
-          cidade,
-          estado
-        },
+        endereco: { cep, rua, numero, bairro, cidade, estado },
       };
 
-      const response = await api.put(`/api/users/${user?.id}`, payload);
+      await api.put(`/api/users/${user?.id}`, payload);
+      await updateUser({ ...user!, nome, email });
 
-      const updatedUserData = {
-        ...user!,
-        nome: nome,
-        email: email,
-      };
-
-      await updateUser(updatedUserData);
-
-      Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
+      Toast.show({ type: 'success', text1: 'Sucesso!', text2: 'Perfil atualizado com sucesso!' });
       navigation.goBack();
-
     } catch (error: any) {
       const msg = error.response?.data?.message || "Não foi possível atualizar o perfil.";
       console.error("Erro ao atualizar:", error.response?.data || error);
-      Alert.alert("Erro", msg);
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível atualizar o perfil.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const CustomInput = ({ label, value, onChangeText, placeholder, ...props }: any) => (
-    <View style={styles.inputSection}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputLightWrapper}>
-        <View style={styles.inputDarkWrapper}>
-          <TextInput
-            style={styles.input}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={placeholder}
-            placeholderTextColor="#AAA"
-            {...props}
-          />
-        </View>
+  const InputGroup = ({ icon, label, value, onChangeText, ...props }: any) => (
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <View style={styles.inputWrapper}>
+        <Ionicons name={icon} size={20} color="#ADB5BD" style={styles.inputIcon} />
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChangeText}
+          placeholderTextColor="#ADB5BD"
+          {...props}
+        />
       </View>
     </View>
   );
@@ -130,12 +107,12 @@ export const EditProfileScreen = ({ navigation }: any) => {
         }
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
-        Alert.alert("Erro", "Não foi possível carregar seus dados de endereço.");
+        Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível carregar seus dados de endereço.' });
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadFullUserData();
   }, []);
 
@@ -143,164 +120,79 @@ export const EditProfileScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Meu Perfil</Text>
-        <View style={{ width: 45 }} />
+        <Text style={styles.headerTitle}>Editar Perfil</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
-        <Text style={styles.sectionTitle}>Dados Pessoais</Text>
-        <CustomInput label="Nome" value={nome} onChangeText={setNome} />
-        <CustomInput label="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>DADOS PESSOAIS</Text>
+          <InputGroup icon="person-outline" label="Nome Completo" value={nome} onChangeText={setNome} />
+          <InputGroup icon="mail-outline" label="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" />
+        </View>
 
-        <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
-        <CustomInput label="CEP" value={cep} onChangeText={handleCepChange} keyboardType="numeric" maxLength={8} />
-        <CustomInput label="Rua" value={rua} onChangeText={setRua} />
-        <View style={styles.row}>
-          <View style={{ flex: 1, marginRight: 10 }}>
-            <CustomInput label="Número" value={numero} onChangeText={setNumero} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>ENDEREÇO DE ENTREGA</Text>
+          <InputGroup icon="map-outline" label="CEP" value={cep} onChangeText={handleCepChange} keyboardType="numeric" maxLength={8} />
+          <InputGroup icon="business-outline" label="Rua" value={rua} onChangeText={setRua} />
+
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <InputGroup icon="home-outline" label="Nº" value={numero} onChangeText={setNumero} />
+            </View>
+            <View style={{ flex: 2 }}>
+              <InputGroup icon="location-outline" label="Bairro" value={bairro} onChangeText={setBairro} />
+            </View>
           </View>
-          <View style={{ flex: 2 }}>
-            <CustomInput label="Bairro" value={bairro} onChangeText={setBairro} />
-          </View>
+
+          <InputGroup icon="navigate-outline" label="Cidade" value={cidade} editable={false} />
         </View>
-        <View style={styles.row}>
-          <View style={{ flex: 2, marginRight: 10 }}>
-            <CustomInput label="Cidade" value={cidade} onChangeText={setCidade} editable={false} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <CustomInput label="UF" value={estado} onChangeText={setEstado} editable={false} />
-          </View>
-        </View>
+
+        <TouchableOpacity
+          style={[styles.saveButton, isLoading && { opacity: 0.7 }]}
+          onPress={handleUpdate}
+          disabled={isLoading}
+        >
+          {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveButtonText}>SALVAR ALTERAÇÕES</Text>}
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FBFCFD'
-  },
+  safeArea: { flex: 1, backgroundColor: '#F8F9FA' },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#FFF'
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333'
-  },
-  backButton: {
-    width: 45,
-    height: 45,
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  content: {
-    padding: 25,
-    paddingBottom: 60
-  },
+  backButton: { padding: 8 },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#1A1A1A' },
 
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#5DADE2',
-    marginTop: 30,
-    marginBottom: 15,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
+  content: { padding: 20 },
+  section: { marginBottom: 25 },
+  sectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#ADB5BD', marginBottom: 15, letterSpacing: 1 },
 
-  inputSection: {
-    marginBottom: 18
+  inputContainer: { marginBottom: 15 },
+  inputLabel: { fontSize: 13, color: '#6C757D', marginBottom: 8, marginLeft: 4, fontWeight: '600' },
+  inputWrapper: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF',
+    borderRadius: 14, paddingHorizontal: 15, height: 55,
+    borderWidth: 1, borderColor: '#EEE'
   },
-  label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#888',
-    marginBottom: 8,
-    marginLeft: 5
-  },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, fontSize: 15, color: '#333' },
 
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+  row: { flexDirection: 'row' },
 
-  inputLightWrapper: {
-    borderRadius: 15,
-    shadowColor: "#FFF",
-    shadowOffset: { width: -3, height: -3 },
-    shadowOpacity: 1,
-    shadowRadius: 5,
-  },
-  inputDarkWrapper: {
-    borderRadius: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  input: {
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    paddingHorizontal: 15,
-    height: 52,
-    color: '#333',
-    fontSize: 15,
-    borderWidth: 1,
-    borderColor: '#F8F9FA',
-  },
-
-  disabledInput: {
-    backgroundColor: '#F1F1F1',
-    color: '#999',
-  },
-
-  buttonContainer: {
-    marginTop: 40
-  },
-  btnLightWrapper: {
-    borderRadius: 25,
-    shadowColor: "#FFF",
-    shadowOffset: { width: -4, height: -4 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
-  },
-  btnDarkWrapper: {
-    borderRadius: 25,
-    shadowColor: "#4A9BCE",
-    shadowOffset: { width: 4, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
   saveButton: {
-    backgroundColor: '#5DADE2',
-    height: 60,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#5DADE2', height: 60, borderRadius: 16,
+    justifyContent: 'center', alignItems: 'center', marginTop: 10,
+    shadowColor: '#5DADE2', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2, shadowRadius: 8, elevation: 4
   },
-  saveButtonText: {
-    color: '#333',
-    fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 0.5
-  },
+  saveButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
 });
