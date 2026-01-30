@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Image,
-  StatusBar
+  View, Text, StyleSheet, SafeAreaView, FlatList,
+  TouchableOpacity, ActivityIndicator, Image, StatusBar, Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 import { EmptyState } from '../../components/common/EmptyState';
+import Toast from 'react-native-toast-message';
 
 export const ProductManagementScreen = ({ navigation }: any) => {
   const [products, setProducts] = useState([]);
@@ -29,7 +22,11 @@ export const ProductManagementScreen = ({ navigation }: any) => {
       setProducts(response.data);
     } catch (error) {
       console.error("Erro ao buscar produtos da loja:", error);
-      Alert.alert("Erro", "Não foi possível carregar seus produtos.");
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao carregar catálogo',
+        text2: 'Verifique sua conexão e tente novamente. 🔄'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -44,20 +41,30 @@ export const ProductManagementScreen = ({ navigation }: any) => {
 
   const handleDelete = (productId: string) => {
     Alert.alert(
-      "Excluir Produto",
-      "Tem certeza que deseja deletar este produto? Esta ação removerá o item da vitrine dos clientes.",
+      "Arquivar Produto",
+      "Deseja desativar este produto? Ele não aparecerá mais para os clientes, mas você poderá reativá-lo depois.",
       [
         { text: "Cancelar", style: "cancel" },
         {
-          text: "Deletar",
+          text: "Arquivar",
           style: "destructive",
           onPress: async () => {
             try {
-              await api.delete(`/api/products/${productId}`);
-              Alert.alert("Sucesso", "Produto removido com sucesso.");
+              await api.patch(`/api/products/${productId}/status`, { ativo: false });
+
+              Toast.show({
+                type: 'success',
+                text1: 'Produto Arquivado!',
+                text2: 'O item foi removido da vitrine com sucesso.'
+              });
+
               fetchStoreProducts();
             } catch (error: any) {
-              Alert.alert("Erro", error.response?.data?.message || "Não foi possível deletar.");
+              Toast.show({
+                type: 'error',
+                text1: 'Erro ao desativar',
+                text2: error.response?.data?.message || "Tente novamente em instantes."
+              });
             }
           }
         }
