@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
   TouchableOpacity,
   Image,
@@ -18,6 +17,7 @@ import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 const CATEGORIAS_FIXAS = [
   { label: 'Selecione uma categoria...', value: '' },
@@ -47,7 +47,11 @@ export const CreateProductScreen = ({ navigation }: any) => {
   const handleSelectImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert("Permissão negada", "Precisamos de permissão para acessar suas fotos.");
+      Toast.show({
+        type: 'error',
+        text1: 'Permissão negada',
+        text2: 'Precisamos acessar suas fotos para cadastrar o produto.'
+      });
       return;
     }
 
@@ -60,12 +64,39 @@ export const CreateProductScreen = ({ navigation }: any) => {
 
     if (!result.canceled) {
       setImages(result.assets);
+      Toast.show({
+        type: 'success',
+        text1: 'Imagens selecionadas',
+        text2: `${result.assets.length} foto(s) adicionada(s).`
+      });
     }
   };
 
   const handleCreateProduct = async () => {
     if (!nome || !descricao || !preco || !categoria) {
-      Alert.alert("Atenção", "Preencha os campos básicos do produto.");
+      Toast.show({
+        type: 'info',
+        text1: 'Campos incompletos',
+        text2: 'Preencha o nome, descrição, preço e categoria.'
+      });
+      return;
+    }
+
+    if (images.length === 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'Falta a foto!',
+        text2: 'Adicione pelo menos uma imagem do produto.'
+      });
+      return;
+    }
+
+    if (variacoes.length === 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'Sem estoque?',
+        text2: 'Adicione pelo menos uma variação (tamanho/cor).'
+      });
       return;
     }
 
@@ -99,10 +130,21 @@ export const CreateProductScreen = ({ navigation }: any) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert("Sucesso", "Seu produto já está na vitrine!");
-      navigation.goBack();
+      Toast.show({
+        type: 'success',
+        text1: 'Produto Publicado!',
+        text2: 'Seu item já está visível na vitrine.'
+      });
+
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1500);
     } catch (error: any) {
-      Alert.alert("Erro", "Não foi possível criar o produto.");
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao publicar',
+        text2: error.response?.data?.message || 'Verifique sua conexão e tente novamente.'
+      });
     } finally {
       setIsLoading(false);
     }
