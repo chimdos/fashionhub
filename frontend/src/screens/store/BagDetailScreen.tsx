@@ -7,13 +7,13 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   SafeAreaView,
   StatusBar,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const BagDetailScreen = () => {
   const route = useRoute<any>();
@@ -35,7 +35,11 @@ export const BagDetailScreen = () => {
       const response = await api.get(`/api/bags/${bagId}`);
       setBag(response.data);
     } catch (error: any) {
-      Alert.alert("Erro", "Não foi possível carregar os detalhes da mala.");
+      Toast.show({
+        type: 'error',
+        text1: 'Erro de carregamento',
+        text2: 'Não conseguimos abrir os detalhes desta mala.'
+      });
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -48,10 +52,18 @@ export const BagDetailScreen = () => {
       let motivo = action === 'RECUSAR' ? "Indisponibilidade de estoque no momento." : '';
       await api.post(`/api/bags/${bagId}/store-action`, { action, motivo });
 
-      Alert.alert("Sucesso", `A solicitação foi ${action === 'ACEITAR' ? 'aceita' : 'recusada'}.`);
+      Toast.show({
+        type: 'success',
+        text1: action === 'ACEITAR' ? 'Mala Aceita!' : 'Mala Recusada',
+        text2: `A solicitação foi processada com sucesso.`
+      });
       await fetchBagDetails();
     } catch (error: any) {
-      Alert.alert("Erro", error.response?.data?.message || "Falha ao processar ação.");
+      Toast.show({
+        type: 'error',
+        text1: 'Falha na operação',
+        text2: error.response?.data?.message || "Não foi possível processar a ação."
+      });
     } finally {
       setSubmitting(false);
     }
@@ -61,10 +73,18 @@ export const BagDetailScreen = () => {
     setSubmitting(true);
     try {
       await api.post(`/api/bags/${bagId}/request-courier`);
-      Alert.alert("Sucesso", "Solicitação de entregador enviada!");
+      Toast.show({
+        type: 'success',
+        text1: 'Entregador Chamado!',
+        text2: 'Aguarde a chegada do motoboy na sua loja.'
+      });
       await fetchBagDetails();
     } catch (error: any) {
-      Alert.alert("Erro", error.response?.data?.message || "Falha ao solicitar entregador.");
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao solicitar motoboy',
+        text2: error.response?.data?.message || "Tente novamente em alguns instantes."
+      });
     } finally {
       setSubmitting(false);
     }
