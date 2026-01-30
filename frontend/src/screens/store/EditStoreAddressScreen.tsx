@@ -1,12 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    ScrollView, SafeAreaView, Alert, ActivityIndicator
+    ScrollView, SafeAreaView, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import axios from 'axios';
+import Toast from 'react-native-toast-message';
 
 export const EditStoreAddressScreen = ({ navigation }: any) => {
     const { user, updateUserData } = useContext(AuthContext) as any;
@@ -38,22 +39,40 @@ export const EditStoreAddressScreen = ({ navigation }: any) => {
             try {
                 const response = await axios.get(`https://viacep.com.br/ws/${cleanedCep}/json/`);
                 if (response.data.erro) {
-                    Alert.alert("Erro", "CEP não encontrado.");
+                    Toast.show({
+                        type: 'info',
+                        text1: 'CEP não encontrado',
+                        text2: 'Verifique os números e tente novamente.'
+                    });
                     return;
                 }
                 setRua(response.data.logradouro);
                 setBairro(response.data.bairro);
                 setCidade(response.data.localidade);
                 setEstado(response.data.uf);
+
+                Toast.show({
+                    type: 'success',
+                    text1: 'Endereço localizado!',
+                    text2: `${response.data.logradouro}, ${response.data.bairro}`
+                });
             } catch (error) {
-                Alert.alert("Erro", "Falha ao procurar o CEP.");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erro de conexão',
+                    text2: 'Não foi possível consultar o CEP automaticamente.'
+                });
             }
         }
     };
 
     const handleSave = async () => {
         if (!cep || !rua || !numero || !cidade) {
-            return Alert.alert("Atenção", "Preencha os campos obrigatórios.");
+            return Toast.show({
+                type: 'info',
+                text1: 'Dados incompletos',
+                text2: 'Preencha os campos obrigatórios para salvar.'
+            });
         }
 
         setLoading(true);
@@ -66,10 +85,21 @@ export const EditStoreAddressScreen = ({ navigation }: any) => {
                 await updateUserData(response.data.user);
             }
 
-            Alert.alert("Sucesso", "Endereço atualizado!");
-            navigation.goBack();
-        } catch (error) {
-            Alert.alert("Erro", "Não foi possível atualizar o endereço.");
+            Toast.show({
+                type: 'success',
+                text1: 'Endereço Atualizado!',
+                text2: 'As informações de logística foram salvas.'
+            });
+
+            setTimeout(() => {
+                navigation.goBack();
+            }, 1500);
+        } catch (error: any) {
+            Toast.show({
+                type: 'error',
+                text1: 'Falha ao salvar',
+                text2: error.response?.data?.message || 'Não foi possível atualizar o endereço.'
+            });
         } finally {
             setLoading(false);
         }
