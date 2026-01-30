@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView,
-  TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView,
+  TouchableOpacity, ActivityIndicator, KeyboardAvoidingView,
   Platform, Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const EditProductScreen = ({ route, navigation }: any) => {
   const { productId } = route.params;
@@ -46,7 +47,11 @@ export const EditProductScreen = ({ route, navigation }: any) => {
       setImages(p.imagens || []);
       setVariacoes(p.variacoes || []);
     } catch (error) {
-      Alert.alert("Erro", "Falha ao carregar produto.");
+      Toast.show({
+        type: 'error',
+        text1: 'Erro de conexão',
+        text2: 'Não foi possível carregar os dados do produto.'
+      });
       navigation.goBack();
     } finally {
       setIsLoading(false);
@@ -57,7 +62,11 @@ export const EditProductScreen = ({ route, navigation }: any) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert("Permissão necessária", "Precisamos de acesso às suas fotos para cadastrar o produto.");
+      Toast.show({
+        type: 'error',
+        text1: 'Permissão necessária',
+        text2: 'Precisamos acessar suas fotos para atualizar o produto.'
+      });
       return;
     }
 
@@ -70,6 +79,11 @@ export const EditProductScreen = ({ route, navigation }: any) => {
 
     if (!result.canceled) {
       setNewImages([...newImages, result.assets[0]]);
+      Toast.show({
+        type: 'success',
+        text1: 'Foto adicionada',
+        text2: 'Lembre-se de salvar para confirmar a alteração.'
+      });
     }
   };
 
@@ -102,6 +116,15 @@ export const EditProductScreen = ({ route, navigation }: any) => {
   };
 
   const handleUpdateProduct = async () => {
+    if (!nome || !preco || !categoria) {
+      Toast.show({
+        type: 'info',
+        text1: 'Campos obrigatórios',
+        text2: 'Nome, preço e categoria não podem ficar vazios.'
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const formData = new FormData();
@@ -121,24 +144,34 @@ export const EditProductScreen = ({ route, navigation }: any) => {
         const uriParts = img.uri.split('.');
         const fileType = uriParts[uriParts.length - 1];
 
-        formData.append('files', {
+        formData.append('imagens', {
           uri: Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri,
-          name: `photo_${index}.${fileType}`,
+          name: `photo_${Date.now()}_${index}.${fileType}`,
           type: `image/${fileType}`,
         } as any);
       });
 
       await api.put(`/api/products/${productId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert("Sucesso", "Produto e variações atualizados!");
-      navigation.goBack();
-    } catch (error) {
-      console.error("Erro no upload:", error);
-      Alert.alert("Erro", "Não foi possível salvar as alterações.");
+      Toast.show({
+        type: 'success',
+        text1: 'Produto Atualizado!',
+        text2: 'As alterações já estão ao vivo na vitrine.'
+      });
+
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1500);
+
+    } catch (error: any) {
+      console.error("Erro no update:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao salvar',
+        text2: error.response?.data?.message || 'Verifique os dados e tente novamente.'
+      });
     } finally {
       setIsSaving(false);
     }
