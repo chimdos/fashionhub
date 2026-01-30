@@ -1,11 +1,12 @@
 import React, { useState, useContext } from 'react';
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    ScrollView, SafeAreaView, Alert, ActivityIndicator
+    ScrollView, SafeAreaView, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const EditResponsibleDataScreen = ({ navigation }: any) => {
     const { user, setUser } = useContext(AuthContext) as any;
@@ -17,7 +18,11 @@ export const EditResponsibleDataScreen = ({ navigation }: any) => {
 
     const handleSave = async () => {
         if (!nome || !email) {
-            return Alert.alert("Atenção", "Nome e e-mail são obrigatórios!");
+            return Toast.show({
+                type: 'info',
+                text1: 'Campos obrigatórios',
+                text2: 'Nome e e-mail não podem ficar vazios.'
+            });
         }
 
         setLoading(true);
@@ -35,11 +40,22 @@ export const EditResponsibleDataScreen = ({ navigation }: any) => {
                 telefone: telefone
             });
 
-            Alert.alert("Sucesso", "Dados atualizados!");
-            navigation.goBack();
+            Toast.show({
+                type: 'success',
+                text1: 'Dados Atualizados!',
+                text2: 'As informações do responsável foram salvas.'
+            });
+
+            setTimeout(() => {
+                navigation.goBack();
+            }, 1500);
         } catch (error: any) {
             const errorMsg = error.response?.data?.message || "Erro ao atualizar seus dados.";
-            Alert.alert("Erro", errorMsg);
+            Toast.show({
+                type: 'error',
+                text1: 'Falha na atualização',
+                text2: errorMsg
+            });
         } finally {
             setLoading(false);
         }
