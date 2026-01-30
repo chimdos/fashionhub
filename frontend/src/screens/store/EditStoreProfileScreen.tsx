@@ -1,11 +1,12 @@
 import React, { useState, useContext } from 'react';
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    ScrollView, SafeAreaView, Alert, ActivityIndicator
+    ScrollView, SafeAreaView, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const EditStoreProfileScreen = ({ navigation }: any) => {
     const { user, setUser } = useContext(AuthContext) as any;
@@ -14,28 +15,52 @@ export const EditStoreProfileScreen = ({ navigation }: any) => {
     const [nomeLoja, setNomeLoja] = useState(user?.nome_loja || '');
     const [descricao, setDescricao] = useState(user?.descricao || '');
 
+    const sanitizeInput = (text: string) => {
+        return text
+            .replace(/<[^>]*>?/gm, '')
+            .trim();
+    };
+
     const handleSave = async () => {
         if (!nomeLoja) {
-            return Alert.alert("Atenção", "O nome da loja não pode ficar vazio!");
+            return Toast.show({
+                type: 'info',
+                text1: 'Campo obrigatório',
+                text2: 'O nome da loja não pode ficar vazio.'
+            });
         }
+
+        const cleanNome = sanitizeInput(nomeLoja);
+        const cleanDesc = sanitizeInput(descricao);
 
         setLoading(true);
         try {
             const response = await api.put('/api/users/store/profile', {
-                nome_loja: nomeLoja,
-                descricao: descricao,
+                nome_loja: cleanNome,
+                descricao: cleanDesc,
             });
 
             setUser({
                 ...user,
-                nome_loja: nomeLoja,
-                descricao: descricao
+                nome_loja: cleanNome,
+                descricao: cleanDesc
             });
 
-            Alert.alert("Sucesso", "Perfil da loja atualizado!");
-            navigation.goBack();
-        } catch (error) {
-            Alert.alert("Erro", "Não foi possível atualizar o perfil.");
+            Toast.show({
+                type: 'success',
+                text1: 'Perfil Atualizado!',
+                text2: 'As informações da sua loja foram salvas.'
+            });
+
+            setTimeout(() => {
+                navigation.goBack();
+            }, 1500);
+        } catch (error: any) {
+            Toast.show({
+                type: 'error',
+                text1: 'Ops! Ocorreu um erro',
+                text2: error.response?.data?.message || 'Não foi possível atualizar o perfil.'
+            });
         } finally {
             setLoading(false);
         }
@@ -67,10 +92,20 @@ export const EditStoreProfileScreen = ({ navigation }: any) => {
                             value={nomeLoja}
                             onChangeText={setNomeLoja}
                             placeholder="Ex: Minha Boutique"
+                            maxLength={50}
                         />
                     </View>
 
-                    <Text style={styles.label}>BIO / DESCRIÇÃO</Text>
+                    <View style={styles.labelRow}>
+                        <Text style={styles.label}>BIO / DESCRIÇÃO</Text>
+                        <Text style={[
+                            styles.counter,
+                            descricao.length >= 300 ? { color: '#FF4D4D' } : null
+                        ]}>
+                            {descricao.length}/300
+                        </Text>
+                    </View>
+
                     <View style={[styles.inputContainer, styles.textAreaContainer]}>
                         <Ionicons name="reader-outline" size={20} color="#28a745" style={[styles.icon, { marginTop: 15 }]} />
                         <TextInput
@@ -80,6 +115,7 @@ export const EditStoreProfileScreen = ({ navigation }: any) => {
                             placeholder="Conte um pouco sobre o que sua loja vende..."
                             multiline
                             numberOfLines={4}
+                            maxLength={300}
                         />
                     </View>
                 </View>
@@ -135,5 +171,13 @@ const styles = StyleSheet.create({
     textArea: { height: 100, textAlignVertical: 'top', paddingTop: 15 },
 
     infoBox: { flexDirection: 'row', alignItems: 'center', padding: 20, marginTop: 10 },
-    infoText: { flex: 1, marginLeft: 10, color: '#ADB5BD', fontSize: 13, lineHeight: 18 }
+    infoText: { flex: 1, marginLeft: 10, color: '#ADB5BD', fontSize: 13, lineHeight: 18 },
+
+    labelRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    counter: { fontSize: 10, color: '#ADB5BD', fontWeight: 'bold' },
 });
