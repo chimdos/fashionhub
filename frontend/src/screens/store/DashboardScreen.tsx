@@ -8,12 +8,12 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Image,
   StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 interface BagRequest {
   id: string;
@@ -46,7 +46,10 @@ export const StoreDashboardScreen = () => {
       setBagRequests(response.data);
     } catch (err: any) {
       console.error("Erro ao buscar solicitações:", err.response?.data || err.message);
-      Alert.alert("Erro", "Não foi possível carregar as solicitações.");
+      Toast.show({
+        type: 'error',
+        text1: 'Não foi possível carregar as solicitações.',
+      });
     } finally {
       setIsLoading(false);
     }
