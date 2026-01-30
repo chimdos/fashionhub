@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TextInput, TouchableOpacity,
-    SafeAreaView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform
+    SafeAreaView, ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const ChangePasswordScreen = ({ navigation }: any) => {
     const [loading, setLoading] = useState(false);
@@ -14,15 +15,27 @@ export const ChangePasswordScreen = ({ navigation }: any) => {
 
     const handleChangePassword = async () => {
         if (!currentPassword || !newPassword || !confirmPassword) {
-            return Alert.alert("Erro", "Preencha todos os campos.");
+            return Toast.show({
+                type: 'info',
+                text1: 'Campos vazios',
+                text2: 'Por favor, preencha todas as informações.'
+            });
         }
 
         if (newPassword.length < 8) {
-            return Alert.alert("Segurança", "A nova senha deve ter pelo menos 8 caracteres.");
+            return Toast.show({
+                type: 'info',
+                text1: 'Segurança',
+                text2: 'A nova senha deve ter pelo menos 8 caracteres.'
+            });
         }
 
         if (newPassword !== confirmPassword) {
-            return Alert.alert("Erro", "A nova senha e a confirmação não coincidem.");
+            return Toast.show({
+                type: 'error',
+                text1: 'Senhas diferentes',
+                text2: 'A nova senha e a confirmação não coincidem.'
+            });
         }
 
         setLoading(true);
@@ -32,11 +45,19 @@ export const ChangePasswordScreen = ({ navigation }: any) => {
                 newPassword
             });
 
-            Alert.alert("Sucesso", "Sua senha foi alterada com sucesso!");
+            Toast.show({
+                type: 'success',
+                text1: 'Sucesso!',
+                text2: 'Sua senha foi alterada com sucesso.'
+            });
             navigation.goBack();
         } catch (error: any) {
             const message = error.response?.data?.message || "Não foi possível alterar a senha.";
-            Alert.alert("Erro", message);
+            Toast.show({
+                type: 'error',
+                text1: 'Erro na atualização',
+                text2: message
+            });
         } finally {
             setLoading(false);
         }
