@@ -28,7 +28,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'CourierDashboard' }],
+        routes: [{ name: 'CourierDashboardScreen' }],
       });
 
     } catch (error: any) {
