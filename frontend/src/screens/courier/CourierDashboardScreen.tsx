@@ -185,7 +185,11 @@ export const CourierDashboardScreen = () => {
             if (isAvailable) {
               handleAccept(item);
             } else {
-              navigation.navigate('PickupScreen', { bag: item });
+              if (item.status === 'EM_ROTA_ENTREGA' || item.status === 'EM_ROTA_DEVOLUCAO') {
+                navigation.navigate('DeliveryRoute', { bag: item });
+              } else {
+                navigation.navigate('PickupScreen', { bag: item });
+              }
             }
           }}
         >
