@@ -1,47 +1,72 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Linking, Platform, ActivityIndicator } from 'react-native';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const PickupScreen = ({ route, navigation }: any) => {
   const { bag } = route.params;
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const nomeLoja = bag.origem || 'Loja Parceira';
-  const enderecoColeta = bag.enderecoColeta
-    ? `${bag.enderecoColeta.rua}, ${bag.enderecoColeta.numero} - ${bag.enderecoColeta.bairro}`
-    : 'Endereço não informado';
+  const nomeLoja = bag?.origem || 'Loja Parceira';
+
+  const rua = bag?.enderecoColeta?.rua;
+  const numero = bag?.enderecoColeta?.numero;
+  const bairro = bag?.enderecoColeta?.bairro;
+
+  const enderecoColeta = rua
+    ? `${rua}, ${numero || 'S/N'} - ${bairro || ''}`
+    : 'FashionHub Central (Endereço não carregado)';
 
   const openMaps = () => {
-    const address = bag.endereco_entrega?.rua || bag.origem;
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    const address = bag?.enderecoColeta?.rua
+      ? `${rua}, ${numero}, ${bag?.enderecoColeta?.cidade}`
+      : bag?.origem || 'Sorocaba';
 
-    Linking.canOpenURL(url).then(supported => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        Alert.alert('Erro', 'Não foi possível abrir o mapa.');
-      }
+    const url = Platform.select({
+      ios: `maps:0,0?q=${encodeURIComponent(address)}`,
+      android: `geo:0,0?q=${encodeURIComponent(address)}`,
+    }) || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+    Linking.openURL(url).catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no Mapa',
+        text2: 'Não foi possível abrir o aplicativo de mapas.'
+      });
     });
   };
 
   const handleConfirmPickup = async () => {
     if (token.length < 6) {
-      Alert.alert('Atenção', 'O código deve ter exatamente 6 dígitos!');
-      return;
+      return Toast.show({
+        type: 'info',
+        text1: 'Token incompleto',
+        text2: 'O código deve ter exatamente 6 dígitos.'
+      });
     }
 
     setLoading(true);
     try {
+      const bagId = bag?.id || bag?.bagId;
       const response = await api.post(`/api/bags/${bag.bagId || bag.id}/confirm-pickup`, { token });
 
-      Alert.alert('Sucesso', 'Mala retirada! Inicie a entrega.');
+      Toast.show({
+        type: 'success',
+        text1: 'Mala retirada!',
+        text2: 'Inicie a rota para o cliente.'
+      });
 
       navigation.replace('DeliveryRoute', {
-        bag: response.data.bag || bag
+        bag: { ...bag, ...response.data.bag }
       });
     } catch (error: any) {
-      Alert.alert('Falha', error.response?.data?.message || 'Token inválido ou erro de conexão.');
+      const msg = error.response?.data?.message || 'Token inválido ou erro de servidor.';
+      Toast.show({
+        type: 'error',
+        text1: 'Falha na retirada',
+        text2: msg
+      });
     } finally {
       setLoading(false);
     }
@@ -72,13 +97,15 @@ export const PickupScreen = ({ route, navigation }: any) => {
       </View>
 
       <TouchableOpacity
-        style={[styles.confirmButton, loading && styles.disabledBtn]}
+        style={[styles.confirmButton, (loading || token.length < 6) && styles.disabledBtn]}
         onPress={handleConfirmPickup}
-        disabled={loading}
+        disabled={loading || token.length < 6}
       >
-        <Text style={styles.confirmText}>
-          {loading ? 'VALIDANDO...' : 'CONFIRMAR RETIRADA'}
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.confirmText}>CONFIRMAR RETIRADA</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
