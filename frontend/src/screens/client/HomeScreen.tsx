@@ -37,7 +37,29 @@ export const HomeScreen = ({ navigation }: any) => {
     const fetchBestSellers = async () => {
       try {
         const response = await api.get('/api/products?limit=6');
-        setBestSellingProducts(response.data.products);
+        const rawProducts = response.data.products || [];
+
+        const sanitizedProducts = rawProducts.map((item: any) => {
+          let finalUri = 'https://via.placeholder.com/300';
+
+          if (item.imagens && item.imagens.length > 0) {
+            const img = item.imagens[0];
+            const path = typeof img === 'string' ? img : (img.url_imagem || img.url);
+
+            if (path && typeof path === 'string') {
+              finalUri = path.startsWith('http')
+                ? path
+                : `${api.defaults.baseURL}${path.startsWith('/') ? '' : '/'}${path}`;
+            }
+          }
+
+          return {
+            ...item,
+            imagens: finalUri,
+          };
+        });
+
+        setBestSellingProducts(sanitizedProducts);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
       } finally {
