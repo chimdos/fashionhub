@@ -1,10 +1,18 @@
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
+
+const uploadPath = path.upload(__dirname, '..', '..', uploads);
+
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+    console.log('Pasta uploads criada com sucesso no servidor!');
+}
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.resolve(__dirname, '..', '..', 'uploads'));
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
         crypto.randomBytes(16, (err, hash) => {
