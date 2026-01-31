@@ -1,38 +1,66 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Linking, Platform, ActivityIndicator } from 'react-native';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const DeliveryRouteScreen = ({ route, navigation }: any) => {
-  const { bag } = route.params; // Dados da mala passados pela tela anterior
+  const { bag } = route.params;
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
 
   const openMaps = () => {
-    const dest = bag.destino;
-    const addressQuery = `${dest.rua}, ${dest.numero} - ${dest.bairro}`;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressQuery)}`;
-    Linking.openURL(url);
+    const dest = bag?.destino;
+    if (!dest) return;
+
+    const addressQuery = `${dest.rua}, ${dest.numero}, ${dest.bairro}, ${dest.cidade || 'Sorocaba'}`;
+
+    const url = Platform.select({
+      ios: `maps:0,0?q=${encodeURIComponent(addressQuery)}`,
+      android: `geo:0,0?q=${encodeURIComponent(addressQuery)}`
+    }) || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressQuery)}`;
+
+    Linking.openURL(url).catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no GPS 📍',
+        text2: 'Não conseguimos abrir o aplicativo de mapas.'
+      });
+    });
   };
 
   const handleFinishDelivery = async () => {
+    const bagId = bag?.bagId || bag?.id;
+
     if (token.length < 4) {
-      Alert.alert('Atenção', 'Solicite o código de entrega ao cliente.');
-      return;
+      return Toast.show({
+        type: 'info',
+        text1: 'Código do Cliente',
+        text2: 'Solicite o código de segurança para finalizar.'
+      });
     }
 
     setLoading(true);
     try {
-      await api.post(`/api/bags/${bag.bagId}/confirm-delivery`, { token });
+      await api.post(`/api/bags/${bagId}/confirm-delivery`, { token });
 
-      Alert.alert('Parabéns!', 'Corrida finalizada com sucesso.');
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'CourierDashboardScreen' }],
+      Toast.show({
+        type: 'success',
+        text1: 'Entrega Finalizada!',
+        text2: 'Mala entregue com sucesso. Voltando ao início...'
       });
 
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'CourierDashboardScreen' }],
+        });
+      }, 1500);
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.message || 'Código inválido.');
+      Toast.show({
+        type: 'error',
+        text1: 'Erro na Entrega',
+        text2: error.response?.data?.message || 'Código inválido ou falha de conexão.'
+      });
     } finally {
       setLoading(false);
     }
@@ -42,14 +70,14 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.headerCard}>
         <Text style={styles.stepTitle}>PASSO 2: ENTREGA AO CLIENTE</Text>
-        <Text style={styles.clientName}>Cliente</Text>
+        <Text style={styles.clientName}>{bag?.clienteNome || 'Cliente FashionHub'}</Text>
 
         <View style={styles.addressBox}>
-          <Text style={styles.addressLabel}>Endereço:</Text>
+          <Text style={styles.addressLabel}>Destino:</Text>
           <Text style={styles.addressText}>
-            {bag.destino.rua}, {bag.destino.numero}
+            {bag?.destino?.rua}, {bag?.destino?.numero}
           </Text>
-          <Text style={styles.addressSubText}>{bag.destino.bairro}</Text>
+          <Text style={styles.addressSubText}>{bag?.destino?.bairro}</Text>
         </View>
 
         <TouchableOpacity onPress={openMaps} style={styles.mapButton}>
@@ -59,7 +87,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
 
       <View style={styles.actionArea}>
         <Text style={styles.instruction}>
-          Ao chegar, entregue a mala e peça o código ao cliente.
+          Ao chegar, entregue a mala e peça o código ao cliente para encerrar a corrida.
         </Text>
 
         <TextInput
@@ -72,13 +100,15 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
         />
 
         <TouchableOpacity
-          style={[styles.finishButton, loading && styles.disabledBtn]}
+          style={[styles.finishButton, (loading || token.length < 4) && styles.disabledBtn]}
           onPress={handleFinishDelivery}
-          disabled={loading}
+          disabled={loading || token.length < 4}
         >
-          <Text style={styles.finishText}>
-            {loading ? 'FINALIZANDO...' : 'FINALIZAR ENTREGA'}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.finishText}>FINALIZAR ENTREGA</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -86,7 +116,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#34495e' }, // Fundo escuro para diferenciar da coleta
+  container: { flex: 1, backgroundColor: '#34495e' },
   headerCard: {
     backgroundColor: '#fff',
     padding: 24,
