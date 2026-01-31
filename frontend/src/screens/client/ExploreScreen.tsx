@@ -34,6 +34,9 @@ export const ExploreScreen = ({ navigation }: any) => {
       try {
         const response = await api.get('/api/products');
         const data = response.data.products || response.data;
+
+        const activeProducts = data.filter((p: any) => p.ativo !== false);
+
         setProducts(data);
         setFilteredProducts(data);
       } catch (error) {
@@ -67,21 +70,28 @@ export const ExploreScreen = ({ navigation }: any) => {
   };
 
   const getSafeImage = (item: any) => {
-    if (!item || !item.imagens || item.imagens.length === 0) {
-      return require('../../assets/placeholder.webp');
+    const placeholder = require('../../assets/placeholder.webp');
+
+    if (!item?.imagens || !Array.isArray(item.imagens) || item.imagens.length === 0) {
+      return placeholder;
     }
 
-    const img = item.imagens[0];
+    const imgObj = item.imagens[0];
 
-    const imageUrl = typeof img === 'string' ? img : (img.url_imagem || img.url);
-
-    if (!imageUrl) {
-      return require('../../assets/placeholder.webp');
+    let path = "";
+    if (typeof imgObj === 'string') {
+      path = imgObj;
+    } else if (imgObj && typeof imgObj === 'object') {
+      path = imgObj.url_imagem || imgObj.url || "";
     }
 
-    const finalUri = imageUrl.startsWith('http')
-      ? imageUrl
-      : `${api.defaults.baseURL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+    if (!path || typeof path !== 'string') {
+      return placeholder;
+    }
+
+    const finalUri = path.startsWith('http')
+      ? path
+      : `${api.defaults.baseURL}${path.startsWith('/') ? '' : '/'}${path}`;
 
     return { uri: finalUri };
   };
