@@ -103,14 +103,12 @@ export const CreateProductScreen = ({ navigation }: any) => {
     setIsLoading(true);
     try {
       const formData = new FormData();
-      formData.append('nome', nome);
-      formData.append('descricao', descricao);
-      formData.append('preco', preco);
-      formData.append('categoria', categoria);
 
       const cleanPrice = preco.replace(/\./g, '').replace(',', '.');
-      formData.append('preco', cleanPrice);
 
+      formData.append('nome', nome);
+      formData.append('descricao', descricao);
+      formData.append('preco', cleanPrice);
       formData.append('categoria', categoria);
 
       const variationsPayload = variacoes.map(item => ({
