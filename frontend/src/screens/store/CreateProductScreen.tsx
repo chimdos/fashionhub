@@ -108,12 +108,20 @@ export const CreateProductScreen = ({ navigation }: any) => {
       formData.append('preco', preco);
       formData.append('categoria', categoria);
 
+      const cleanPrice = preco.replace(/\./g, '').replace(',', '.');
+      formData.append('preco', cleanPrice);
+
+      formData.append('categoria', categoria);
+
       const variationsPayload = variacoes.map(item => ({
         cor: item.cor,
         tamanho: item.tamanho,
         quantidade_estoque: parseInt(item.estoque) || 0,
-        preco: item.preco ? parseFloat(item.preco) : null
+        preco: item.preco
+          ? parseFloat(item.preco.replace(/\./g, '').replace(',', '.'))
+          : parseFloat(cleanPrice)
       }));
+
       formData.append('variacoes', JSON.stringify(variationsPayload));
 
       images.forEach((img, index) => {
