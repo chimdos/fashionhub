@@ -1,8 +1,8 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const isProduction = process.env.NODE_ENV === 'production';
 const isLocalHost = process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1';
+const useSSL = !isLocalHost;
 
 console.log(`--- Configuração de Banco ---`);
 console.log(`Ambiente: ${process.env.NODE_ENV}`);
@@ -37,7 +37,7 @@ const sequelize = new Sequelize(
 );
 
 module.exports = {
-  development: { ...config, dialectOptions: {} },
+  development: config,
   production: config,
   sequelize: sequelize
 };
