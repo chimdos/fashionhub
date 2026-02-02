@@ -10,7 +10,7 @@ async function fixRoles() {
         const ids = lojistas.map(l => l.id);
 
         const [updatedCount] = await User.update(
-            { role: admin },
+            { role: 'admin' },
             {
                 where: { id: ids },
                 transaction: t
