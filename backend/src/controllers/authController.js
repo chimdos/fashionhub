@@ -262,14 +262,40 @@ const authController = {
       if (Object.keys(errors).length > 0) {
         return res.status(400).json({ errors });
       }
-
-      console.log("Tudo disponível!");
-      return res.status(200).json({ message: 'Disponível' });
-
-      return res.status(200).json({ message: 'E-mail e telefone disponíveis.' });
     } catch (error) {
       console.error("ERRO DETALHADO NO BACKEND:", error);
       res.status(500).json({ message: 'Erro ao verificar disponibilidade.', detalhe: error.message });
+    }
+  },
+
+  async registerWorker(req, res) {
+    try {
+      const { nome, email, senha, telefone } = req.body;
+      const adminLojaId = req.user.loja_id;
+
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Este e-mail já está cadastrado!' });
+      }
+
+      const newWorker = await User.create({
+        nome,
+        email,
+        senha_hash: senha,
+        tipo_usuario: 'lojista',
+        telefone,
+        loja_id: adminLojaId,
+        role: 'worker',
+        ativo: true
+      });
+
+      const workerResponse = newWorker.toJSON();
+      delete workerResponse.senha_hash;
+
+      return res.status(201).json({ message: 'Ajudante cadastrado com sucesso!', worker: workerResponse });
+    } catch (error) {
+      console.error('Erro ao cadastrar ajudante:', error);
+      return res.status(500).json({ message: 'Erro interno ao cadastrar ajudante.' });
     }
   },
 };
