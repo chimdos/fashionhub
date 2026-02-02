@@ -16,6 +16,7 @@ module.exports = (sequelize) => {
         foreignKey: 'id',
         as: 'lojista'
       });
+      this.belongsTo(models.Loja, { foreignKey: 'loja_id', as: 'loja' });
     }
   }
 
@@ -80,6 +81,16 @@ module.exports = (sequelize) => {
     password_reset_expires: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    loja_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'lojas', key: 'id' }
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'worker'
     },
   }, {
     sequelize,
