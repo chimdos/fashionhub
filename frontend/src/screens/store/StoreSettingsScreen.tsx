@@ -125,6 +125,23 @@ export const StoreSettingsScreen = ({ navigation }: any) => {
           />
         </View>
 
+        <Text style={styles.sectionTitle}>Equipe e Colaboradores</Text>
+        <View style={styles.menuCard}>
+          <SettingItem
+            icon="people-outline"
+            label="Gerenciar Ajudantes"
+            onPress={() => navigation.navigate('ManageWorkers')}
+            color="#007bff"
+          />
+          <SettingItem
+            icon="person-add-outline"
+            label="Cadastrar Novo Ajudante"
+            onPress={() => navigation.navigate('RegisterWorker')}
+            color="#007bff"
+            last
+          />
+        </View>
+
         <Text style={styles.sectionTitle}>Segurança e Suporte</Text>
         <View style={styles.menuCard}>
           <SettingItem
