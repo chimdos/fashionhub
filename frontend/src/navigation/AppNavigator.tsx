@@ -8,6 +8,7 @@ import Toast from 'react-native-toast-message';
 import { ClientNavigator } from './ClientNavigator';
 import { StoreNavigator } from './StoreNavigator';
 import { CourierNavigator } from './CourierNavigator';
+import { WorkerNavigator } from './WorkerNavigator';
 
 import { WelcomeScreen } from '../screens/Auth/WelcomeScreen';
 import { LoginScreen } from '../screens/Auth/LoginScreen';
@@ -86,9 +87,17 @@ export const AppNavigator = () => {
                 <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
               </>
             )}
+
             {user.tipo_usuario === 'lojista' && (
-              <Stack.Screen name="StoreApp" component={StoreNavigator} />
+              <>
+                {user.role === 'admin' ? (
+                  <Stack.Screen name="StoreApp" component={StoreNavigator} />
+                ) : (
+                  <Stack.Screen name="WorkerApp" component={WorkerNavigator} />
+                )}
+              </>
             )}
+
             {user.tipo_usuario === 'entregador' && (
               <Stack.Screen name="CourierApp" component={CourierNavigator} />
             )}
