@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { User, Lojista, sequelize } = require('../src/models');
 
 async function fixRoles() {
