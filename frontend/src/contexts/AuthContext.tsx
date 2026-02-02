@@ -9,7 +9,9 @@ interface User {
   nome: string;
   email: string;
   tipo_usuario: 'cliente' | 'lojista' | 'entregador';
-  telefone?: string,
+  role?: 'admin' | 'worker';
+  loja_id?: string;
+  telefone?: string;
   endereco?: {
     id: string,
     cep: string,
