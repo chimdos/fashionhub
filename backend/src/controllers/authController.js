@@ -17,12 +17,33 @@ const authController = {
         return res.status(400).json({ message: 'Um usuário já existe com este e-mail.' });
       }
 
+      let novaLojaId = null;
+
+      if (tipo_usuario === 'lojista') {
+        if (!nome_loja) throw new Error('O nome da loja é obrigatório!');
+
+        const novaLoja = await Loja.create({
+          nome_loja,
+          cnpj,
+          cep: endereco?.cep,
+          rua: endereco?.rua,
+          numero: endereco?.numero,
+          bairro: endereco?.bairro,
+          cidade: endereco?.cidade,
+          estado: endereco?.estado,
+        }, { transaction: t });
+
+        novaLojaId = novaLoja.id
+      }
+
       const newUser = await User.create({
         nome,
         email,
         senha_hash: senha,
         tipo_usuario,
         telefone,
+        loja_id: novaLojaId,
+        role: tipo_usuario === 'lojista' ? 'admin' : 'worker',
       }, { transaction: t });
 
       if (endereco) {
@@ -56,7 +77,12 @@ const authController = {
       await t.commit();
 
       const token = jwt.sign(
-        { userId: newUser.id, tipo_usuario: newUser.tipo_usuario },
+        {
+          userId: newUser.id,
+          tipo_usuario: newUser.tipo_usuario,
+          loja_id: newUser.loja_id,
+          role: newUser.role
+        },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
