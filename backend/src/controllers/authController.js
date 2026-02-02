@@ -120,27 +120,23 @@ const authController = {
 
       const user = await User.scope('withPassword').findOne({
         where: { email, ativo: true },
-        include: [{ model: Lojista, as: 'lojista' }]
+        include: [
+          { model: Lojista, as: 'lojista' },
+          { model: Loja, as: 'loja' }
+        ]
       });
 
-      console.log("--> USUÁRIO ENCONTRADO:", user?.nome);
-      console.log("--> DADOS DA LOJA:", user?.lojista ? "SIM" : "NÃO (NULL)");
-      if (user?.lojista) {
-        console.log("--> CONTEÚDO DA LOJA:", user.lojista.toJSON());
-      }
-
-      if (!user) {
-        return res.status(401).json({ message: 'Credenciais inválidas.' });
-      }
-
-      const isPasswordValid = await user.checkPassword(senha);
-
-      if (!isPasswordValid) {
+      if (!user || !(await user.checkPassword(senha))) {
         return res.status(401).json({ message: 'Credenciais inválidas.' });
       }
 
       const token = jwt.sign(
-        { userId: user.id, tipo_usuario: user.tipo_usuario },
+        {
+          userId: user.id,
+          tipo_usuario: user.tipo_usuario,
+          loja_id: user.loja_id,
+          role: user.role
+        },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN }
       );
