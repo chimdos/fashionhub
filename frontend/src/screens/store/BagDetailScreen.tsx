@@ -94,7 +94,7 @@ export const BagDetailScreen = () => {
     switch (status) {
       case 'SOLICITADA': return { color: '#E67E22', bg: '#FDEBD0', label: 'Pendente' };
       case 'PREPARANDO': return { color: '#3498DB', bg: '#EBF5FB', label: 'Em Preparo' };
-      case 'AGUARDANDO_MOTO': return { color: '#9B59B6', bg: '#F5EEF8', label: 'Aguardando Coleta' };
+      case 'AGUARDANDO_MOTO': return { color: '#9B59B6', bg: '#F5EEF8', label: 'Aguardando Moto' };
       case 'ENTREGUE': return { color: '#28a745', bg: '#E9F7EF', label: 'Finalizado' };
       default: return { color: '#7F8C8D', bg: '#F2F4F4', label: status };
     }
