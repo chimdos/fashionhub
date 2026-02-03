@@ -308,6 +308,39 @@ const userController = {
       return res.status(500).json({ message: 'Erro interno ao processar a alteração.' });
     }
   },
+
+  async updateProfile(req, res) {
+    try {
+      const { nome, telefone } = req.body;
+      const userId = req.user.userId;
+
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado!' });
+      }
+
+      await user.update({
+        nome: nome || user.nome,
+        telefone: telefone || user.telefone
+      });
+
+      return res.json({
+        message: 'Perfil atualizado!',
+        user: {
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          telefone: user.telefone,
+          role: user.role,
+          tipo_usuario: user.tipo_usuario,
+          loja_id: user.loja_id
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      return res.status(500).json({ message: 'Erro interno ao atualizar perfil.' });
+    }
+  },
 };
 
 module.exports = userController;
