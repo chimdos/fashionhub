@@ -1,6 +1,7 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+const isProduction = process.env.NODE_ENV === 'production';
 const isLocalHost = process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1';
 const useSSL = !isLocalHost;
 
@@ -17,7 +18,7 @@ const config = {
   port: process.env.DB_PORT || 5432,
   dialect: 'postgres',
   logging: isProduction ? false : console.log,
-  dialectOptions: (isProduction && !isLocalHost) ? {
+  dialectOptions: useSSL ? {
     ssl: {
       require: true,
       rejectUnauthorized: false
