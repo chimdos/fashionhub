@@ -9,6 +9,8 @@ router.put('/store/profile', authMiddleware, userController.updateStoreProfile);
 router.put('/responsible', authMiddleware, userController.updateResponsibleData);
 router.put('/store/address', authMiddleware, userController.updateStoreAddress);
 router.put('/change-password', authMiddleware, userController.changePassword);
+router.put('/profile', authMiddleware, requireUserType('lojista'), requireRole(['admin', 'worker']), userController.updateProfile)
+
 router.put('/:id', authMiddleware, userController.updateUser);
 
 module.exports = router;
