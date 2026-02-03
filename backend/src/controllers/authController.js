@@ -141,22 +141,19 @@ const authController = {
           role: user.role
         },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
 
       const userResponse = user.get({ plain: true });
       delete userResponse.senha_hash;
 
       if (userResponse.lojista) {
-        userResponse.nome_loja = userResponse.lojista.nome_loja;
-        userResponse.cnpj = userResponse.lojista.cnpj;
-        userResponse.cep = userResponse.lojista.cep;
-        userResponse.rua = userResponse.lojista.rua;
-        userResponse.numero = userResponse.lojista.numero;
-        userResponse.bairro = userResponse.lojista.bairro;
-        userResponse.cidade = userResponse.lojista.cidade;
-        userResponse.estado = userResponse.lojista.estado;
-        delete userResponse.lojista;
+        const { lojista, ...userData } = userResponse;
+        return res.json({
+          message: 'Login realizado com sucesso!',
+          token,
+          user: { ...userData, ...lojista }
+        });
       }
 
       res.json({ message: 'Login realizado com sucesso!', token, user: userResponse });
