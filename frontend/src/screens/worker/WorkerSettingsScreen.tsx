@@ -48,7 +48,7 @@ export const WorkerSettingsScreen = ({ navigation }: any) => {
                             <Ionicons name="log-out" size={40} color="#FF4D4D" />
                         </View>
                         <Text style={styles.modalTitle}>Sair do App</Text>
-                        <Text style={styles.modalMessage}>Deseja encerrar seu turno agora?</Text>
+                        <Text style={styles.modalMessage}>Deseja sair da conta agora?</Text>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity style={styles.cancelButton} onPress={() => setShowLogoutModal(false)}>
                                 <Text style={styles.cancelButtonText}>Continuar</Text>
@@ -74,7 +74,7 @@ export const WorkerSettingsScreen = ({ navigation }: any) => {
 
                 <Text style={styles.sectionTitle}>Minha Conta</Text>
                 <View style={styles.menuCard}>
-                    <SettingItem icon="person-outline" label="Editar Perfil" onPress={() => { }} color="#28a745" />
+                    <SettingItem icon="person-outline" label="Editar Perfil" onPress={() =>  navigation.navigate('WorkerEditProfile')} color="#28a745" />
                     <SettingItem icon="shield-checkmark-outline" label="Segurança" onPress={() => navigation.navigate('ChangePassword')} color="#28a745" last />
                 </View>
 
@@ -86,7 +86,7 @@ export const WorkerSettingsScreen = ({ navigation }: any) => {
 
                 <TouchableOpacity style={styles.logoutButton} onPress={() => setShowLogoutModal(true)}>
                     <Ionicons name="log-out-outline" size={22} color="#FF4D4D" />
-                    <Text style={styles.logoutText}>Encerrar Turno</Text>
+                    <Text style={styles.logoutText}>Sair da Conta</Text>
                 </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
