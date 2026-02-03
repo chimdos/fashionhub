@@ -52,26 +52,43 @@ export const HomeWorkerScreen = ({ navigation }: any) => {
     }, [fetchData]);
 
     const BagCard = ({ bag, onPress }: any) => {
-        const isPending = bag.status === 'pendente';
-        const icon = isPending ? "cube-outline" : "sync-outline";
-        const color = isPending ? "#28a745" : "#007bff";
-        const statusLabel = isPending ? "Conferir" : "Preparar";
+        let statusConfig = {
+            label: "Conferir",
+            icon: "cube-outline",
+            color: "#28a745"
+        };
+
+        if (bag.status === 'PREPARANDO') {
+            statusConfig = {
+                label: "Preparar",
+                icon: "sync-outline",
+                color: "#007bff"
+            };
+        } else if (bag.status === 'AGUARDANDO_MOTO') {
+            statusConfig = {
+                label: "Aguardando Moto",
+                icon: "moped-outline",
+                color: "#F39C12"
+            };
+        }
 
         return (
             <TouchableOpacity style={styles.bagCard} onPress={onPress}>
-                <View style={[styles.bagIconContainer, { backgroundColor: `${color}15` }]}>
-                    <Ionicons name={icon} size={24} color={color} />
+                <View style={[styles.bagIconContainer, { backgroundColor: `${statusConfig.color}15` }]}>
+                    <Ionicons name={statusConfig.icon as any} size={24} color={statusConfig.color} />
                 </View>
                 <View style={styles.bagInfo}>
-                    <Text style={styles.bagTitle}>{bag.codigo || `Mala #${bag.id}`}</Text>
-                    <Text style={styles.bagTime}>{bag.descricao || 'Sem descrição'}</Text>
+                    <Text style={styles.bagTitle}>{bag.codigo || `Mala #${bag.id.substring(0, 6)}`}</Text>
+                    <Text style={styles.bagTime}>{bag.cliente?.nome || 'Cliente não identificado'}</Text>
                 </View>
-                <View style={[styles.statusBadge, { backgroundColor: `${color}10` }]}>
-                    <Text style={[styles.statusText, { color: color }]}>{statusLabel}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: `${statusConfig.color}10` }]}>
+                    <Text style={[styles.statusText, { color: statusConfig.color }]}>
+                        {statusConfig.label}
+                    </Text>
                 </View>
             </TouchableOpacity>
         );
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
