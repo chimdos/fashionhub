@@ -67,7 +67,7 @@ export const HomeWorkerScreen = ({ navigation }: any) => {
         } else if (bag.status === 'AGUARDANDO_MOTO') {
             statusConfig = {
                 label: "Aguardando Moto",
-                icon: "moped-outline",
+                icon: "bicycle-outline",
                 color: "#F39C12"
             };
         }
