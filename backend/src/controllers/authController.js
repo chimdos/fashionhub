@@ -11,6 +11,15 @@ const authController = {
     try {
       const { nome, email, senha, tipo_usuario, telefone, endereco, nome_loja, cnpj } = req.body;
 
+      const cleanCnpj = cnpj?.replace(/\D/g, '');
+      const cleanTelefone = telefone?.replace(/\D/g, '');
+      const cleanCep = endereco?.cep?.replace(/\D/g, '');
+
+      if (!senha || senha.length < 8) {
+        await t.rollback();
+        return res.status(400).json({ message: 'A senha deve conter no mínimo 8 caracteres.' });
+      }
+
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
         await t.rollback();
@@ -24,8 +33,8 @@ const authController = {
 
         const novaLoja = await Loja.create({
           nome_loja,
-          cnpj,
-          cep: endereco?.cep,
+          cnpj: cleanCnpj,
+          cep: cleanCep,
           rua: endereco?.rua,
           numero: endereco?.numero,
           bairro: endereco?.bairro,
@@ -41,37 +50,31 @@ const authController = {
         email,
         senha_hash: senha,
         tipo_usuario,
-        telefone,
+        telefone: cleanTelefone,
         loja_id: novaLojaId,
         role: tipo_usuario === 'lojista' ? 'admin' : 'worker',
       }, { transaction: t });
 
       if (endereco) {
-        const newAddress = await Address.create(endereco, { transaction: t });
+        const newAddress = await Address.create({
+          ...endereco,
+          cep: cleanCep
+        }, { transaction: t });
         await newUser.setEndereco(newAddress, { transaction: t });
       }
 
       if (tipo_usuario === 'lojista') {
-        if (!nome_loja) {
-          throw new Error('O nome da loja é obrigatório para o registro de lojista.');
-        }
         await Lojista.create({
           id: newUser.id,
           nome_loja: nome_loja,
-          cnpj: cnpj,
-          cep: endereco?.cep,
+          cnpj: cleanCnpj,
+          cep: cleanCep,
           rua: endereco?.rua,
           numero: endereco?.numero,
           bairro: endereco?.bairro,
           cidade: endereco?.cidade,
           estado: endereco?.estado,
         }, { transaction: t });
-      }
-
-      if (senha && senha.length < 8) {
-        return res.status(400).json({
-          message: 'A senha deve conter no mínimo 8 caracteres.'
-        });
       }
 
       await t.commit();
