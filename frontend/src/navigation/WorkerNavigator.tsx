@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { HomeWorkerScreen } from '../screens/worker/HomeWorkerScreen';
 import { BagDetailScreen } from '../screens/store/BagDetailScreen';
 import { WorkerSettingsScreen } from '../screens/worker/WorkerSettingsScreen';
+import { WorkerEditProfileScreen } from '../screens/worker/WorkerEditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -60,6 +61,8 @@ export const WorkerNavigator = () => {
       <Stack.Screen name="MainTabs" component={WorkerTabs} />
 
       <Stack.Screen name="BagDetail" component={BagDetailScreen} />
+
+      <Stack.Screen name="WorkerEditProfile" component={WorkerEditProfileScreen} />
     </Stack.Navigator>
   );
 };
