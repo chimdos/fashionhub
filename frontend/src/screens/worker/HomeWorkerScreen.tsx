@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useCallback } from 'react';
+import React, { useContext, useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import Toast from 'react-native-toast-message';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const HomeWorkerScreen = ({ navigation }: any) => {
     const { user } = useContext(AuthContext);
@@ -22,7 +23,7 @@ export const HomeWorkerScreen = ({ navigation }: any) => {
     const [bags, setBags] = useState([]);
     const [stats, setStats] = useState({ total: 0, pending: 0 });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [bagsRes, statsRes] = await Promise.all([
                 api.get('/api/bags/pending'),
@@ -37,16 +38,18 @@ export const HomeWorkerScreen = ({ navigation }: any) => {
             setLoading(false);
             setRefreshing(false);
         }
-    }
-
-    useEffect(() => {
-        fetchData();
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData])
+    );
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     const BagCard = ({ bag, onPress }: any) => {
         const isPending = bag.status === 'pendente';
