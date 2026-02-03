@@ -736,7 +736,7 @@ const bagController = {
       const bags = await Bag.findAll({
         where: {
           lojista_id: req.user.loja_id,
-          status: ['SOLICITADA', 'PREPARANDO']
+          status: ['SOLICITADA', 'PREPARANDO', 'AGUARDANDO_MOTO']
         },
         order: [['data_solicitacao', 'DESC']],
         include: [{ model: User, as: 'cliente', attributes: ['nome'] }]
