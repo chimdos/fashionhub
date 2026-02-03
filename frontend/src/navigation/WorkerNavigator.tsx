@@ -7,6 +7,7 @@ import { HomeWorkerScreen } from '../screens/worker/HomeWorkerScreen';
 import { BagDetailScreen } from '../screens/store/BagDetailScreen';
 import { WorkerSettingsScreen } from '../screens/worker/WorkerSettingsScreen';
 import { WorkerEditProfileScreen } from '../screens/worker/WorkerEditProfileScreen';
+import { ChangePasswordScreen } from '../screens/store/ChangePasswordScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -59,10 +60,9 @@ export const WorkerNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={WorkerTabs} />
-
       <Stack.Screen name="BagDetail" component={BagDetailScreen} />
-
       <Stack.Screen name="WorkerEditProfile" component={WorkerEditProfileScreen} />
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     </Stack.Navigator>
   );
 };
