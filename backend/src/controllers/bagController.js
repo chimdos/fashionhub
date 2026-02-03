@@ -730,5 +730,50 @@ const bagController = {
       return res.status(500).json({ error: 'Erro interno no servidor.' });
     }
   },
+
+  async getPending(req, res) {
+    try {
+      const bags = await Bag.findAll({
+        where: {
+          lojista_id: req.user.loja_id,
+          status: ['SOLICITADA', 'PREPARANDO']
+        },
+        order: [['data_solicitacao', 'DESC']],
+        include: [{ model: User, as: 'cliente', attributes: ['nome'] }]
+      });
+
+      return res.json(bags);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao buscar malas pendentes.' });
+    }
+  },
+
+  async getStats(req, res) {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const [total, pending] = await Promise.all([
+        Bag.count({
+          where: {
+            lojista_id: req.user.loja_id,
+            data_solicitacao: { [Op.gte]: today }
+          }
+        }),
+        Bag.count({
+          where: {
+            lojista_id: req.user.loja_id,
+            status: 'SOLICITADA'
+          }
+        })
+      ]);
+
+      return res.json({ total, pending });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+    }
+  },
 };
 module.exports = bagController;
