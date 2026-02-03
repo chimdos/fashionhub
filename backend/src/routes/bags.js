@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bagController = require('../controllers/bagController');
-const { authMiddleware, requireUserType } = require('../middleware/auth');
+const { authMiddleware, requireUserType, requireRole } = require('../middleware/auth');
 
 router.get('/store', authMiddleware, requireUserType('lojista'), bagController.getStoreBagRequests);
 router.get('/available', authMiddleware, bagController.getAvailableDeliveries);
@@ -10,6 +10,8 @@ router.get('/', authMiddleware, bagController.getClientBags);
 router.post('/', authMiddleware, requireUserType('cliente'), bagController.createBagRequest);
 router.get('/finalize-selection', authMiddleware, bagController.finalizeSelection);
 router.get('/active-with-client', authMiddleware, bagController.getActiveWithClient);
+router.get('/pending', authMiddleware, requireUserTyp('lojista'), requireRole(['admin', 'worker']), bagController.getPending);
+router.get('/stats', authMiddleware, requireUserTyp('lojista'), requireRole(['admin', 'worker']), bagController.getStats);
 
 router.get('/:bagId', authMiddleware, bagController.getBagById);
 router.post('/:bagId/confirm-purchase', authMiddleware, requireUserType('cliente'), bagController.confirmPurchase);
