@@ -31,7 +31,7 @@ export const ManageWorkerScreen = ({ navigation }: any) => {
     const fetchWorkers = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/lojas/workers', {
+            const response = await api.get('/api/store/workers', {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -55,29 +55,48 @@ export const ManageWorkerScreen = ({ navigation }: any) => {
     const toggleWorkerStatus = (id: string, currentStatus: boolean, nome: string) => {
         Alert.alert(
             currentStatus ? 'Desativar Ajudante' : 'Ativar Ajudante',
-            `Deseja alterar o acesso de ${nome}?`,
+            `Deseja ${currentStatus ? 'bloquear' : 'liberar'} o acesso de ${nome}?`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
                     text: 'Confirmar',
                     onPress: async () => {
                         try {
-                            await api.patch(`/users/${id}/status`, {}, {
-                                headers: { Authorization: `Bearer ${token}` }
+                            await api.patch(`/api/store/workers/${id}/status`, {
+                                ativo: !currentStatus
                             });
+
                             Toast.show({
                                 type: 'success',
                                 text1: 'Status Atualizado',
-                                text2: `${nome} foi ${currentStatus ? 'desativado(a)' : 'ativado(a)'} com sucesso.`
+                                text2: `${nome} agora está ${!currentStatus ? 'ativo(a)' : 'inativo(a)'}.`
                             });
-
                             fetchWorkers();
                         } catch (err) {
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Falha na Operação',
-                                text2: 'Ocorreu um erro ao alterar o acesso.'
-                            });
+                            Toast.show({ type: 'error', text1: 'Erro', text2: 'Falha ao alterar status.' });
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const deleteWorker = (id: string, nome: string) => {
+        Alert.alert(
+            'Remover da Equipe',
+            `Tem certeza que deseja excluir ${nome}? Esta ação não pode ser desfeita.`,
+            [
+                { text: 'Voltar', style: 'cancel' },
+                {
+                    text: 'Excluir',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/api/store/workers/${id}`);
+                            Toast.show({ type: 'success', text1: 'Removido', text2: 'Ajudante excluído da base.' });
+                            fetchWorkers();
+                        } catch (err) {
+                            Toast.show({ type: 'error', text1: 'Erro', text2: 'Não foi possível excluir.' });
                         }
                     }
                 }
@@ -86,27 +105,45 @@ export const ManageWorkerScreen = ({ navigation }: any) => {
     };
 
     const renderWorker = ({ item }: any) => (
-        <View style={styles.workerCard}>
+        <View style={[styles.workerCard, !item.ativo && styles.cardInactive]}>
             <View style={styles.workerInfo}>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{item.nome.charAt(0).toUpperCase()}</Text>
+                <View style={[styles.avatar, !item.ativo && styles.avatarInactive]}>
+                    <Text style={[styles.avatarText, !item.ativo && styles.avatarTextInactive]}>
+                        {item.nome.charAt(0).toUpperCase()}
+                    </Text>
                 </View>
                 <View>
-                    <Text style={styles.workerName}>{item.nome}</Text>
+                    <Text style={[styles.workerName, !item.ativo && styles.textInactive]}>{item.nome}</Text>
                     <Text style={styles.workerEmail}>{item.email}</Text>
                 </View>
             </View>
 
-            <TouchableOpacity
-                style={[styles.statusButton, !item.ativo && styles.statusButtonInactive]}
-                onPress={() => toggleWorkerStatus(item.id, item.ativo, item.nome)}
-            >
-                <Ionicons
-                    name={item.ativo ? "person-remove-outline" : "person-add-outline"}
-                    size={20}
-                    color={item.ativo ? "#FF4D4D" : "#28a745"}
-                />
-            </TouchableOpacity>
+            <View style={styles.actions}>
+                <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => navigation.navigate('EditWorker', { worker: item })}
+                >
+                    <Ionicons name="create-outline" size={20} color="#007BFF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => toggleWorkerStatus(item.id, item.ativo, item.nome)}
+                >
+                    <Ionicons
+                        name={item.ativo ? "lock-open-outline" : "lock-closed-outline"}
+                        size={20}
+                        color={item.ativo ? "#28a745" : "#FFC107"}
+                    />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => deleteWorker(item.id, item.nome)}
+                >
+                    <Ionicons name="trash-outline" size={20} color="#FF4D4D" />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 
@@ -172,5 +209,41 @@ const styles = StyleSheet.create({
     statusButton: { padding: 8, borderRadius: 10, backgroundColor: '#FFF0F0' },
     statusButtonInactive: { backgroundColor: '#E8F5E9' },
     emptyContainer: { alignItems: 'center', marginTop: 100 },
-    emptyText: { color: '#ADB5BD', marginTop: 10, fontSize: 16 }
+    emptyText: { color: '#ADB5BD', marginTop: 10, fontSize: 16 },
+
+    cardInactive: {
+        backgroundColor: '#F1F3F5',
+        elevation: 0,
+        shadowOpacity: 0,
+        borderWidth: 1,
+        borderColor: '#E9ECEF',
+    },
+
+    avatarInactive: {
+        backgroundColor: '#DEE2E6',
+    },
+
+    avatarTextInactive: {
+        color: '#ADB5BD',
+    },
+
+    textInactive: {
+        color: '#ADB5BD',
+    },
+
+    actions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    actionButton: {
+        marginLeft: 8,
+        padding: 8,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#E9ECEF',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
