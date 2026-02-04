@@ -8,7 +8,7 @@ const toggleStatusSchema = Joi.object({
     })
 });
 
-const udpateWorkerSchema = Joi.object({
+const updateWorkerSchema = Joi.object({
     nome: Joi.string().min(3).optional(),
     telefone: Joi.string().pattern(/^[0-9]+$/).min(10).optional()
 });
