@@ -17,6 +17,7 @@ import { ExploreScreen } from '../screens/client/ExploreScreen';
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { HelpCenterScreen } from '../screens/store/HelpCenterScreen';
 import { ManageWorkerScreen } from '../screens/store/ManageWorkersScreen';
+import { RegisterWorkerScreen } from '../screens/store/RegisterWorkerScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -46,6 +47,7 @@ function SettingsStackNavigator() {
       <Stack.Screen name="EditResponsibleData" component={EditResponsibleDataScreen} />
       <Stack.Screen name="EditStoreAddress" component={EditStoreAddressScreen} />
       <Stack.Screen name="ManageWorkers" component={ManageWorkerScreen} />
+      <Stack.Screen name="RegisterWorker" component={RegisterWorkerScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
     </Stack.Navigator>
@@ -86,7 +88,7 @@ export function StoreNavigator() {
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: ComponentProps<typeof Ionicons>['name'] = 'alert-circle-outline';
-          
+
           if (route.name === 'Explorar') {
             iconName = focused ? 'search' : 'search-outline';
           } else if (route.name === 'Requisições') {
@@ -96,7 +98,7 @@ export function StoreNavigator() {
           } else if (route.name === 'Conta') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
-          
+
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#28a745',
@@ -110,11 +112,11 @@ export function StoreNavigator() {
       })}
     >
       <Tab.Screen name="Explorar" component={ExploreStackNavigator} />
-      
+
       <Tab.Screen name="Requisições" component={BagStackNavigator} />
-      
+
       <Tab.Screen name="Meus Produtos" component={ProductStackNavigator} />
-      
+
       <Tab.Screen name="Conta" component={SettingsStackNavigator} />
     </Tab.Navigator>
   );
