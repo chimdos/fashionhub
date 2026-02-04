@@ -31,6 +31,38 @@ const storeController = {
             return res.status(500).json({ error: 'Erro interno ao buscar ajudantes.' });
         }
     },
+
+    async toggleWorkerStatus(req, res) {
+        try {
+            const { id } = req.params;
+
+            const { error, value } = toggleStatusSchema.validate(req.body);
+            if (error) {
+                return res.status(400).json({
+                    message: 'Dados inválidos',
+                    details: error.details
+                });
+            }
+
+            const worker = await User.findOne({
+                where: { id, loja_id: req.user.loja_id, role: 'worker' }
+            });
+
+            if (!worker) {
+                return res.status(404).json({ error: 'Ajudante não encontrado nessa loja.' });
+            }
+
+            await worker.update({ ativo: value.ativo });
+
+            return res.json({
+                message: `Ajudante ${value.ativo ? 'ativado' : 'desativado'} com sucesso!`,
+                worker: { id: worker.id, ativo: worker.ativo }
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erro ao processar solicitação.' });
+        }
+    },
 };
 
 module.exports = storeController;
