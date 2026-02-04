@@ -184,6 +184,31 @@ const storeController = {
             return res.status(500).json({ error: 'Erro interno ao atualizar ajudante.' });
         }
     },
+
+    async getOverview(req, res) {
+        try {
+            return res.json({
+                totalWorkers: 0,
+                activeBags: 0,
+                message: "Dashboard em construção"
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erro ao carregar dashboard.' });
+        }
+    },
+
+    async getDetailedRevenue(req, res) {
+        try {
+            return res.json({
+                revenue: 0,
+                message: "Dados financeiros em construção"
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erro ao carregar financeiro.' });
+        }
+    },
 };
 
 module.exports = storeController;
