@@ -14,7 +14,23 @@ const udpateWorkerSchema = Joi.object({
 });
 
 const storeController = {
+    async getWorkers(req, res) {
+        try {
+            const workers = await User.findAll({
+                where: {
+                    loja_id: req.user.loja_id,
+                    role: 'worker'
+                },
+                attributes: ['id', 'nome', 'email', 'telefone', 'ativo', 'data_cadastro'],
+                order: [['nome', 'ASC']]
+            });
 
+            return res.json(workers);
+        } catch (error) {
+            console.error('Erro ao buscar ajudantes!', error);
+            return res.status(500).json({ error: 'Erro interno ao buscar ajudantes.' });
+        }
+    },
 };
 
 module.exports = storeController;
