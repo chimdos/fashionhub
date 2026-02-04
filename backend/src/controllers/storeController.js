@@ -63,6 +63,26 @@ const storeController = {
             return res.status(500).json({ error: 'Erro ao processar solicitação.' });
         }
     },
+
+    async deleteWorker(req, res) {
+        try {
+            const { id } = req.params;
+
+            const worker = await User.findOne({
+                where: { id, loja_id: req.user.loja_id, role: 'worker' }
+            });
+
+            if (!worker) {
+                return res.status(404).json({ error: 'Ajudante não encontrado.' });
+            }
+
+            await worker.destroy();
+            return res.json({ message: 'Ajudante removido da equipe!' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erro ao remover ajudante.' });
+        }
+    },
 };
 
 module.exports = storeController;
