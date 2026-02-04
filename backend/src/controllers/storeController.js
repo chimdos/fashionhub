@@ -13,7 +13,7 @@ const udpateWorkerSchema = Joi.object({
     telefone: Joi.string().pattern(/^[0-9]+$/).min(10).optional()
 });
 
-const registerWorker = Joi.object({
+const registerWorkerSchema = Joi.object({
     nome: Joi.string().min(3).required().messages({
         'string.min': 'O nome deve ter pelo menos 3 caracteres.',
         'any.required': 'O nome é obrigatório'
