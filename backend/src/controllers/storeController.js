@@ -145,6 +145,45 @@ const storeController = {
             return res.status(500).json({ error: 'Erro ao remover ajudante.' });
         }
     },
+
+
+    async updateWorker(req, res) {
+        try {
+            const { id } = req.params;
+
+            const { error, value } = updateWorkerSchema.validate(req.body, { stripUnknown: true });
+
+            if (error) {
+                return res.status(400).json({
+                    message: 'Dados inválidos!',
+                    details: error.details
+                });
+            }
+
+            const worker = await User.findOne({
+                where: { id, loja_id: req.user.loja_id, role: 'worker' }
+            });
+
+            if (!worker) {
+                return res.status(404).json({ error: 'Ajudante não encontrado nesta loja.' });
+            }
+
+            await worker.update(value);
+
+            return res.json({
+                message: 'Dados atualizados!',
+                worker: {
+                    id: worker.id,
+                    nome: worker.nome,
+                    telefone: worker.telefone,
+                    email: worker.email
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao atualizar ajudante:', error);
+            return res.status(500).json({ error: 'Erro interno ao atualizar ajudante.' });
+        }
+    },
 };
 
 module.exports = storeController;
