@@ -16,6 +16,7 @@ import { ChangePasswordScreen } from '../screens/store/ChangePasswordScreen';
 import { ExploreScreen } from '../screens/client/ExploreScreen';
 import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { HelpCenterScreen } from '../screens/store/HelpCenterScreen';
+import { ManageWorkerScreen } from '../screens/store/ManageWorkersScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -44,6 +45,7 @@ function SettingsStackNavigator() {
       <Stack.Screen name="EditStoreProfile" component={EditStoreProfileScreen} />
       <Stack.Screen name="EditResponsibleData" component={EditResponsibleDataScreen} />
       <Stack.Screen name="EditStoreAddress" component={EditStoreAddressScreen} />
+      <Stack.Screen name="ManageWorkers" component={ManageWorkerScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
     </Stack.Navigator>
