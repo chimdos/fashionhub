@@ -262,9 +262,12 @@ const authController = {
       if (Object.keys(errors).length > 0) {
         return res.status(400).json({ errors });
       }
+
+      console.log("Enviando resposta de sucesso...");
+      return res.status(200).json({ message: 'Dados indisponíveis para cadastro.' });
     } catch (error) {
       console.error("ERRO DETALHADO NO BACKEND:", error);
-      res.status(500).json({ message: 'Erro ao verificar disponibilidade.', detalhe: error.message });
+      return res.status(500).json({ message: 'Erro ao verificar disponibilidade.', detalhe: error.message });
     }
   },
 
