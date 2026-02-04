@@ -52,6 +52,7 @@ app.use('/api/products', require('./routes/products.js'));
 app.use('/api/bags', require('./routes/bags.js'));
 app.use('/api/users', require('./routes/users.js'));
 app.use('/api/transactions', require('./routes/transactions.js'));
+app.use('/api/store', require('./routes/store'));
 
 app.get('/api', (req, res) => {
   res.json({ message: 'API do FashionHub está funcionando! 🚀' });
