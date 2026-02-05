@@ -7,7 +7,7 @@ module.exports = (sequelize) => {
       this.belongsTo(models.User, { foreignKey: 'entregador_id', as: 'entregador' });
       this.belongsTo(models.Address, { foreignKey: 'endereco_entrega_id', as: 'endereco_entrega' });
       this.hasMany(models.BagItem, { foreignKey: 'mala_id', as: 'itens' });
-      this.belongsTo(models.User, { foreignKey: 'lojista_id', as: 'lojista'});
+      this.belongsTo(models.User, { foreignKey: 'lojista_id', as: 'lojista' });
       this.belongsTo(models.Lojista, { foreignKey: 'lojista_id', as: 'perfil_lojista' });
     }
   }
@@ -81,7 +81,11 @@ module.exports = (sequelize) => {
     },
     observacoes: {
       type: DataTypes.TEXT
-    }
+    },
+    tipo: {
+      type: DataTypes.ENUM('FECHADA', 'ABERTA'),
+      defaultValue: 'FECHADA'
+    },
   }, {
     sequelize,
     modelName: 'Bag',
