@@ -31,6 +31,11 @@ const storeActionSchema = Joi.object({
   motivo: Joi.string().allow('').optional()
 });
 
+const addExtraItemSchema = Joi.object({
+  variacao_produto_id: Joi.string().uuid().required(),
+  quantidade: Joi.number().integer().positive().default(1)
+});
+
 const bagController = {
   async createBagRequest(req, res) {
     const t = await sequelize.transaction();
@@ -773,6 +778,53 @@ const bagController = {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+    }
+  },
+
+  async addExtraItem(req, res) {
+    try {
+      const { bagId } = req.params;
+      const { error, value } = addExtraItemSchema.validate(req.body);
+
+      if (error) return res.status(400).json({ message: 'Dados inválidos', details: error.details });
+
+      const bag = await Bag.findOne({
+        where: {
+          id: bagId,
+          lojista_id: req.user.loja_id,
+          status: 'PREPARANDO'
+        }
+      });
+
+      if (!bag) {
+        return res.status(404).json({ message: 'Mala não encontrada ou não está em fase de preparo.' });
+      }
+
+      const variation = await ProductVariation.findByPk(value.variacao_produto_id, {
+        include: [{ model: Product, as: 'produto' }]
+      });
+
+      if (!variation) return res.status(404).json({ message: 'Produto não encontrado.' });
+
+      const extraItem = await BagItem.create({
+        mala_id: bag.id,
+        variacao_produto_id: value.variacao_produto_id,
+        quantidade_solicitada: value.quantidade,
+        preco_unitario_mala: variation.produto.preco,
+        status_item: 'incluido',
+        is_extra: true
+      });
+
+      if (bag.tipo === 'FECHADA') {
+        await bag.update({ tipo: 'ABERTA' });
+      }
+
+      return res.json({
+        message: 'Item extra adicionado!',
+        item: extraItem
+      });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao adicionar item extra.' });
     }
   },
 };
