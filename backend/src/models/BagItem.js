@@ -3,9 +3,7 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class BagItem extends Model {
     static associate(models) {
-      // Um item da mala pertence a uma mala
       this.belongsTo(models.Bag, { foreignKey: 'mala_id', as: 'mala' });
-      // Um item da mala está associado a uma variação de produto específica
       this.belongsTo(models.ProductVariation, { foreignKey: 'variacao_produto_id', as: 'variacao_produto' });
     }
   }
@@ -26,14 +24,18 @@ module.exports = (sequelize) => {
       defaultValue: 0
     },
     status_item: {
-      type: DataTypes.ENUM('incluido', 'nao_incluido', 'COMPRADO', 'DEVOLVIDO'),
+      type: DataTypes.ENUM('INCLUIDO', 'NAO_INCLUIDO', 'COMPRADO', 'DEVOLVIDO'),
       allowNull: false,
-      defaultValue: 'nao_incluido'
+      defaultValue: 'NAO_INCLUIDO'
     },
     preco_unitario_mala: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
-    }
+    },
+    is_extra: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
   }, {
     sequelize,
     modelName: 'BagItem',
@@ -43,4 +45,3 @@ module.exports = (sequelize) => {
 
   return BagItem;
 };
-
