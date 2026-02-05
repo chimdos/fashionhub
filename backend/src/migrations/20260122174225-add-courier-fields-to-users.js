@@ -3,18 +3,28 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.addColumn('usuarios', 'veiculo', {
-      type: Sequelize.STRING,
-      allowNull: true,
-    });
-    await queryInterface.addColumn('usuarios', 'placa', {
-      type: Sequelize.STRING,
-      allowNull: true,
-    });
-    await queryInterface.addColumn('usuarios', 'cnh', {
-      type: Sequelize.STRING,
-      allowNull: true,
-    });
+    const tableInfo = await queryInterface.describeTable('usuarios');
+
+    if (!tableInfo.veiculo) {
+      await queryInterface.addColumn('usuarios', 'veiculo', {
+        type: Sequelize.STRING,
+        allowNull: true,
+      });
+    }
+
+    if (!tableInfo.placa) {
+      await queryInterface.addColumn('usuarios', 'placa', {
+        type: Sequelize.STRING,
+        allowNull: true,
+      });
+    }
+
+    if (!tableInfo.cnh) {
+      await queryInterface.addColumn('usuarios', 'cnh', {
+        type: Sequelize.STRING,
+        allowNull: true,
+      });
+    }
   },
 
   async down(queryInterface, Sequelize) {
