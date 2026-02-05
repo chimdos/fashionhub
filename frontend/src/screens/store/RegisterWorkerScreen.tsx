@@ -58,7 +58,7 @@ export const RegisterWorkerScreen = ({ navigation }: any) => {
         try {
             setLoading(true);
 
-            await api.post('/api/store/register-worker', {
+            await api.post('/api/store/workers', {
                 nome,
                 email,
                 senha,
