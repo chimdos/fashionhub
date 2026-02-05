@@ -18,6 +18,7 @@ import { ProductDetailScreen } from '../screens/client/ProductDetailScreen';
 import { HelpCenterScreen } from '../screens/store/HelpCenterScreen';
 import { ManageWorkerScreen } from '../screens/store/ManageWorkersScreen';
 import { RegisterWorkerScreen } from '../screens/store/RegisterWorkerScreen';
+import { EditWorkerScreen } from '../screens/store/EditWorkerScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -48,6 +49,7 @@ function SettingsStackNavigator() {
       <Stack.Screen name="EditStoreAddress" component={EditStoreAddressScreen} />
       <Stack.Screen name="ManageWorkers" component={ManageWorkerScreen} />
       <Stack.Screen name="RegisterWorker" component={RegisterWorkerScreen} />
+      <Stack.Screen name="EditWorker" component={EditWorkerScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
     </Stack.Navigator>
