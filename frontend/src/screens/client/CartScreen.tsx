@@ -25,6 +25,7 @@ export const CartScreen = () => {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
   const [requestedBags, setRequestedBags] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [bagType, setBagType] = useState<'FECHADA' | 'ABERTA'>('FECHADA');
 
   const [activeBagWithClient, setActiveBagWithClient] = useState<any>(null);
 
@@ -86,6 +87,7 @@ export const CartScreen = () => {
     try {
       const requestData = {
         endereco_entrega_id: "138f14a4-e4a8-4f71-a2dc-3d9a28445ae0",
+        tipo: bagType,
         itens: items.map(item => ({
           variacao_produto_id: item.id,
           quantidade: 1
@@ -293,6 +295,46 @@ export const CartScreen = () => {
                 }
               />
 
+              <View style={styles.typeSelectorContainer}>
+                <Text style={styles.typeSelectorLabel}>Estilo da sua mala</Text>
+                <View style={styles.typeOptionsRow}>
+
+                  <TouchableOpacity
+                    style={[styles.typeOption, bagType === 'FECHADA' && styles.typeOptionActive]}
+                    onPress={() => setBagType('FECHADA')}
+                  >
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={bagType === 'FECHADA' ? '#FFF' : '#888'}
+                    />
+                    <Text style={[styles.typeOptionText, bagType === 'FECHADA' && styles.typeOptionTextActive]}>
+                      Fechada
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.typeOption, bagType === 'ABERTA' && styles.typeOptionActive]}
+                    onPress={() => setBagType('ABERTA')}
+                  >
+                    <Ionicons
+                      name="bulb-outline"
+                      size={20}
+                      color={bagType === 'ABERTA' ? '#FFF' : '#888'}
+                    />
+                    <Text style={[styles.typeOptionText, bagType === 'ABERTA' && styles.typeOptionTextActive]}>
+                      Aberta
+                    </Text>
+                  </TouchableOpacity>
+
+                </View>
+                <Text style={styles.typeDescription}>
+                  {bagType === 'FECHADA'
+                    ? 'Receba apenas os itens que você selecionou.'
+                    : 'O lojista pode adicionar peças extras que combinam com seu estilo!'}
+                </Text>
+              </View>
+
               {itemCount > 0 && (
                 <View style={styles.footer}>
                   <View style={styles.totalRow}>
@@ -490,5 +532,51 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#333',
     letterSpacing: 5,
+  },
+
+  typeSelectorContainer: {
+    paddingHorizontal: 25,
+    marginBottom: 15,
+  },
+  typeSelectorLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ADB5BD',
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  typeOptionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  typeOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F1F3F5',
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  typeOptionActive: {
+    backgroundColor: '#5DADE2',
+    borderColor: '#5DADE2',
+  },
+  typeOptionText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#888',
+  },
+  typeOptionTextActive: {
+    color: '#FFF',
+  },
+  typeDescription: {
+    fontSize: 12,
+    color: '#ADB5BD',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
