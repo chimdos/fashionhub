@@ -15,6 +15,22 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
 import Toast from 'react-native-toast-message';
 
+const InputField = ({ label, icon, value, onChangeText, ...props }: any) => (
+    <View style={styles.inputWrapper}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <View style={styles.inputContainer}>
+            <Ionicons name={icon} size={20} color="#28a745" style={styles.inputIcon} />
+            <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={onChangeText}
+                placeholderTextColor="#ADB5BD"
+                {...props}
+            />
+        </View>
+    </View>
+);
+
 export const RegisterWorkerScreen = ({ navigation }: any) => {
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
@@ -69,22 +85,6 @@ export const RegisterWorkerScreen = ({ navigation }: any) => {
             setLoading(false);
         }
     };
-
-    const InputField = ({ label, icon, value, onChangeText, ...props }: any) => (
-        <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>{label}</Text>
-            <View style={styles.inputContainer}>
-                <Ionicons name={icon} size={20} color="#28a745" style={styles.inputIcon} />
-                <TextInput
-                    style={styles.input}
-                    value={value}
-                    onChangeText={onChangeText}
-                    placeholderTextColor="#ADB5BD"
-                    {...props}
-                />
-            </View>
-        </View>
-    );
 
     return (
         <SafeAreaView style={styles.container}>
