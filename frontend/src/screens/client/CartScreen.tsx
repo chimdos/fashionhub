@@ -295,52 +295,48 @@ export const CartScreen = () => {
                 }
               />
 
-              <View style={styles.typeSelectorContainer}>
-                <Text style={styles.typeSelectorLabel}>Estilo da sua mala</Text>
-                <View style={styles.typeOptionsRow}>
-
-                  <TouchableOpacity
-                    style={[styles.typeOption, bagType === 'FECHADA' && styles.typeOptionActive]}
-                    onPress={() => setBagType('FECHADA')}
-                  >
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={20}
-                      color={bagType === 'FECHADA' ? '#FFF' : '#888'}
-                    />
-                    <Text style={[styles.typeOptionText, bagType === 'FECHADA' && styles.typeOptionTextActive]}>
-                      Fechada
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.typeOption, bagType === 'ABERTA' && styles.typeOptionActive]}
-                    onPress={() => setBagType('ABERTA')}
-                  >
-                    <Ionicons
-                      name="bulb-outline"
-                      size={20}
-                      color={bagType === 'ABERTA' ? '#FFF' : '#888'}
-                    />
-                    <Text style={[styles.typeOptionText, bagType === 'ABERTA' && styles.typeOptionTextActive]}>
-                      Aberta
-                    </Text>
-                  </TouchableOpacity>
-
-                </View>
-                <Text style={styles.typeDescription}>
-                  {bagType === 'FECHADA'
-                    ? 'Receba apenas os itens que você selecionou.'
-                    : 'O lojista pode adicionar peças extras que combinam com seu estilo!'}
-                </Text>
-              </View>
-
               {itemCount > 0 && (
                 <View style={styles.footer}>
+
+                  {/* 🚀 Movemos o seletor para aqui dentro */}
+                  <View style={styles.typeSelectorContainer}>
+                    <Text style={styles.typeSelectorLabel}>Estilo da sua mala</Text>
+                    <View style={styles.typeOptionsRow}>
+                      <TouchableOpacity
+                        style={[styles.typeOption, bagType === 'FECHADA' && styles.typeOptionActive]}
+                        onPress={() => setBagType('FECHADA')}
+                      >
+                        <Ionicons
+                          name="lock-closed-outline"
+                          size={18}
+                          color={bagType === 'FECHADA' ? '#FFF' : '#888'}
+                        />
+                        <Text style={[styles.typeOptionText, bagType === 'FECHADA' && styles.typeOptionTextActive]}>
+                          Fechada
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.typeOption, bagType === 'ABERTA' && styles.typeOptionActive]}
+                        onPress={() => setBagType('ABERTA')}
+                      >
+                        <Ionicons
+                          name="bulb-outline"
+                          size={18}
+                          color={bagType === 'ABERTA' ? '#FFF' : '#888'}
+                        />
+                        <Text style={[styles.typeOptionText, bagType === 'ABERTA' && styles.typeOptionTextActive]}>
+                          Aberta
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
                   <View style={styles.totalRow}>
                     <Text style={styles.totalLabel}>Total estimado:</Text>
                     <Text style={styles.totalValue}>{formattedTotal}</Text>
                   </View>
+
                   <View style={styles.btnLightWrapper}>
                     <View style={styles.btnDarkWrapper}>
                       <TouchableOpacity
