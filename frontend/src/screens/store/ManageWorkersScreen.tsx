@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import {
     View,
     Text,
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import Toast from 'react-native-toast-message';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Worker {
     id: string;
@@ -28,9 +29,10 @@ export const ManageWorkerScreen = ({ navigation }: any) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchWorkers = async () => {
+    const fetchWorkers = async (isSilent = false) => {
         try {
-            setLoading(true);
+            if (!isSilent) setLoading(true);
+
             const response = await api.get('/api/store/workers', {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -48,9 +50,11 @@ export const ManageWorkerScreen = ({ navigation }: any) => {
         }
     };
 
-    useEffect(() => {
-        fetchWorkers();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchWorkers(true);
+        }, [])
+    );
 
     const toggleWorkerStatus = (id: string, currentStatus: boolean, nome: string) => {
         Alert.alert(
