@@ -296,7 +296,7 @@ const productController = {
   async searchStoreProducts(req, res) {
     try {
       const { search } = req.query;
-      const lojista_id = req.user.loja_id;
+      const lojista_id = req.user.userId;
 
       const products = await Product.findAll({
         where: {
