@@ -18,6 +18,7 @@ import Toast from 'react-native-toast-message';
 interface BagRequest {
   id: string;
   status: string;
+  tipo: 'ABERTA' | 'FECHADA';
   data_solicitacao: string;
   cliente: {
     nome: string;
@@ -74,6 +75,8 @@ export const StoreDashboardScreen = () => {
     const primeiraImagem = item.itens[0]?.variacao_produto?.produto?.imagens[0]?.url_imagem;
     const statusInfo = getStatusDetails(item.status);
 
+    const isAberta = item.tipo === 'ABERTA';
+
     return (
       <TouchableOpacity
         style={styles.requestCard}
@@ -91,7 +94,21 @@ export const StoreDashboardScreen = () => {
 
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Mala #{item.id.substring(0, 6).toUpperCase()}</Text>
+            <View>
+              <Text style={styles.cardTitle}>Mala #{item.id.substring(0, 6).toUpperCase()}</Text>
+
+              <View style={[styles.typeBadge, isAberta ? styles.typeAberta : styles.typeFechada]}>
+                <Ionicons
+                  name={isAberta ? "bulb-outline" : "lock-closed-outline"}
+                  size={10}
+                  color={isAberta ? "#8E44AD" : "#666"}
+                />
+                <Text style={[styles.typeBadgeText, { color: isAberta ? "#8E44AD" : "#666" }]}>
+                  {isAberta ? "MALA ABERTA" : "MALA FECHADA"}
+                </Text>
+              </View>
+            </View>
+
             <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
               <Text style={[styles.statusText, { color: statusInfo.color }]}>{item.status}</Text>
             </View>
@@ -260,4 +277,26 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 8 },
   emptyText: { fontSize: 14, color: 'gray', textAlign: 'center', lineHeight: 20 },
+
+  typeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  typeAberta: {
+    backgroundColor: '#F5EEF8',
+  },
+  typeFechada: {
+    backgroundColor: '#F1F3F5',
+  },
+  typeBadgeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    marginLeft: 3,
+    letterSpacing: 0.5,
+  },
 });
