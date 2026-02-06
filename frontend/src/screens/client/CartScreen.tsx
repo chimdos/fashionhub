@@ -134,13 +134,19 @@ export const CartScreen = () => {
     const getStatusStyle = (status: string) => {
       const key = status?.toUpperCase();
       const styles: any = {
-        'SOLICITADA': { label: 'Solicitada', color: '#F39C12', bg: '#FEF5E7' },
-        'ANALISE': { label: 'Em Análise', color: '#F39C12', bg: '#FEF5E7' },
+        'SOLICITADA': { label: 'Pendente', color: '#E67E22', bg: '#FEF5E7' },
+        'ANALISE': { label: 'Em Análise', color: '#E67E22', bg: '#FEF5E7' },
         'PREPARANDO': { label: 'Em Preparo', color: '#3498DB', bg: '#EBF5FB' },
+        'AGUARDANDO_MOTO': { label: 'Buscando Moto', color: '#8E44AD', bg: '#F5EEF8' },
+        'MOTO_A_CAMINHO_LOJA': { label: 'Moto a caminho', color: '#8E44AD', bg: '#F5EEF8' },
         'EM_ROTA_ENTREGA': { label: 'Em Rota', color: '#27AE60', bg: '#EAFAF1' },
-        'ENTREGUE': { label: 'Entregue', color: '#2ECC71', bg: '#D4EFDF' },
+        'ENTREGUE': { label: 'Com você', color: '#2ECC71', bg: '#D4EFDF' },
+        'AGUARDANDO_MOTO_DEVOLUCAO': { label: 'Aguardando Coleta', color: '#D35400', bg: '#FDF2E9' },
+        'MOTO_A_CAMINHO_COLETA': { label: 'Moto vindo buscar', color: '#D35400', bg: '#FDF2E9' },
+        'EM_ROTA_DEVOLUCAO': { label: 'Voltando à loja', color: '#A04000', bg: '#F6DDCC' },
         'FINALIZADA': { label: 'Finalizada', color: '#2C3E50', bg: '#EBEDEF' },
         'RECUSADA': { label: 'Recusada', color: '#E74C3C', bg: '#FDEDEC' },
+        'CANCELADA': { label: 'Cancelada', color: '#7F8C8D', bg: '#F2F4F4' },
       };
       return styles[key] || { label: status, color: '#7F8C8D', bg: '#F2F4F4' };
     };
