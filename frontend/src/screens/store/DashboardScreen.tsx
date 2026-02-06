@@ -66,7 +66,7 @@ export const StoreDashboardScreen = () => {
     const key = status?.toUpperCase();
 
     const styles: any = {
-      'SOLICITADA': { label: 'Nova Pedido', color: '#E67E22', bg: '#FDEBD0' },
+      'SOLICITADA': { label: 'Novo Pedido', color: '#E67E22', bg: '#FDEBD0' },
       'ANALISE': { label: 'Em Análise', color: '#E67E22', bg: '#FDEBD0' },
 
       'PREPARANDO': { label: 'Em Preparo', color: '#3498DB', bg: '#EBF5FB' },
