@@ -59,6 +59,14 @@ export const BagDetailsScreen = () => {
 
     const status = getStatusInfo(bag.status);
 
+    const getBagTypeInfo = (tipo: string) => {
+        return tipo === 'ABERTA'
+            ? { label: 'Mala Aberta', ccolor: '#8E44AD', bg: '#F5EEF8', desc: 'Esta mala pode conter sugestões extras da loja.' }
+            : { label: 'Mala Fechada', color: '#34495E', bg: '#EBEDEF', desc: 'Contém apenas os itens solicitados.' };
+    };
+
+    const bagType = getBagTypeInfo(bag.tipo);
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -74,10 +82,17 @@ export const BagDetailsScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
                 <View style={styles.statusCard}>
-                    <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
-                        <Text style={[styles.statusLabel, { color: status.color }]}>{status.label}</Text>
+                    <View style={styles.badgesRow}>
+                        <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+                            <Text style={[styles.statusLabel, { color: status.color }]}>{status.label}</Text>
+                        </View>
+
+                        <View style={[styles.statusBadge, { backgroundColor: bagType.bg, marginLeft: 8 }]}>
+                            <Text style={[styles.statusLabel, { color: bagType.color }]}>{bagType.label}</Text>
+                        </View>
                     </View>
                     <Text style={styles.bagId}>Protocolo: #{bag.id.substring(0, 8).toUpperCase()}</Text>
+                    <Text style={styles.typeDesc}>{bagType.desc}</Text>
                 </View>
 
                 <View style={styles.section}>
@@ -133,6 +148,11 @@ export const BagDetailsScreen = () => {
                             />
                             <View style={styles.itemTextContent}>
                                 <Text style={styles.itemName} numberOfLines={1}>{item.variacao_produto.produto.nome}</Text>
+                                {item.is_extra && (
+                                    <View style={styles.extraBadge}>
+                                        <Text style={styles.extraBadgeText}>SUGESTÃO</Text>
+                                    </View>
+                                )}
                                 <Text style={styles.itemDetails}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
                             </View>
                             <Text style={styles.itemPrice}>R$ {Number(item.preco_unitario_mala).toFixed(2)}</Text>
@@ -187,5 +207,26 @@ const styles = StyleSheet.create({
     itemTextContent: { flex: 1, marginLeft: 12 },
     itemName: { fontSize: 14, fontWeight: '600', color: '#333' },
     itemDetails: { fontSize: 11, color: '#999' },
-    itemPrice: { fontSize: 14, fontWeight: 'bold', color: '#333' }
+    itemPrice: { fontSize: 14, fontWeight: 'bold', color: '#333' },
+
+    badgesRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+    typeDesc: { fontSize: 11, color: '#ADB5BD', marginTop: 4, fontStyle: 'italic', textAlign: 'center' },
+
+    extraItemCard: {
+        borderColor: '#D4E6F1',
+        backgroundColor: '#FBFCFD',
+        borderStyle: 'dashed',
+    },
+    extraBadge: {
+        backgroundColor: '#8E44AD',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginLeft: 6
+    },
+    extraBadgeText: {
+        color: '#FFF',
+        fontSize: 8,
+        fontWeight: 'bold'
+    },
 });
