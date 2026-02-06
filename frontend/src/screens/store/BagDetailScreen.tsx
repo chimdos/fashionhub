@@ -136,7 +136,7 @@ export const BagDetailScreen = () => {
 
     setIsSearching(true);
     try {
-      const response = await api.get(`/api/products?search-store?search=${query}`);
+      const response = await api.get(`/api/products/search-store?search=${query}`);
 
       let data = [];
       if (Array.isArray(response.data)) {
@@ -379,7 +379,7 @@ export const BagDetailScreen = () => {
                 <ActivityIndicator style={{ marginTop: 20 }} color="#9B59B6" />
               ) : (
                 Array.isArray(searchResults) && searchResults.map((prod: any) => (
-                  prod.variacoes.map((varItem: any) => (
+                  prod.variacoes?.map((varItem: any) => (
                     <TouchableOpacity
                       key={varItem.id}
                       style={styles.searchResultItem}
