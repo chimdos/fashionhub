@@ -63,12 +63,29 @@ export const StoreDashboardScreen = () => {
   );
 
   const getStatusDetails = (status: string) => {
-    switch (status) {
-      case 'SOLICITADA': return { color: '#E67E22', bg: '#FDEBD0', icon: 'time-outline' };
-      case 'PREPARANDO': return { color: '#3498DB', bg: '#EBF5FB', icon: 'Hammer-outline' };
-      case 'ENTREGUE': return { color: '#28a745', bg: '#E9F7EF', icon: 'checkmark-circle-outline' };
-      default: return { color: '#7F8C8D', bg: '#F2F4F4', icon: 'help-circle-outline' };
-    }
+    const key = status?.toUpperCase();
+
+    const styles: any = {
+      'SOLICITADA': { label: 'Nova Pedido', color: '#E67E22', bg: '#FDEBD0' },
+      'ANALISE': { label: 'Em Análise', color: '#E67E22', bg: '#FDEBD0' },
+
+      'PREPARANDO': { label: 'Em Preparo', color: '#3498DB', bg: '#EBF5FB' },
+      'RECUSADA': { label: 'Recusada', color: '#E74C3C', bg: '#FDEDEC' },
+
+      'AGUARDANDO_MOTO': { label: 'Buscando Moto', color: '#9B59B6', bg: '#F5EEF8' },
+      'MOTO_A_CAMINHO_LOJA': { label: 'Moto vindo buscar', color: '#8E44AD', bg: '#F5EEF8' },
+      'EM_ROTA_ENTREGA': { label: 'Em Rota de Entrega', color: '#27AE60', bg: '#EAFAF1' },
+      'ENTREGUE': { label: 'Com o Cliente', color: '#2ECC71', bg: '#D4EFDF' },
+
+      'AGUARDANDO_MOTO_DEVOLUCAO': { label: 'Aguardando Coleta', color: '#D35400', bg: '#FDF2E9' },
+      'MOTO_A_CAMINHO_COLETA': { label: 'Moto indo coletar', color: '#D35400', bg: '#FDF2E9' },
+      'EM_ROTA_DEVOLUCAO': { label: 'Voltando para Loja', color: '#A04000', bg: '#F6DDCC' },
+
+      'FINALIZADA': { label: 'Finalizada', color: '#2C3E50', bg: '#EBEDEF' },
+      'CANCELADA': { label: 'Cancelada', color: '#7F8C8D', bg: '#F2F4F4' },
+    };
+
+    return styles[key] || { label: status, color: '#7F8C8D', bg: '#F2F4F4' };
   };
 
   const renderRequest = ({ item }: { item: BagRequest }) => {
@@ -110,7 +127,7 @@ export const StoreDashboardScreen = () => {
             </View>
 
             <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
-              <Text style={[styles.statusText, { color: statusInfo.color }]}>{item.status}</Text>
+              <Text style={[styles.statusText, { color: statusInfo.color }]}>{statusInfo.label.toUpperCase()}</Text>
             </View>
           </View>
 
