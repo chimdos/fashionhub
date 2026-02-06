@@ -179,7 +179,7 @@ export const CartScreen = () => {
                 <Text style={styles.historyId}>Mala #{item.id.substring(0, 8).toUpperCase()}</Text>
                 <View style={[styles.miniTypeBadge, { backgroundColor: item.tipo === 'ABERTA' ? '#F5EEF8' : '#F2F4F4' }]}>
                   <Text style={[styles.miniTypeText, { color: item.tipo === 'ABERTA' ? '#9B59B6' : '#34495E' }]}>
-                    {item.tipo === 'ABERTA' ? '✨ ABERTA' : '🔒 FECHADA'}
+                    {item.tipo === 'ABERTA' ? 'ABERTA' : 'FECHADA'}
                   </Text>
                 </View>
               </View>
