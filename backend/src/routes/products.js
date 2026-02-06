@@ -8,6 +8,8 @@ const upload = require('../config/multer');
 
 router.get('/', productController.getProducts);
 
+router.get('/search-store', authMiddleware, productController.searchStoreProducts);
+
 router.get(
   '/store/my-products',
   authMiddleware,
