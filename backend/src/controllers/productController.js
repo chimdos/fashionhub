@@ -291,7 +291,27 @@ const productController = {
       console.error('Erro ao deletar produto:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
-  }
+  },
+
+  async searchStoreProducts(req, res) {
+    try {
+      const { search } = req.query;
+      const lojista_id = req.user.loja_id;
+
+      const products = await Product.findAll({
+        where: {
+          lojista_id,
+          nome: { [Op.iLike]: `%${search}%` },
+          ativo: true
+        },
+        include: [{ model: ProductVariation, as: 'variacoes' }]
+      });
+
+      return res.json(products);
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao buscar produtos' });
+    }
+  },
 };
 
 module.exports = productController;
