@@ -131,12 +131,21 @@ export const CartScreen = () => {
   );
 
   const renderHistoryItem = ({ item }: { item: any }) => {
-    const statusColors: any = {
-      'pendente': '#F1C40F',
-      'preparando': '#5DADE2',
-      'entregue': '#2ECC71',
-      'cancelado': '#E74C3C'
+    const getStatusStyle = (status: string) => {
+      const key = status?.toUpperCase();
+      const styles: any = {
+        'SOLICITADA': { label: 'Solicitada', color: '#F39C12', bg: '#FEF5E7' },
+        'ANALISE': { label: 'Em Análise', color: '#F39C12', bg: '#FEF5E7' },
+        'PREPARANDO': { label: 'Em Preparo', color: '#3498DB', bg: '#EBF5FB' },
+        'EM_ROTA_ENTREGA': { label: 'Em Rota', color: '#27AE60', bg: '#EAFAF1' },
+        'ENTREGUE': { label: 'Entregue', color: '#2ECC71', bg: '#D4EFDF' },
+        'FINALIZADA': { label: 'Finalizada', color: '#2C3E50', bg: '#EBEDEF' },
+        'RECUSADA': { label: 'Recusada', color: '#E74C3C', bg: '#FDEDEC' },
+      };
+      return styles[key] || { label: status, color: '#7F8C8D', bg: '#F2F4F4' };
     };
+
+    const currentStatus = getStatusStyle(item.status);
 
     const rawDate = item.data_solicitacao || item.created_at || item.createdAt;
 
@@ -162,13 +171,23 @@ export const CartScreen = () => {
         <View style={styles.itemDarkWrapper}>
           <TouchableOpacity
             style={styles.historyCard}
-            onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
+            onPress={() => navigation.navigate('BagDetails', { bag: item })}
             activeOpacity={0.7}
           >
             <View style={styles.historyHeader}>
-              <Text style={styles.historyId}>Mala #{item.id.substring(0, 8).toUpperCase()}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] || '#95A5A6' }]}>
-                <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+              <View>
+                <Text style={styles.historyId}>Mala #{item.id.substring(0, 8).toUpperCase()}</Text>
+                <View style={[styles.miniTypeBadge, { backgroundColor: item.tipo === 'ABERTA' ? '#F5EEF8' : '#F2F4F4' }]}>
+                  <Text style={[styles.miniTypeText, { color: item.tipo === 'ABERTA' ? '#9B59B6' : '#34495E' }]}>
+                    {item.tipo === 'ABERTA' ? '✨ ABERTA' : '🔒 FECHADA'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={[styles.statusBadge, { backgroundColor: currentStatus.bg }]}>
+                <Text style={[styles.statusText, { color: currentStatus.color, fontSize: 10 }]}>
+                  {currentStatus.label.toUpperCase()}
+                </Text>
               </View>
             </View>
 
@@ -179,12 +198,7 @@ export const CartScreen = () => {
 
             <View style={styles.historyInfoRow}>
               <Ionicons name="shirt-outline" size={14} color="#333" />
-              <Text style={styles.historyItemsCount}> {item.itens?.length || 0} itens solicitados</Text>
-            </View>
-
-            <View style={styles.viewDetailsRow}>
-              <Text style={styles.viewDetailsText}>Ver detalhes e Token</Text>
-              <Ionicons name="chevron-forward" size={14} color="#5DADE2" />
+              <Text style={styles.historyItemsCount}> {item.itens?.length || 0} itens</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -424,7 +438,6 @@ const styles = StyleSheet.create({
   historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   historyId: { fontSize: 14, fontWeight: 'bold', color: '#555' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { color: '#FFF', fontSize: 10, fontWeight: '900' },
   historyDate: { fontSize: 13, color: '#888' },
   historyItemsCount: { fontSize: 14, color: '#333', fontWeight: '600', marginTop: 8 },
 
@@ -575,4 +588,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
   },
+  miniTypeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  miniTypeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  statusText: {
+    fontWeight: 'bold',
+  }
 });
