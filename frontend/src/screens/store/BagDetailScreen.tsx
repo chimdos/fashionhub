@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  TextInput
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +24,11 @@ export const BagDetailScreen = () => {
   const [bag, setBag] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const BASE_URL = api.defaults.baseURL;
 
@@ -121,6 +127,62 @@ export const BagDetailScreen = () => {
   const statusStyle = getStatusStyle(bag.status);
   const typeStyle = getBagTypeStyle(bag.tipo);
 
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await api.get(`/api/products?search-store?search=${query}`);
+
+      let data = [];
+      if (Array.isArray(response.data)) {
+        data = response.data;
+      } else if (response.data && Array.isArray(response.data.products)) {
+        data = response.data.products;
+      }
+
+      setSearchResults(data);
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddExtra = async (variacaoId: string) => {
+    setSubmitting(true);
+    try {
+      await api.post(`/api/bags/${bagId}/extra`, {
+        variacao_produto_id: variacaoId,
+        quantidade: 1
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Sugestão Adicionada!',
+        text2: 'O item foi incluído na mala aberta.'
+      });
+
+      setShowSearch(false);
+      setSearchQuery('');
+      setSearchResults([]);
+      fetchBagDetails();
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao adicionar',
+        text2: error.response?.data?.message || 'Tente novamente.'
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -191,20 +253,38 @@ export const BagDetailScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Itens na Mala ({bag.itens.length})</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Itens na Mala ({bag.itens.length})</Text>
+
+            {bag.tipo === 'ABERTA' && bag.status === 'PREPARANDO' && (
+              <TouchableOpacity
+                style={styles.addSuggestionBtn}
+                onPress={() => setShowSearch(true)}
+              >
+                <Ionicons name="add-circle-outline" size={16} color="#9B59B6" />
+                <Text style={styles.addSuggestionText}>Sugerir Extra</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
           {bag.itens.map((item: any) => (
-            <View key={item.id} style={styles.itemRow}>
+            <View key={item.id} style={[styles.itemRow, item.is_extra && styles.extraItemRow]}>
               <Image
-                source={{ uri: `${BASE_URL}${item.variacao_produto.produto.imagens[0]?.url_imagem}` }}
+                source={{ uri: `${BASE_URL}${item.variacao_produto.produto.images?.[0]?.url_imagem || item.variacao_produto.produto.imagens?.[0]?.url_imagem}` }}
                 style={styles.itemImage}
               />
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName} numberOfLines={1}>{item.variacao_produto.produto.nome}</Text>
-                <View style={styles.variationBadge}>
-                  <Text style={styles.variationText}>
-                    {item.variacao_produto.tamanho} • {item.variacao_produto.cor}
-                  </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.itemName} numberOfLines={1}>{item.variacao_produto.produto.nome}</Text>
+                  {item.is_extra && (
+                    <View style={styles.extraBadge}>
+                      <Text style={styles.extraBadgeText}>EXTRA</Text>
+                    </View>
+                  )}
                 </View>
+                <Text style={styles.variationText}>
+                  {item.variacao_produto.tamanho} • {item.variacao_produto.cor}
+                </Text>
                 <Text style={styles.itemPrice}>R$ {Number(item.preco_unitario_mala).toFixed(2)}</Text>
               </View>
             </View>
@@ -272,6 +352,50 @@ export const BagDetailScreen = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      {showSearch && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.searchModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Sugerir Produto Extra</Text>
+              <TouchableOpacity onPress={() => setShowSearch(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color="#999" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Nome do produto..."
+                value={searchQuery}
+                onChangeText={handleSearch}
+                autoFocus
+              />
+            </View>
+
+            <ScrollView style={{ maxHeight: 400 }}>
+              {isSearching ? (
+                <ActivityIndicator style={{ marginTop: 20 }} color="#9B59B6" />
+              ) : (
+                Array.isArray(searchResults) && searchResults.map((prod: any) => (
+                  prod.variacoes.map((varItem: any) => (
+                    <TouchableOpacity
+                      key={varItem.id}
+                      style={styles.searchResultItem}
+                      onPress={() => handleAddExtra(varItem.id)}
+                    >
+                      <Text style={styles.searchResultName}>{prod.nome}</Text>
+                      <Text style={styles.searchResultSub}>{varItem.tamanho} - {varItem.cor} (R$ {prod.preco})</Text>
+                      <Ionicons name="add" size={20} color="#9B59B6" />
+                    </TouchableOpacity>
+                  ))
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -364,4 +488,22 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     letterSpacing: 0.5,
   },
+
+  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  addSuggestionBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5EEF8', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  addSuggestionText: { color: '#9B59B6', fontSize: 12, fontWeight: 'bold', marginLeft: 5 },
+
+  extraItemRow: { borderLeftWidth: 4, borderLeftColor: '#9B59B6' },
+  extraBadge: { backgroundColor: '#9B59B6', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4, marginLeft: 8 },
+  extraBadgeText: { color: '#FFF', fontSize: 8, fontWeight: 'bold' },
+
+  modalOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', zIndex: 1000 },
+  searchModal: { backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 25, minHeight: '60%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold' },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F3F5', borderRadius: 15, paddingHorizontal: 15, height: 50 },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
+  searchResultItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F1F3F5' },
+  searchResultName: { flex: 1, fontSize: 14, fontWeight: '600' },
+  searchResultSub: { fontSize: 12, color: '#999', marginRight: 10 },
 });
