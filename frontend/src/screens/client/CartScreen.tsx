@@ -171,7 +171,7 @@ export const CartScreen = () => {
         <View style={styles.itemDarkWrapper}>
           <TouchableOpacity
             style={styles.historyCard}
-            onPress={() => navigation.navigate('BagDetails', { bag: item })}
+            onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
             activeOpacity={0.7}
           >
             <View style={styles.historyHeader}>
