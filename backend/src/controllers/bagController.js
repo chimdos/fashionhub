@@ -6,6 +6,7 @@ const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString
 
 const createBagSchema = Joi.object({
   observacoes: Joi.string().allow('').optional(),
+  tipo: Joi.string().uppercase().valid('FECHADA', 'ABERTA').default('FECHADA'),
   itens: Joi.array().items(
     Joi.object({
       variacao_produto_id: Joi.string().uuid().required(),
@@ -45,8 +46,18 @@ const bagController = {
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
       }
 
-      const { itens, observacoes } = value;
+      const { itens, observacoes, tipo } = value;
       const cliente_id = req.user.userId;
+
+      const primeiraVariacao = await ProductVariation.findByPk(itens[0].variacao_produto_id, {
+        include: { model: Product, as: 'produto' }
+      });
+
+      if (!primeiraVariacao || !primeiraVariacao.produto) {
+        throw new Error('Produto não encontrado para identificar a loja.');
+      }
+
+      const lojista_id = primeiraVariacao.produto.lojista_id;
 
       const usuario = await User.findByPk(cliente_id);
 
@@ -61,8 +72,10 @@ const bagController = {
 
       const newBag = await Bag.create({
         cliente_id,
+        lojista_id,
         endereco_entrega_id: usuario.endereco_id,
         observacoes,
+        tipo,
         status: 'SOLICITADA'
       }, { transaction: t });
 
