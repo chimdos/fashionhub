@@ -42,7 +42,8 @@ const updateProductSchema = Joi.object({
 const productController = {
   async getProducts(req, res) {
     try {
-      const { error, value } = getProductsSchema.validate(req.query);
+      const { error, value } = getProductsSchema.validate(req.query, { stripUnknown: true });
+      console.log("rota publica foi");
       if (error) {
         return res.status(400).json({ message: 'Dados de entrada inválidos', details: error.details });
       }
@@ -297,6 +298,7 @@ const productController = {
     try {
       const { search } = req.query;
       const lojista_id = req.user.userId;
+      console.log("rota do lojista foi");
 
       const products = await Product.findAll({
         where: {
