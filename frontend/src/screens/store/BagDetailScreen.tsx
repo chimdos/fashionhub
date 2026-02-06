@@ -90,14 +90,24 @@ export const BagDetailScreen = () => {
     }
   }
 
+  const getBagTypeStyle = (tipo: string) => {
+    return tipo === 'ABERTA'
+      ? { label: 'MALA ABERTA', color: '#9B59B6', bg: '#F5EEF8', icon: 'bulb-outline' as const }
+      : { label: 'MALA FECHADA', color: '#34495E', bg: '#F1F3F5', icon: 'lock-closed-outline' as const };
+  };
+
   const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'SOLICITADA': return { color: '#E67E22', bg: '#FDEBD0', label: 'Pendente' };
-      case 'PREPARANDO': return { color: '#3498DB', bg: '#EBF5FB', label: 'Em Preparo' };
-      case 'AGUARDANDO_MOTO': return { color: '#9B59B6', bg: '#F5EEF8', label: 'Aguardando Moto' };
-      case 'ENTREGUE': return { color: '#28a745', bg: '#E9F7EF', label: 'Finalizado' };
-      default: return { color: '#7F8C8D', bg: '#F2F4F4', label: status };
-    }
+    const map: any = {
+      'SOLICITADA': { label: 'Pendente', color: '#E67E22', bg: '#FDEBD0' },
+      'ANALISE': { label: 'Em Análise', color: '#E67E22', bg: '#FDEBD0' },
+      'PREPARANDO': { label: 'Em Preparo', color: '#3498DB', bg: '#EBF5FB' },
+      'AGUARDANDO_MOTO': { label: 'Buscando Moto', color: '#9B59B6', bg: '#F5EEF8' },
+      'MOTO_A_CAMINHO_LOJA': { label: 'Moto a Caminho', color: '#9B59B6', bg: '#F5EEF8' },
+      'EM_ROTA_ENTREGA': { label: 'Em Entrega', color: '#27AE60', bg: '#E9F7EF' },
+      'ENTREGUE': { label: 'Entregue', color: '#28a745', bg: '#E9F7EF' },
+      'FINALIZADA': { label: 'Finalizada', color: '#2C3E50', bg: '#ECF0F1' },
+    };
+    return map[status] || { label: status, color: '#7F8C8D', bg: '#F2F4F4' };
   };
 
   if (loading) {
@@ -109,6 +119,7 @@ export const BagDetailScreen = () => {
   }
 
   const statusStyle = getStatusStyle(bag.status);
+  const typeStyle = getBagTypeStyle(bag.tipo);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -118,8 +129,19 @@ export const BagDetailScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#333" />
         </TouchableOpacity>
+
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerSubtitle}>Mala #{bag.id.substring(0, 6).toUpperCase()}</Text>
+          <View>
+            <Text style={styles.headerSubtitle}>Mala #{bag.id.substring(0, 6).toUpperCase()}</Text>
+
+            <View style={[styles.typeBadge, { backgroundColor: typeStyle.bg }]}>
+              <Ionicons name={typeStyle.icon} size={12} color={typeStyle.color} />
+              <Text style={[styles.typeBadgeText, { color: typeStyle.color }]}>
+                {typeStyle.label}
+              </Text>
+            </View>
+          </View>
+
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusText, { color: statusStyle.color }]}>{statusStyle.label}</Text>
           </View>
@@ -326,4 +348,20 @@ const styles = StyleSheet.create({
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   btnTextReject: { color: '#FF4D4D', fontWeight: 'bold', fontSize: 15 },
   btnRow: { flexDirection: 'row', alignItems: 'center' },
+
+  typeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  typeBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginLeft: 4,
+    letterSpacing: 0.5,
+  },
 });
