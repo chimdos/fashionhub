@@ -606,6 +606,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   statusText: {
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: 900,
   }
 });
