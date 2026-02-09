@@ -115,7 +115,7 @@ const bagController = {
       const lojista_id = req.user.userId;
 
       const bags = await Bag.findAll({
-        where: { status: ['SOLICITADA', 'PREPARANDO', 'AGUARDANDO_MOTO', 'EM_ROTA_ENTREGA'] },
+        where: { lojista_id, status: ['SOLICITADA', 'PREPARANDO', 'AGUARDANDO_MOTO', 'MOTO_A_CAMINHO_LOJA', 'EM_ROTA_ENTREGA', 'ENTREGUE', 'AGUARDANDO_MOTO_DEVOLUCAO', 'MOTO_A_CAMINHO_COLETA', 'EM_ROTA_DEVOLUCAO'] },
         include: [
           { model: User, as: 'cliente', attributes: ['id', 'nome', 'email', 'telefone'] },
           { model: Address, as: 'endereco_entrega' },
