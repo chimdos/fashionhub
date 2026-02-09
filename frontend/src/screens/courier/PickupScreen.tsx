@@ -14,19 +14,20 @@ export const PickupScreen = ({ route, navigation }: any) => {
   const numero = bag?.enderecoColeta?.numero;
   const bairro = bag?.enderecoColeta?.bairro;
 
-  const enderecoColeta = rua
-    ? `${rua}, ${numero || 'S/N'} - ${bairro || ''}`
-    : 'FashionHub Central (Endereço não carregado)';
+  const isReturn = bag?.tipo === 'COLETA';
+  const nomeLocal = bag?.origem || (isReturn ? 'Casa do Cliente' : 'Loja Parceira');
+
+  const enderecoTexto = typeof bag?.enderecoColeta === 'string'
+    ? bag.enderecoColeta
+    : bag?.enderecoColeta
+      ? `${bag.enderecoColeta.rua}, ${bag.enderecoColeta.numero} - ${bag.enderecoColeta.bairro}`
+      : bag?.origem || 'Endereço não identificado';
 
   const openMaps = () => {
-    const address = bag?.enderecoColeta?.rua
-      ? `${rua}, ${numero}, ${bag?.enderecoColeta?.cidade}`
-      : bag?.origem || 'Sorocaba';
-
     const url = Platform.select({
-      ios: `maps:0,0?q=${encodeURIComponent(address)}`,
-      android: `geo:0,0?q=${encodeURIComponent(address)}`,
-    }) || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+      ios: `maps:0,0?q=${encodeURIComponent(enderecoTexto)}`,
+      android: `geo:0,0?q=${encodeURIComponent(enderecoTexto)}`,
+    }) || `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(enderecoTexto)}`;
 
     Linking.openURL(url).catch(() => {
       Toast.show({
@@ -76,8 +77,8 @@ export const PickupScreen = ({ route, navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.stepTitle}>PASSO 1: RETIRADA</Text>
-        <Text style={styles.storeName}>{nomeLoja}</Text>
-        <Text style={styles.address}>{enderecoColeta}</Text>
+        <Text style={styles.storeName}>{nomeLocal}</Text>
+        <Text style={styles.address}>{enderecoTexto}</Text>
 
         <TouchableOpacity onPress={openMaps} style={styles.mapButton}>
           <Text style={styles.mapButtonText}>ABRIR NO MAPA</Text>
