@@ -2,17 +2,22 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Linking, Platform, ActivityIndicator } from 'react-native';
 import api from '../../services/api';
 import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
 
 export const DeliveryRouteScreen = ({ route, navigation }: any) => {
   const { bag } = route.params;
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const isReturn = bag?.tipo === 'COLETA';
+
   const openMaps = () => {
     const dest = bag?.destino;
     if (!dest) return;
 
-    const addressQuery = `${dest.rua}, ${dest.numero}, ${dest.bairro}, ${dest.cidade || 'Sorocaba'}`;
+    const addressQuery = typeof dest === 'string'
+      ? dest
+      : `${dest.rua}, ${dest.numero}, ${dest.bairro}, ${dest.cidade || 'Sorocaba'}`;
 
     const url = Platform.select({
       ios: `maps:0,0?q=${encodeURIComponent(addressQuery)}`,
@@ -22,7 +27,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
     Linking.openURL(url).catch(() => {
       Toast.show({
         type: 'error',
-        text1: 'Erro no GPS 📍',
+        text1: 'Erro no GPS',
         text2: 'Não conseguimos abrir o aplicativo de mapas.'
       });
     });
@@ -31,7 +36,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
   const handleFinishDelivery = async () => {
     const bagId = bag?.bagId || bag?.id;
 
-    if (token.length < 4) {
+    if (token.length < 6) {
       return Toast.show({
         type: 'info',
         text1: 'Código do Cliente',
@@ -67,32 +72,40 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isReturn && { backgroundColor: '#2c3e50' }]}>
       <View style={styles.headerCard}>
-        <Text style={styles.stepTitle}>PASSO 2: ENTREGA AO CLIENTE</Text>
-        <Text style={styles.clientName}>{bag?.clienteNome || 'Cliente FashionHub'}</Text>
+        <Text style={[styles.stepTitle, isReturn && { color: '#E67E22' }]}>
+          {isReturn ? 'PASSO 2: DEVOLUÇÃO À LOJA' : 'PASSO 2: ENTREGA AO CLIENTE'}
+        </Text>
+
+        <Text style={styles.clientName}>
+          {isReturn ? (bag?.origem?.includes('Loja') ? 'FashionHub Central' : 'Loja de Destino') : (bag?.clienteNome || 'Cliente FashionHub')}
+        </Text>
 
         <View style={styles.addressBox}>
-          <Text style={styles.addressLabel}>Destino:</Text>
+          <Text style={styles.addressLabel}>Destino Final:</Text>
           <Text style={styles.addressText}>
-            {bag?.destino?.rua}, {bag?.destino?.numero}
+            {typeof bag?.destino === 'string' ? bag.destino : `${bag?.destino?.rua}, ${bag?.destino?.numero}`}
           </Text>
-          <Text style={styles.addressSubText}>{bag?.destino?.bairro}</Text>
+          {bag?.destino?.bairro && <Text style={styles.addressSubText}>{bag.destino.bairro}</Text>}
         </View>
 
-        <TouchableOpacity onPress={openMaps} style={styles.mapButton}>
-          <Text style={styles.mapButtonText}>INICIAR NAVEGAÇÃO GPS</Text>
+        <TouchableOpacity onPress={openMaps} style={[styles.mapButton, isReturn && { backgroundColor: '#E67E22' }]}>
+          <Ionicons name="navigate" size={18} color="#fff" />
+          <Text style={styles.mapButtonText}>ABRIR NAVEGAÇÃO GPS</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.actionArea}>
         <Text style={styles.instruction}>
-          Ao chegar, entregue a mala e peça o código ao cliente para encerrar a corrida.
+          {isReturn
+            ? 'Entregue a mala ao lojista e peça o código de recebimento dele.'
+            : 'Ao chegar, entregue a mala e peça o código ao cliente para encerrar.'}
         </Text>
 
         <TextInput
-          style={styles.input}
-          placeholder="CÓDIGO CLIENTE"
+          style={[styles.input, isReturn && { color: '#E67E22' }]}
+          placeholder="000000"
           keyboardType="numeric"
           maxLength={6}
           value={token}
@@ -100,14 +113,20 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
         />
 
         <TouchableOpacity
-          style={[styles.finishButton, (loading || token.length < 4) && styles.disabledBtn]}
+          style={[
+            styles.finishButton,
+            isReturn && { backgroundColor: '#E67E22' },
+            (loading || token.length < 6) && styles.disabledBtn
+          ]}
           onPress={handleFinishDelivery}
-          disabled={loading || token.length < 4}
+          disabled={loading || token.length < 6}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.finishText}>FINALIZAR ENTREGA</Text>
+            <Text style={styles.finishText}>
+              {isReturn ? 'FINALIZAR DEVOLUÇÃO' : 'FINALIZAR ENTREGA'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
