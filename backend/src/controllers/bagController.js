@@ -441,13 +441,25 @@ const bagController = {
         return res.status(403).json({ message: 'Você não é o entregador desta mala.' });
       }
 
-      if (bag.token_retirada !== token) {
-        return res.status(401).json({ message: 'Token de retirada inválido.' });
+      let isTokenValid = false;
+      let novoStatus = '';
+
+      if (bag.status === 'MOTO_A_CAMINHO_LOJA') {
+        isTokenValid = (bag.token_retirada === token);
+        novoStatus = 'EM_ROTA_ENTREGA';
+      }
+      else if (bag.status === 'MOTO_A_CAMINHO_COLETA') {
+        isTokenValid = (bag.token_devolucao = token);
+        novoStatus = 'EM_ROTA_DEVOLUCAO';
+      }
+
+      if (!isTokenValid) {
+        return res.status(400).json({ message: 'Token inválido!' });
       }
 
       await bag.update({
         data_retirada: new Date(),
-        status: 'EM_ROTA_ENTREGA'
+        status: novoStatus
       });
 
       // TODO: Avisar cliente via Socket que o entregador retirou a mala e está a camihno
