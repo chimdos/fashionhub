@@ -362,6 +362,26 @@ export const BagDetailScreen = () => {
           </View>
         )}
 
+        {bag.status === 'EM_ROTA_DEVOLUCAO' && (
+          <View style={styles.tokenReturnCard}>
+            <View style={styles.tokenReturnHeader}>
+              <Ionicons name="enter-outline" size={24} color="#E67E22" />
+              <Text style={styles.tokenReturnTitle}>RECEBIMENTO DE MALA</Text>
+            </View>
+
+            <View style={styles.tokenReturnBody}>
+              <Text style={styles.tokenReturnLabel}>CÓDIGO PARA O ENTREGADOR:</Text>
+              <Text style={styles.tokenReturnValue}>{bag.token_retirada}</Text>
+
+              <View style={styles.alertBox}>
+                <Ionicons name="alert-circle" size={16} color="#D35400" />
+                <Text style={styles.tokenReturnHint}>
+                  Confira os itens antes de ditar o código. Ao validar, o entregador encerra a corrida.
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -619,5 +639,58 @@ const styles = StyleSheet.create({
     color: '#9B59B6',
     fontWeight: '500',
     fontSize: 13,
+  },
+
+  tokenReturnCard: {
+    backgroundColor: '#FFF5EB',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#E67E22',
+    borderStyle: 'dashed',
+    marginBottom: 25,
+    elevation: 0,
+  },
+  tokenReturnHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  tokenReturnTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#E67E22',
+    marginLeft: 10,
+    letterSpacing: 1,
+  },
+  tokenReturnBody: {
+    alignItems: 'center',
+  },
+  tokenReturnLabel: {
+    fontSize: 11,
+    color: '#D35400',
+    fontWeight: '700',
+    marginBottom: 5,
+  },
+  tokenReturnValue: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    letterSpacing: 10,
+  },
+  alertBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FAE5D3',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  tokenReturnHint: {
+    flex: 1,
+    fontSize: 11,
+    color: '#D35400',
+    marginLeft: 8,
+    lineHeight: 16,
   },
 });
