@@ -94,9 +94,15 @@ export const StoreDashboardScreen = () => {
 
     const isAberta = item.tipo === 'ABERTA';
 
+    const isReturning = [
+      'AGUARDANDO_MOTO_DEVOLUCAO',
+      'MOTO_A_CAMINHO_COLETA',
+      'EM_ROTA_DEVOLUCAO'
+    ].includes(item.status.toUpperCase());
+
     return (
       <TouchableOpacity
-        style={styles.requestCard}
+        style={[styles.requestCard, isReturning && styles.returningCardBorder]}
         onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
         activeOpacity={0.7}
       >
@@ -112,7 +118,13 @@ export const StoreDashboardScreen = () => {
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <View>
-              <Text style={styles.cardTitle}>Mala #{item.id.substring(0, 6).toUpperCase()}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.cardTitle}>Mala #{item.id.substring(0, 6).toUpperCase()}</Text>
+
+                {isReturning && (
+                  <Ionicons name="reload-circle" size={16} color="#D35400" style={{ marginLeft: 5 }} />
+                )}
+              </View>
 
               <View style={[styles.typeBadge, isAberta ? styles.typeAberta : styles.typeFechada]}>
                 <Ionicons
@@ -315,5 +327,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 3,
     letterSpacing: 0.5,
+  },
+
+  returningCardBorder: {
+    borderLeftWidth: 5,
+    borderLeftColor: '#E67E22',
   },
 });
