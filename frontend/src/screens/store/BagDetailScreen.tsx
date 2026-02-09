@@ -312,6 +312,56 @@ export const BagDetailScreen = () => {
           </View>
         )}
 
+
+        {bag.entregador && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Entregador Responsável</Text>
+            <View style={[styles.infoCard, styles.courierCardHighlight]}>
+              <View style={styles.clientHeader}>
+                <View style={[styles.avatar, { backgroundColor: '#EBF5FB' }]}>
+                  <Ionicons name="bicycle" size={24} color="#3498DB" />
+                </View>
+                <View style={{ marginLeft: 12, flex: 1 }}>
+                  <Text style={styles.clientName}>{bag.entregador.nome}</Text>
+                  <Text style={styles.courierVehicle}>
+                    {bag.entregador.veiculo || 'Veículo não informado'}
+                  </Text>
+                </View>
+                <View style={styles.courierActiveBadge}>
+                  <View style={styles.pulseDot} />
+                  <Text style={styles.courierActiveText}>Em serviço</Text>
+                </View>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.contactRow}>
+                <TouchableOpacity style={styles.courierActionBtn} onPress={() => {/* ligação */ }}>
+                  <Ionicons name="call" size={18} color="#FFF" />
+                  <Text style={styles.courierActionText}>Ligar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.courierActionBtn, { backgroundColor: '#34495E' }]}
+                  onPress={() => {/* chat */ }}
+                >
+                  <Ionicons name="chatbubbles" size={18} color="#FFF" />
+                  <Text style={styles.courierActionText}>Mensagem</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {!bag.entregador && bag.status === 'AGUARDANDO_MOTO' && (
+          <View style={styles.section}>
+            <View style={styles.waitingCard}>
+              <ActivityIndicator size="small" color="#9B59B6" />
+              <Text style={styles.waitingText}>Procurando entregadores próximos...</Text>
+            </View>
+          </View>
+        )}
+
       </ScrollView>
 
       <View style={styles.footer}>
@@ -506,4 +556,68 @@ const styles = StyleSheet.create({
   searchResultItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F1F3F5' },
   searchResultName: { flex: 1, fontSize: 14, fontWeight: '600' },
   searchResultSub: { fontSize: 12, color: '#999', marginRight: 10 },
+
+  courierCardHighlight: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#3498DB',
+  },
+  courierVehicle: {
+    fontSize: 13,
+    color: '#7F8C8D',
+    textTransform: 'uppercase',
+    fontWeight: '500',
+  },
+  courierActiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EAF2F8',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#3498DB',
+    marginRight: 6,
+  },
+  courierActiveText: {
+    fontSize: 10,
+    color: '#3498DB',
+    fontWeight: 'bold',
+  },
+  courierActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    height: 40,
+    backgroundColor: '#3498DB',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  courierActionText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 13,
+  },
+  waitingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F4ECF7',
+    padding: 15,
+    borderRadius: 15,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: '#9B59B6',
+  },
+  waitingText: {
+    marginLeft: 10,
+    color: '#9B59B6',
+    fontWeight: '500',
+    fontSize: 13,
+  },
 });
