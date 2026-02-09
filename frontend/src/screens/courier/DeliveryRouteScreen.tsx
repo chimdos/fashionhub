@@ -52,7 +52,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
       setTimeout(() => {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'CourierDashboardScreen' }],
+          routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }],
         });
       }, 1500);
     } catch (error: any) {
