@@ -265,7 +265,6 @@ const bagController = {
       }
 
       const { itens_comprados } = value;
-      const clienteId = req.user.userId;
 
       const bag = await Bag.findOne({
         where: { id: bagId, cliente_id: req.user.userId, status: 'ENTREGUE' },
@@ -292,11 +291,13 @@ const bagController = {
         }
       }
 
-      const tokenDevolucao = Math.floor(100000 + Math.random() * 900000).toString();
+      const tokenDevolucaoCliente = Math.floor(100000 + Math.random() * 900000).toString();
+      const tokenRecebimentoLoja = Math.floor(100000 + Math.random() * 900000).toString();
 
       await bag.update({
         status: 'AGUARDANDO_MOTO_DEVOLUCAO',
-        token_devolucao: tokenDevolucao,
+        token_devolucao: tokenDevolucaoCliente,
+        token_retirada: tokenRecebimentoLoja,
         entregador_id: null,
         data_entrega_cliente: bag.data_entrega_cliente,
         data_retirada: null
@@ -311,14 +312,14 @@ const bagController = {
           origem: "Casa do Cliente",
           destino: "Loja Tal",
           valorFrete: 12.00,
-          tokenDevolucao: tokenDevolucao
+          tokenDevolucao: tokenDevolucaoCliente
         });
       }
 
       return res.json({
         message: 'Compra confirmada! Um entregador virá buscar a mala.',
         valorTotal: valorFinal,
-        tokenDevolucao: tokenDevolucao
+        tokenDevolucao: tokenDevolucaoCliente
       });
 
     } catch (error) {
