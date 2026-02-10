@@ -497,26 +497,45 @@ const bagController = {
         return res.status(403).json({ message: 'Você não é o entregador responsável por esta mala.' });
       }
 
-      if (bag.token_entrega !== token) {
+      let isTokenValid = false;
+      let novoStatus = '';
+
+      if (bag.status === 'EM_ROTA_ENTREGA') {
+        isTokenValid = (bag.token_entrega === token);
+        novoStatus = 'ENTREGUE';
+      }
+      else if (bag.status === 'EM_ROTA_DEVOLUCAO') {
+        isTokenValid = (bag.token_retirada === token);
+        novoStatus = 'FINALIZADA';
+      }
+      else {
         await t.rollback();
-        return res.status(401).json({ message: 'Token de entrega incorreto.' });
+        return res.status(400).json({ message: 'Esta mala não está em trajeto de entrega ou devolução.' });
+      }
+
+      if (!isTokenValid) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Código de confirmação incorreto!' });
       }
 
       await bag.update({
-        status: 'ENTREGUE',
-
+        status: novoStatus,
+        data_finalizacao: novoStatus === 'FINALIZADA' ? new Date() : bag.data_finalizacao
       }, { transaction: t });
 
       await t.commit();
 
       if (req.io) {
-        req.io.to(`bag_${bagId}`).emit('STATUS_UPDATED', { status: 'ENTREGUE' });
-        req.io.to(`store_${bag.lojista_id}`).emit('STATUS_UPDATED', { status: 'ENTREGUE' });
+        req.io.to(`bag_${bagId}`).emit('STATUS_UPDATED', { status: novoStatus });
+        req.io.to(`store_${bag.lojista_id}`).emit('STATUS_UPDATED', { status: novoStatus });
       }
 
-      return res.json({ message: 'Entrega finalizada com sucesso! Bom trabalho.', bag });
+      return res.json({
+        message: novoStatus === 'FINALIZADA' ? 'Mala devolvida com sucesso!' : 'Entrega concluída!',
+        status: novoStatus
+      });
     } catch (error) {
-      await t.rollback();
+      if (t) await t.rollback();
       console.error(error);
       return res.status(500).json({ error: 'Erro ao confirmar entrega.' });
     }
