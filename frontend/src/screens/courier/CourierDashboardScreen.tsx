@@ -115,17 +115,21 @@ export const CourierDashboardScreen = () => {
 
     const getStatusInfo = (status: string) => {
       switch (status) {
-        case 'AGUARDANDO_MOTO':
-          return { label: 'Ir até a Loja', color: '#f39c12' };
-        case 'AGUARDANDO_MOTO_DEVOLUCAO':
-          return { label: 'Coleta na Casa', color: '#E67E22' };
         case 'MOTO_A_CAMINHO_LOJA':
           return { label: 'Indo p/ Loja', color: '#3498db' };
-        case 'MOTO_A_CAMINHO_COLETA':
-          return { label: 'Indo p/ Cliente', color: '#9b59b6' };
         case 'EM_ROTA_ENTREGA':
+          return { label: 'Entregando ao Cliente', color: '#2ecc71' };
+
+        case 'MOTO_A_CAMINHO_COLETA':
+          return { label: 'Indo p/ Coleta', color: '#E67E22' };
         case 'EM_ROTA_DEVOLUCAO':
-          return { label: 'Em Trajeto', color: '#2ecc71' };
+          return { label: 'Devolvendo à Loja', color: '#D35400' };
+
+        case 'AGUARDANDO_MOTO':
+          return { label: 'Aguardando Retirada', color: '#f39c12' };
+        case 'AGUARDANDO_MOTO_DEVOLUCAO':
+          return { label: 'Aguardando Coleta', color: '#E67E22' };
+
         default:
           return { label: 'Em Andamento', color: '#95a5a6' };
       }
@@ -134,7 +138,7 @@ export const CourierDashboardScreen = () => {
     const statusInfo = getStatusInfo(item.status);
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, !isAvailable && isReturn && { borderLeftWidth: 5, borderLeftColor: '#E67E22' }]}>
         <View style={styles.cardHeader}>
           <View style={[styles.priceBadge, isReturn && { backgroundColor: '#FFF4ED' }]}>
             <Text style={[styles.priceLabel, isReturn && { color: '#E67E22' }]}>
@@ -185,7 +189,9 @@ export const CourierDashboardScreen = () => {
             if (isAvailable) {
               handleAccept(item);
             } else {
-              if (item.status === 'EM_ROTA_ENTREGA' || item.status === 'EM_ROTA_DEVOLUCAO') {
+              const estaNoPasso2 = ['EM_ROTA_ENTREGA', 'EM_ROTA_DEVOLUCAO'].includes(item.status);
+
+              if (estaNoPasso2) {
                 navigation.navigate('DeliveryRoute', { bag: item });
               } else {
                 navigation.navigate('PickupScreen', { bag: item });
