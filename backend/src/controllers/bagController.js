@@ -874,5 +874,42 @@ const bagController = {
       return res.status(500).json({ error: 'Erro ao adicionar item extra.' });
     }
   },
+
+  async finalizeAudit(req, res) {
+    const t = await sequelize.transaction();
+    try {
+      const { bagId } = req.params;
+      const lojista_id = req.user.userId;
+
+      const bag = await Bag.findOne({
+        where: { id: bagId, lojista_id, status: 'FINALIZADA' },
+        include: ['itens'],
+        transaction: t
+      });
+
+      if (!bag) {
+        await t.rollback();
+        return res.status(404).json({ message: 'Mala não encontrada para conferência.' });
+      }
+
+      await bag.update({ status: 'CONCLUIDA' }, { transaction: t });
+
+      for (const item of bag.itens) {
+        if (item.status_item === 'DEVOLVIDO') {
+          await ProductVariation.increment('quantidade_estoque', {
+            by: 1,
+            where: { id: item.variacao_produto_id },
+            transaction: t
+          });
+        }
+      }
+
+      await t.commit();
+      return res.json({ message: 'Mala conferida e estoque atualizado!' });
+    } catch (error) {
+      if (t) await t.rollback();
+      res.status(500).json({ error: 'Erro ao finalizar conferência.' });
+    }
+  },
 };
 module.exports = bagController;
