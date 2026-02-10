@@ -9,7 +9,7 @@ export const DeliveryRouteScreen = ({ route, navigation }: any) => {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isReturn = bag?.tipo === 'COLETA';
+  const isReturn = bag?.status === 'EM_ROTA_DEVOLUCAO' || bag?.tipo === 'COLETA';
 
   const openMaps = () => {
     const dest = bag?.destino;
