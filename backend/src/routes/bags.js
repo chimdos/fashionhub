@@ -22,5 +22,6 @@ router.post('/:bagId/confirm-pickup', authMiddleware, bagController.confirmPicku
 router.post('/:bagId/confirm-delivery', authMiddleware, bagController.confirmDelivery);
 router.put('/:bagId/confirm-return', authMiddleware, requireUserType('lojista'), bagController.confirmReturn);
 router.post('/:bagId/extra', authMiddleware, requireUserType('lojista'), bagController.addExtraItem);
+router.post('/:bagId/finalize-audit', authMiddleware, requireUserType('lojista'), bagController.finalizeAudit);
 
 module.exports = router;
