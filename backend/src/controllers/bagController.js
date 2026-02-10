@@ -892,7 +892,7 @@ const bagController = {
         return res.status(404).json({ message: 'Mala não encontrada para conferência.' });
       }
 
-      await bag.update({ status: 'CONCLUIDA' }, { transaction: t });
+      await bag.update({ status: 'CONCLUIDA', data_conclusao: new Date() }, { transaction: t });
 
       for (const item of bag.itens) {
         if (item.status_item === 'DEVOLVIDO') {
