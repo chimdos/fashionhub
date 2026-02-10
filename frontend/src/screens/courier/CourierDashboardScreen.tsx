@@ -111,24 +111,17 @@ export const CourierDashboardScreen = () => {
 
   const renderItem = ({ item }: { item: DeliveryRequest }) => {
     const isAvailable = activeTab === 'available';
-    const isReturn = item.tipo === 'COLETA';
+    const isReturn = item.tipo === 'COLETA' || item.status.includes('DEVOLUCAO') || item.status.includes('COLETA');
 
     const getStatusInfo = (status: string) => {
       switch (status) {
-        case 'MOTO_A_CAMINHO_LOJA':
-          return { label: 'Indo p/ Loja', color: '#3498db' };
-        case 'EM_ROTA_ENTREGA':
-          return { label: 'Entregando ao Cliente', color: '#2ecc71' };
+        case 'AGUARDANDO_MOTO': return { label: 'Ir até a Loja', color: '#f39c12' };
+        case 'MOTO_A_CAMINHO_LOJA': return { label: 'Indo p/ Loja', color: '#3498db' };
+        case 'EM_ROTA_ENTREGA': return { label: 'Entregando ao Cliente', color: '#2ecc71' };
 
-        case 'MOTO_A_CAMINHO_COLETA':
-          return { label: 'Indo p/ Coleta', color: '#E67E22' };
-        case 'EM_ROTA_DEVOLUCAO':
-          return { label: 'Devolvendo à Loja', color: '#D35400' };
-
-        case 'AGUARDANDO_MOTO':
-          return { label: 'Aguardando Retirada', color: '#f39c12' };
-        case 'AGUARDANDO_MOTO_DEVOLUCAO':
-          return { label: 'Aguardando Coleta', color: '#E67E22' };
+        case 'AGUARDANDO_MOTO_DEVOLUCAO': return { label: 'Coleta Pendente', color: '#E67E22' };
+        case 'MOTO_A_CAMINHO_COLETA': return { label: 'Indo p/ Cliente (Coleta)', color: '#9b59b6' };
+        case 'EM_ROTA_DEVOLUCAO': return { label: 'Levando p/ Loja', color: '#D35400' };
 
         default:
           return { label: 'Em Andamento', color: '#95a5a6' };
@@ -184,14 +177,18 @@ export const CourierDashboardScreen = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.acceptButton, isReturn && { backgroundColor: '#E67E22' }, !isAvailable && { backgroundColor: '#333' }]}
+          style={[
+            styles.acceptButton,
+            isReturn && { backgroundColor: '#E67E22' },
+            !isAvailable && { backgroundColor: '#1A1A1A' }
+          ]}
           onPress={() => {
             if (isAvailable) {
               handleAccept(item);
             } else {
-              const estaNoPasso2 = ['EM_ROTA_ENTREGA', 'EM_ROTA_DEVOLUCAO'].includes(item.status);
+              const emTrajetoFinal = ['EM_ROTA_ENTREGA', 'EM_ROTA_DEVOLUCAO'].includes(item.status);
 
-              if (estaNoPasso2) {
+              if (emTrajetoFinal) {
                 navigation.navigate('DeliveryRoute', { bag: item });
               } else {
                 navigation.navigate('PickupScreen', { bag: item });
