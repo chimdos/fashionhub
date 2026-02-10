@@ -30,6 +30,8 @@ export const BagDetailScreen = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const [checkedItems, setCheckedItems] = useState<string[]>([]);
+
   const BASE_URL = api.defaults.baseURL;
 
   useEffect(() => {
@@ -178,6 +180,25 @@ export const BagDetailScreen = () => {
         text1: 'Erro ao adicionar',
         text2: error.response?.data?.message || 'Tente novamente.'
       });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleCheck = (itemId: string) => {
+    setCheckedItems(prev =>
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
+    );
+  };
+
+  const handleFinalizeConferencia = async () => {
+    setSubmitting(true);
+    try {
+      await api.post(`/api/bags/${bagId}/finalize-audit`);
+      Toast.show({ type: 'success', text1: 'Sucesso!', text2: 'Mala encerrada e estoque atualizado.' });
+      fetchBagDetails();
+    } catch (error) {
+      Toast.show({ type: 'error', text1: 'Erro ao finalizar' });
     } finally {
       setSubmitting(false);
     }
@@ -380,6 +401,49 @@ export const BagDetailScreen = () => {
                 </Text>
               </View>
             </View>
+          </View>
+        )}
+
+        {bag.status === 'FINALIZADA' && (
+          <View style={styles.auditSection}>
+            <Text style={styles.sectionTitle}>Conferência de Itens</Text>
+
+            {bag.itens.map((item: any) => {
+              const isComprado = item.status_item === 'COMPRADO';
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.auditRow, isComprado ? styles.rowSold : (checkedItems.includes(item.id) && styles.rowChecked)]}
+                  onPress={() => !isComprado && toggleCheck(item.id)}
+                  disabled={isComprado}
+                >
+                  <View style={styles.auditInfo}>
+                    <Text style={styles.auditItemName}>{item.variacao_produto.produto.nome}</Text>
+                    <Text style={styles.auditItemSub}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
+                  </View>
+
+                  {isComprado ? (
+                    <View style={styles.soldBadge}>
+                      <Text style={styles.soldText}>VENDIDO</Text>
+                    </View>
+                  ) : (
+                    <Ionicons
+                      name={checkedItems.includes(item.id) ? "checkbox" : "square-outline"}
+                      size={28}
+                      color={checkedItems.includes(item.id) ? "#28a745" : "#CCC"}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+
+            <TouchableOpacity
+              style={[styles.finalizeAuditBtn, checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length && styles.disabledBtn]}
+              onPress={handleFinalizeConferencia}
+              disabled={submitting || checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length}
+            >
+              <Text style={styles.btnText}>ENCERRAR MALA E REPOR ESTOQUE</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -693,4 +757,24 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     lineHeight: 16,
   },
+
+  auditSection: { backgroundColor: '#FFF', padding: 20, borderRadius: 20, marginTop: 10, elevation: 3 },
+  auditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F1F3F5',
+    marginBottom: 10
+  },
+  rowSold: { backgroundColor: '#E9F7EF', borderColor: '#2ecc71', opacity: 0.8 },
+  rowChecked: { backgroundColor: '#F8F9FA', borderColor: '#28a745' },
+  auditInfo: { flex: 1 },
+  auditItemName: { fontWeight: 'bold', color: '#333' },
+  auditItemSub: { fontSize: 12, color: '#7F8C8D' },
+  soldBadge: { backgroundColor: '#28a745', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  soldText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
+  finalizeAuditBtn: { backgroundColor: '#28a745', height: 55, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginTop: 20 },
+  disabledBtn: { opacity: 0.5 },
 });
