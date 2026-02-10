@@ -32,6 +32,7 @@ module.exports = (sequelize) => {
         'MOTO_A_CAMINHO_COLETA',
         'EM_ROTA_DEVOLUCAO',
         'FINALIZADA',
+        'CONCLUIDA',
         'CANCELADA'
       ),
       defaultValue: 'SOLICITADA',
