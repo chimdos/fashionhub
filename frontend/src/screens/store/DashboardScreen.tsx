@@ -81,7 +81,8 @@ export const StoreDashboardScreen = () => {
       'MOTO_A_CAMINHO_COLETA': { label: 'Moto indo coletar', color: '#D35400', bg: '#FDF2E9' },
       'EM_ROTA_DEVOLUCAO': { label: 'Voltando para Loja', color: '#A04000', bg: '#F6DDCC' },
 
-      'FINALIZADA': { label: 'Finalizada', color: '#2C3E50', bg: '#EBEDEF' },
+      'FINALIZADA': { label: 'Conferir Retorno', color: '#27AE60', bg: '#EAFAF1' },
+      'CONCLUIDA': { label: 'Concluída', color: '#7F8C8D', bg: '#EBEDEF' },
       'CANCELADA': { label: 'Cancelada', color: '#7F8C8D', bg: '#F2F4F4' },
     };
 
@@ -100,9 +101,11 @@ export const StoreDashboardScreen = () => {
       'EM_ROTA_DEVOLUCAO'
     ].includes(item.status.toUpperCase());
 
+    const needsAudit = item.status.toUpperCase() === 'FINALIZADA';
+
     return (
       <TouchableOpacity
-        style={[styles.requestCard, isReturning && styles.returningCardBorder]}
+        style={[styles.requestCard, isReturning && styles.returningCardBorder, needsAudit && styles.auditCardBorder]}
         onPress={() => navigation.navigate('BagDetails', { bagId: item.id })}
         activeOpacity={0.7}
       >
@@ -123,6 +126,9 @@ export const StoreDashboardScreen = () => {
 
                 {isReturning && (
                   <Ionicons name="reload-circle" size={16} color="#D35400" style={{ marginLeft: 5 }} />
+                )}
+                {needsAudit && (
+                  <Ionicons name="alert-circle" size={16} color="#27AE60" style={{ marginLeft: 5 }} />
                 )}
               </View>
 
@@ -161,7 +167,7 @@ export const StoreDashboardScreen = () => {
           </View>
         </View>
         <View style={styles.arrowIcon}>
-          <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          <Ionicons name="chevron-forward" size={20} color={needsAudit ? "#27AE60" : "#CCC"} />
         </View>
       </TouchableOpacity>
     );
@@ -332,5 +338,11 @@ const styles = StyleSheet.create({
   returningCardBorder: {
     borderLeftWidth: 5,
     borderLeftColor: '#E67E22',
+  },
+
+  auditCardBorder: {
+    borderLeftWidth: 5,
+    borderLeftColor: '#27AE60',
+    backgroundColor: '#F7FCF9',
   },
 });
