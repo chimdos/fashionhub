@@ -405,45 +405,71 @@ export const BagDetailScreen = () => {
         )}
 
         {bag.status === 'FINALIZADA' && (
-          <View style={styles.auditSection}>
-            <Text style={styles.sectionTitle}>Conferência de Itens</Text>
+          <View style={styles.section}>
 
-            {bag.itens.map((item: any) => {
-              const isComprado = item.status_item === 'COMPRADO';
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[styles.auditRow, isComprado ? styles.rowSold : (checkedItems.includes(item.id) && styles.rowChecked)]}
-                  onPress={() => !isComprado && toggleCheck(item.id)}
-                  disabled={isComprado}
-                >
-                  <View style={styles.auditInfo}>
-                    <Text style={styles.auditItemName}>{item.variacao_produto.produto.nome}</Text>
-                    <Text style={styles.auditItemSub}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
-                  </View>
-
-                  {isComprado ? (
+            <Text style={styles.sectionTitle}>Itens Comprados pelo Cliente</Text>
+            <View style={styles.auditSection}>
+              {bag.itens.filter((i: any) => i.status_item === 'COMPRADO').length > 0 ? (
+                bag.itens.filter((i: any) => i.status_item === 'COMPRADO').map((item: any) => (
+                  <View key={item.id} style={[styles.auditRow, styles.rowSold]}>
+                    <View style={styles.auditInfo}>
+                      <Text style={styles.auditItemName}>{item.variacao_produto.produto.nome}</Text>
+                      <Text style={styles.auditItemSub}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
+                      <Text style={styles.itemPrice}>R$ {Number(item.preco_unitario_mala).toFixed(2)}</Text>
+                    </View>
                     <View style={styles.soldBadge}>
                       <Text style={styles.soldText}>VENDIDO</Text>
                     </View>
-                  ) : (
-                    <Ionicons
-                      name={checkedItems.includes(item.id) ? "checkbox" : "square-outline"}
-                      size={28}
-                      color={checkedItems.includes(item.id) ? "#28a745" : "#CCC"}
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>Nenhum item foi comprado.</Text>
+              )}
+            </View>
 
-            <TouchableOpacity
-              style={[styles.finalizeAuditBtn, checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length && styles.disabledBtn]}
-              onPress={handleFinalizeConferencia}
-              disabled={submitting || checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length}
-            >
-              <Text style={styles.btnText}>ENCERRAR MALA E REPOR ESTOQUE</Text>
-            </TouchableOpacity>
+            <Text style={[styles.sectionTitle, { marginTop: 25 }]}>Conferência de Devolução</Text>
+            <View style={styles.auditSection}>
+              <Text style={styles.auditInstructions}>
+                Toque nos itens abaixo para confirmar que eles voltaram na mala:
+              </Text>
+
+              {bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').map((item: any) => {
+                const isChecked = checkedItems.includes(item.id);
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.auditRow, isChecked && styles.rowChecked]}
+                    onPress={() => toggleCheck(item.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.auditInfo}>
+                      <Text style={styles.auditItemName}>{item.variacao_produto.produto.nome}</Text>
+                      <Text style={styles.auditItemSub}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
+                    </View>
+                    <Ionicons
+                      name={isChecked ? "checkbox" : "square-outline"}
+                      size={28}
+                      color={isChecked ? "#28a745" : "#CCC"}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+
+              <TouchableOpacity
+                style={[
+                  styles.finalizeAuditBtn,
+                  (checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length || submitting) && styles.disabledBtn
+                ]}
+                onPress={handleFinalizeConferencia}
+                disabled={submitting || checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length}
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.btnText}>CONFIRMAR RECEBIMENTO E REPOR ESTOQUE</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -768,8 +794,6 @@ const styles = StyleSheet.create({
     borderColor: '#F1F3F5',
     marginBottom: 10
   },
-  rowSold: { backgroundColor: '#E9F7EF', borderColor: '#2ecc71', opacity: 0.8 },
-  rowChecked: { backgroundColor: '#F8F9FA', borderColor: '#28a745' },
   auditInfo: { flex: 1 },
   auditItemName: { fontWeight: 'bold', color: '#333' },
   auditItemSub: { fontSize: 12, color: '#7F8C8D' },
@@ -777,4 +801,32 @@ const styles = StyleSheet.create({
   soldText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
   finalizeAuditBtn: { backgroundColor: '#28a745', height: 55, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginTop: 20 },
   disabledBtn: { opacity: 0.5 },
+
+  auditInstructions: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 15,
+    fontStyle: 'italic'
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#999',
+    padding: 10
+  },
+  rowSold: {
+    backgroundColor: '#E9F7EF',
+    borderColor: '#2ecc71',
+    borderStyle: 'solid',
+    opacity: 1
+  },
+  rowChecked: {
+    backgroundColor: '#F0F9F4',
+    borderColor: '#28a745',
+    borderWidth: 2
+  },
+  btnFinalizeText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14
+  }
 });
