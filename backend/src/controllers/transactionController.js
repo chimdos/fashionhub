@@ -42,6 +42,38 @@ const transactionController = {
       throw new Error('Falha na pré-autorização do cartão.');
     }
   },
+
+  async captureFinalPayment(bag, t) {
+    try {
+      const valorFinal = bag.itens
+        .filter(i => i.status_item === 'COMPRADO')
+        .reduce((acc, i) => acc + Number(i.preco_unitario_mala), 0);
+
+      const frete = 15.00;
+      const taxaSeguro = valorFinal * 0.05;
+
+      const totalACobrar = valorFinal + frete + taxaSeguro;
+
+      // gateway call
+
+      await Transaction.create({
+        cliente_id: bag.cliente_id,
+        mala_id: bag.id,
+        valor_total: totalACobrar,
+        valor_itens: valorFinal,
+        valor_frete: frete,
+        taxa_seguro: taxaSeguro,
+        status_pagamento: 'aprovado',
+        tipo: 'captura',
+        metodo_pagamento: 'cartao_credito'
+      }, { transaction: t });
+
+      return true;
+    } catch (error) {
+      console.error('Erro na captura final:', error);
+      throw new Error('Erro ao processar pagamento final.');
+    }
+  },
 };
 
 module.exports = transactionController;
