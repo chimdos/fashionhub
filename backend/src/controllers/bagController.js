@@ -923,6 +923,16 @@ const bagController = {
         return res.status(404).json({ message: 'Mala não encontrada para conferência.' });
       }
 
+      try {
+        await transactionController.captureFinalPayment(bag, t);
+      } catch (paymentError) {
+        await t.rollback();
+        return res.status(402).json({
+          message: 'Falha ao processar o pagamento final da mala.',
+          details: paymentError.message
+        });
+      }
+
       await bag.update({ status: 'CONCLUIDA', data_conclusao: new Date() }, { transaction: t });
 
       for (const item of bag.itens) {
@@ -939,6 +949,7 @@ const bagController = {
       return res.json({ message: 'Mala conferida e estoque atualizado!' });
     } catch (error) {
       if (t) await t.rollback();
+      console.error('Erro no finalize-audit:', error)
       res.status(500).json({ error: 'Erro ao finalizar conferência.' });
     }
   },
