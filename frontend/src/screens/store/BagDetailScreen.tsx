@@ -406,51 +406,55 @@ export const BagDetailScreen = () => {
 
         {bag.status === 'FINALIZADA' && (
           <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Conferência Geral da Mala</Text>
 
-            <Text style={styles.sectionTitle}>Itens Comprados pelo Cliente</Text>
-            <View style={styles.auditSection}>
-              {bag.itens.filter((i: any) => i.status_item === 'COMPRADO').length > 0 ? (
-                bag.itens.filter((i: any) => i.status_item === 'COMPRADO').map((item: any) => (
-                  <View key={item.id} style={[styles.auditRow, styles.rowSold]}>
-                    <View style={styles.auditInfo}>
-                      <Text style={styles.auditItemName}>{item.variacao_produto.produto.nome}</Text>
-                      <Text style={styles.auditItemSub}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
-                      <Text style={styles.itemPrice}>R$ {Number(item.preco_unitario_mala).toFixed(2)}</Text>
-                    </View>
-                    <View style={styles.soldBadge}>
-                      <Text style={styles.soldText}>VENDIDO</Text>
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <Text style={styles.emptyText}>Nenhum item foi comprado.</Text>
-              )}
-            </View>
-
-            <Text style={[styles.sectionTitle, { marginTop: 25 }]}>Conferência de Devolução</Text>
             <View style={styles.auditSection}>
               <Text style={styles.auditInstructions}>
-                Toque nos itens abaixo para confirmar que eles voltaram na mala:
+                Confira os itens físicos. O que o cliente comprou está marcado em verde.
               </Text>
 
-              {bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').map((item: any) => {
+              {bag.itens.map((item: any) => {
+                const isSold = item.status_item?.toUpperCase() === 'COMPRADO';
                 const isChecked = checkedItems.includes(item.id);
+
                 return (
                   <TouchableOpacity
                     key={item.id}
-                    style={[styles.auditRow, isChecked && styles.rowChecked]}
+                    style={[
+                      styles.auditRow,
+                      isSold ? styles.rowSold : (isChecked && styles.rowChecked)
+                    ]}
                     onPress={() => toggleCheck(item.id)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.auditInfo}>
                       <Text style={styles.auditItemName}>{item.variacao_produto.produto.nome}</Text>
-                      <Text style={styles.auditItemSub}>{item.variacao_produto.tamanho} • {item.variacao_produto.cor}</Text>
+                      <Text style={styles.auditItemSub}>
+                        {item.variacao_produto.tamanho} • {item.variacao_produto.cor}
+                      </Text>
+                      {isSold && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                          <Ionicons name="cash-outline" size={14} color="#28a745" />
+                          <Text style={[styles.itemPrice, { marginLeft: 4, marginTop: 0 }]}>
+                            Vendido: R$ {Number(item.preco_unitario_mala).toFixed(2)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                    <Ionicons
-                      name={isChecked ? "checkbox" : "square-outline"}
-                      size={28}
-                      color={isChecked ? "#28a745" : "#CCC"}
-                    />
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      {isSold && (
+                        <View style={[styles.soldBadge, { marginRight: 10 }]}>
+                          <Text style={styles.soldText}>PAGO</Text>
+                        </View>
+                      )}
+
+                      <Ionicons
+                        name={isChecked ? "checkbox" : "square-outline"}
+                        size={28}
+                        color={isChecked ? "#28a745" : "#CCC"}
+                      />
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -458,15 +462,15 @@ export const BagDetailScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.finalizeAuditBtn,
-                  (checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length || submitting) && styles.disabledBtn
+                  (checkedItems.length < bag.itens.filter((i: any) => i.status_item?.toUpperCase() !== 'COMPRADO').length || submitting) && styles.disabledBtn
                 ]}
                 onPress={handleFinalizeConferencia}
-                disabled={submitting || checkedItems.length < bag.itens.filter((i: any) => i.status_item === 'DEVOLVIDO').length}
+                disabled={submitting || checkedItems.length < bag.itens.filter((i: any) => i.status_item?.toUpperCase() !== 'COMPRADO').length}
               >
                 {submitting ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.btnText}>CONFIRMAR RECEBIMENTO E REPOR ESTOQUE</Text>
+                  <Text style={styles.btnText}>ENCERRAR MALA E ATUALIZAR ESTOQUE</Text>
                 )}
               </TouchableOpacity>
             </View>
