@@ -1,6 +1,7 @@
 const { Bag, BagItem, Product, ProductVariation, ProductImage, User, Address, sequelize } = require('../models');
 const Joi = require('joi');
 const { Op } = require('sequelize');
+const transactionController = require('./transactionController');
 
 const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -171,45 +172,65 @@ const bagController = {
 
   async updateStatusByStore(req, res) {
     const { bagId } = req.params;
-
     const { error, value } = storeActionSchema.validate(req.body);
     if (error) return res.status(400).json({ message: 'Entrada inválida', details: error.details });
 
     const { action, motivo } = value;
 
+    const t = await sequelize.transaction();
+
     try {
-      const bag = await Bag.findByPk(bagId);
-      if (!bag) return res.status(404).json({ message: 'Mala não encontrada' });
+      const bag = await Bag.findByPk(bagId, { transaction: t });
+      if (!bag) {
+        await t.rollback();
+        return res.status(404).json({ message: 'Mala não encontrada' });
+      }
 
       if (action === 'RECUSAR') {
-        if (!motivo) return res.status(400).json({ message: 'Motivo é obrigatório ao recusar.' });
+        if (!motivo) {
+          await t.rollback();
+          return res.status(400).json({ message: 'Motivo é obrigatório ao recusar.' });
+        }
 
         await bag.update({
           status: 'RECUSADA',
           motivo_recusa: motivo
-        });
+        }, { transaction: t });
 
-        // TODO: Notificar cliente (push notification)
+        await t.commit();
         return res.json({ message: 'Pedido recusado.', bag });
       }
 
       if (action === 'ACEITAR') {
-        const tokenRetirada = generateToken();
-        const tokenEntrega = generateToken();
+        try {
+          await transactionController.authorizePayment(bag, bag.cliente_id, t);
 
-        await bag.update({
-          status: 'PREPARANDO',
-          token_retirada: tokenRetirada,
-          token_entrega: tokenEntrega
-        });
+          const tokenRetirada = generateToken();
+          const tokenEntrega = generateToken();
 
-        // TODO: Notificar cliente ("Sua mala já está sendo preparada")
-        return res.json({
-          message: 'Pedido aceito. Inicie o preparo',
-          tokens: { retirada: tokenRetirada }
-        });
+          await bag.update({
+            status: 'PREPARANDO',
+            token_retirada: tokenRetirada,
+            token_entrega: tokenEntrega
+          }, { transaction: t });
+
+          await t.commit();
+
+          return res.json({
+            message: 'Pagamento autorizado e pedido aceito. Inicie o preparo',
+            tokens: { retirada: tokenRetirada }
+          });
+
+        } catch (payError) {
+          await t.rollback();
+          return res.status(402).json({
+            message: 'Pagamento recusado: O cliente não possui saldo ou o cartão é inválido.',
+            details: payError.message
+          });
+        }
       }
     } catch (error) {
+      if (t) await t.rollback();
       console.error(error);
       return res.status(500).json({ error: 'Erro ao processar ação do lojista.' });
     }
