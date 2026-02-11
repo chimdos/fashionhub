@@ -592,9 +592,12 @@ const bagController = {
             as: 'itens',
             attributes: [
               'id',
+              'mala_id',
+              'variacao_produto_id',
+              'quantidade_solicitada',
+              'quantidade_incluida',
               'status_item',
               'preco_unitario_mala',
-              'quantidade',
               'is_extra'
             ],
             include: [{
