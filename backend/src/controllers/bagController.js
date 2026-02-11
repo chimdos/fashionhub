@@ -348,9 +348,9 @@ const bagController = {
       const stockUpdates = [];
 
       for (const item of bag.itens) {
-        if (item.status_item === 'comprado') {
+        if (item.status_item === 'COMPRADO') {
           valor_total += parseFloat(item.preco_unitario_mala);
-        } else if (item.status_item === 'devolvido') {
+        } else if (item.status_item === 'DEVOLVIDO') {
           stockUpdates.push(
             ProductVariation.increment(
               { quantidade_estoque: item.quantidade_solicitada },
@@ -590,6 +590,13 @@ const bagController = {
           {
             model: BagItem,
             as: 'itens',
+            attributes: [
+              'id',
+              'status_item',
+              'preco_unitario_mala',
+              'quantidade',
+              'is_extra'
+            ],
             include: [{
               model: ProductVariation,
               as: 'variacao_produto',
