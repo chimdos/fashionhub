@@ -19,7 +19,18 @@ module.exports = (sequelize) => {
       type: DataTypes.ENUM('pendente', 'processando', 'aprovado', 'recusado', 'estornado'),
       allowNull: false
     },
-    metodo_pagamento: { type: DataTypes.STRING, allowNull: false }
+    metodo_pagamento: { type: DataTypes.STRING, allowNull: false },
+    tipo: {
+      type: DataTypes.ENUM('autorizacao', 'captura', 'estorno'),
+      allowNull: false
+    },
+    gateway_id: { type: DataTypes.STRING },
+    valor_itens: { type: DataTypes.DECIMAL(10, 2) },
+    valor_frete: { type: DataTypes.DECIMAL(10, 2) },
+    taxa_seguro: { type: DataTypes.DECIMAL(10, 2) },
+    taxa_plataforma: { type: DataTypes.DECIMAL(10, 2) },
+    valor_entregador: { type: DataTypes.DECIMAL(10, 2) },
+    valor_lojista: { type: DataTypes.DECIMAL(10, 2) },
   }, {
     sequelize,
     modelName: 'Transaction',
