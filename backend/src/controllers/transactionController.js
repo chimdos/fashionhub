@@ -1,4 +1,8 @@
 const { Transaction, User, Bag, sequelize } = require('../models');
+const { Payment, MercadoPagoConfig } = require('mercadopago');
+
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+const payment = new Payment(client);
 
 const transactionController = {
   async getUserTransactions(req, res) {
@@ -22,9 +26,28 @@ const transactionController = {
 
   async authorizePayment(bag, cliente_id, t) {
     try {
+      const user = await User.findByPk(cliente_id, {
+        attributes: ['email'],
+        transaction: t
+      });
+
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
       const valorCaucao = 50.00;
 
-      // api do gateway
+      const body = {
+        transaction_amount: valorCaucao,
+        description: `Caução Mala #${bag.id} - Fashion Hub`,
+        payment_method_id: 'pix',
+        payer: {
+          email: user.email,
+        },
+        notification_url: "https://fashionhub.com/webhooks/payments",
+      };
+
+      const result = await payment.create({ body });
 
       const transaction = await Transaction.create({
         cliente_id,
@@ -32,14 +55,18 @@ const transactionController = {
         valor_total: valorCaucao,
         status_pagamento: 'processando',
         tipo: 'autorizacao',
-        metodo_pagamento: 'cartao_credito',
-        gateway_id: 're_123456'
+        metodo_pagamento: 'pix',
+        gateway_id: result.id
       }, { transaction: t });
 
-      return transaction;
+      return {
+        transaction,
+        qr_code: result.point_of_interaction.transaction_data.qr_code_base64,
+        qr_code_copy: result.point_of_interaction.transaction_data.qr_code
+      };
     } catch (error) {
       console.error('Erro na autorização:', error);
-      throw new Error('Falha na pré-autorização do cartão.');
+      throw new Error('Falha ao gerar pagamento via Pix.');
     }
   },
 
