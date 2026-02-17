@@ -5,6 +5,33 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 const payment = new Payment(client);
 
 const transactionController = {
+  async initiatePayment(req, res) {
+    const t = await sequelize.transaction();
+    try {
+      const { bag_id } = req.body;
+      const cliente_id = req.user.userId;
+
+      const bag = await Bag.findByPk(bag_id);
+      if (!bag) {
+        await t.rollback();
+        return res.status(404).json({ message: 'Mala não encontrada.' });
+      }
+
+      const result = await transactionController.authorizePayment(bag, cliente_id, t);
+
+      await t.commit();
+
+      res.status(200).json({
+        message: 'Pagamento Pix gerado com sucesso.',
+        ...result
+      });
+    } catch (error) {
+      if (t) await t.rollback();
+      console.error('Erro ao iniciar pagamento:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   async getUserTransactions(req, res) {
     try {
       const cliente_id = req.user.userId;
