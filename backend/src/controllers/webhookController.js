@@ -1,26 +1,39 @@
 const { Transaction, Bag, sequelize } = require('../models');
+const { Payment, MercadoPagoConfig } = require('mercadopago');
+
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+const payment = new Payment(client);
 
 const webhookController = {
     async handle(req, res) {
-        const event = req.body;
+        const { action, data } = req.body;
+
+        if (action !== 'payment.created' && action !== 'payment.updated') {
+            return res.status(200).send('OK');
+        }
+
+        const paymentId = data?.id;
+        if (!paymentId) {
+            return res.status(400).send('ID do pagamento não encontrado');
+        }
 
         const t = await sequelize.transaction();
 
         try {
-            const gatewayId = event.data?.id || event.id;
-            const eventType = event.type || event.action;
+            const mpPayment = await payment.get({ id: paymentId });
+            const mpStatus = mpPayment.status;
 
             const transaction = await Transaction.findOne({
-                where: { gateway_id: gatewayId }
+                where: { gateway_id: paymentId.toString() }
             });
 
             if (!transaction) {
-                return res.status(404).json({ message: 'Transação não encontrada' });
+                await t.rollback();
+                return res.status(404).send('Transação não localizada no Fashion Hub');
             }
 
-            switch (eventType) {
-                case 'payment_intent.succeeded':
-                case 'payment.approved':
+            switch (mpStatus) {
+                case 'approved':
                     await transaction.update({ status_pagamento: 'aprovado' }, { transaction: t });
 
                     await Bag.update(
@@ -29,24 +42,29 @@ const webhookController = {
                     );
                     break;
 
-                case 'payment_intent.payment_falied':
-                case 'payment.rejected':
+                case 'rejected':
+                case 'cancelled':
                     await transaction.update({ status_pagamento: 'falhou' }, { transaction: t });
                     break;
 
+                case 'pending':
+                case 'in_process':
+                    await transaction.update({ status_pagamento: 'processando' }, { transaction: t });
+                    break;
+
                 default:
-                    console.log(`Evento não monitorado: ${EventType}`);
+                    console.log(`Status não mapeado: ${mpStatus}`);
             }
 
             await t.commit();
+            res.status(200).send('Webhook processado');
 
-            res.status(200).send('Webhook processado com sucesso');
         } catch (error) {
-            await t.rollback();
-            console.error('Erro no processamento do webhook:', error);
-            res.status(500).send('Erro interno');
+            if (t) await t.rollback();
+            console.error('Erro crítico no processamento do webhook:', error);
+            res.status(500).send('Erro interno no servidor');
         }
     }
 };
 
-module.exports = webhookController
+module.exports = webhookController;
