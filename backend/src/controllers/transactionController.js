@@ -44,7 +44,7 @@ const transactionController = {
         payer: {
           email: user.email,
         },
-        notification_url: "https://fashionhub.com/webhooks/payments",
+        notification_url: "https://unanswerable-flawiest-junko.ngrok-free.dev",
       };
 
       const result = await payment.create({ body });
