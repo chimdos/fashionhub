@@ -17,4 +17,14 @@ router.post(
   transactionController.initiatePayment
 );
 
+router.get('/debug-ids', async (req, res) => {
+  const { User, Bag, Loja } = require('../models');
+  
+  const usuarios = await User.findAll({ attributes: ['id', 'nome', 'email'] });
+  const malas = await Bag.findAll({ attributes: ['id', 'status'] });
+  const lojas = await Loja.findAll({ attributes: ['id', 'nome_loja'] });
+
+  res.json({ usuarios, malas, lojas });
+});
+
 module.exports = router;
