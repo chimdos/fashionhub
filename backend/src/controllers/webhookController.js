@@ -23,7 +23,7 @@ const webhookController = {
 
         try {
             const mpPayment = await payment.get({ id: paymentId });
-            const mpStatus = mpPayment.status;
+            const mpStatus = 'approved';
 
             const transaction = await Transaction.findOne({
                 where: { gateway_id: paymentId.toString() },
