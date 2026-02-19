@@ -5,3 +5,5 @@ npm-debug.log*
 
 uploads/*
 !uploads/.gitkeep
+
+api_tests.http
