@@ -26,7 +26,8 @@ const webhookController = {
             const mpStatus = mpPayment.status;
 
             const transaction = await Transaction.findOne({
-                where: { gateway_id: paymentId.toString() }
+                where: { gateway_id: paymentId.toString() },
+                include: [{ model: Bag, as: 'mala' }]
             });
 
             if (!transaction) {
@@ -38,10 +39,16 @@ const webhookController = {
                 case 'approved':
                     await transaction.update({ status_pagamento: 'aprovado' }, { transaction: t });
 
-                    await Bag.update(
-                        { status_mala: 'PAGO' },
-                        { where: { id: transaction.mala_id }, transaction: t }
-                    );
+                    const tokenEntrega = generateToken();
+                    const tokenRetirada = generateToken();
+
+                    if (transaction.mala) {
+                        await transaction.mala.update({
+                            status: 'PREPARANDO',
+                            token_entrega: tokenEntrega,
+                            token_retirada: tokenRetirada
+                        }, { transaction: t });
+                    }
                     break;
 
                 case 'rejected':
@@ -50,21 +57,17 @@ const webhookController = {
                     break;
 
                 case 'pending':
-                case 'in_process':
                     await transaction.update({ status_pagamento: 'processando' }, { transaction: t });
                     break;
-
-                default:
-                    console.log(`Status não mapeado: ${mpStatus}`);
             }
 
             await t.commit();
+            console.log(`[Webhook] Pagamento ${paymentId} processado como ${mpStatus}`);
             res.status(200).send('Webhook processado');
-
         } catch (error) {
             if (t) await t.rollback();
-            console.error('Erro crítico no processamento do webhook:', error);
-            res.status(500).send('Erro interno no servidor');
+            console.error('Erro crítico no  webhook:', error);
+            res.status(500).send('Erro interno');
         }
     }
 };
