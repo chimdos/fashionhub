@@ -5,6 +5,7 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     const lojistaId = '91634c2c-087c-4d8c-b0ba-84089480b497';
     const clienteId = '46bd0d2c-dfe7-4dc4-a098-e2841faee8e4';
+
     const produtoId = uuidv4();
     const variacaoId = uuidv4();
     const malaId = uuidv4();
@@ -14,18 +15,18 @@ module.exports = {
       nome: 'Camiseta Teste Fashion Hub',
       descricao: 'Produto para validar fluxo de pagamento',
       preco: 100.00,
+      categoria: 'TESTE',
       lojista_id: lojistaId,
-      categoria_id: null,
-      data_cadastro: new Date()
+      data_cadastro: new Date(),
+      ativo: true
     }]);
 
-    await queryInterface.bulkInsert('variacoes_produtos', [{
+    await queryInterface.bulkInsert('variacoes_produto', [{
       id: variacaoId,
       produto_id: produtoId,
       tamanho: 'G',
       cor: 'Preto',
-      quantidade_estoque: 10,
-      data_cadastro: new Date()
+      quantidade_estoque: 10
     }]);
 
     await queryInterface.bulkInsert('malas', [{
@@ -53,7 +54,7 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     await queryInterface.bulkDelete('itens_mala', null, {});
     await queryInterface.bulkDelete('malas', null, {});
-    await queryInterface.bulkDelete('variacoes_produtos', null, {});
+    await queryInterface.bulkDelete('variacoes_produto', null, {});
     await queryInterface.bulkDelete('produtos', null, {});
   }
 };
