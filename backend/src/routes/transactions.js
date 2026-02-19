@@ -21,7 +21,7 @@ router.get('/debug-ids', async (req, res) => {
   const { User, Bag, Loja, BagItem, Product, ProductVariation } = require('../models');
 
   const usuarios = await User.findAll({ attributes: ['id', 'nome', 'email'] });
-  const malas = await Bag.findAll({ attributes: ['id', 'status'] });
+  const malas = await Bag.findAll();
   const lojas = await Loja.findAll({ attributes: ['id', 'nome_loja'] });
   const produtos = await Product.findAll({ attributes: ['id', 'nome', 'preco'] });
   const variacoes = await ProductVariation.findAll({ attributes: ['id', 'produto_id', 'tamanho', 'cor'] });
