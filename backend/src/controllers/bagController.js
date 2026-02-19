@@ -602,6 +602,8 @@ const bagController = {
   async getBagById(req, res) {
     try {
       const { bagId } = req.params;
+      const userType = req.user.tipo_usuario;
+
       const bag = await Bag.findByPk(bagId, {
         include: [
           { model: User, as: 'cliente', attributes: ['id', 'nome', 'email', 'telefone'] },
@@ -641,6 +643,19 @@ const bagController = {
       });
 
       if (!bag) return res.status(404).json({ message: 'Mala não encontrada.' });
+
+      const bagData = bag.toJSON();
+
+      if (userType === 'lojista') {
+        delete bagData.token_entrega;
+        delete bagData.token_devolucao;
+      } else if (userType === 'cliente') {
+        delete bagData.token_retirada;
+      } else if (userType === 'entregador') {
+        delete bagData.token_entrega;
+        delete bagData.token_devolucao;
+        delete bagData.token_retirada;
+      }
 
       if (bag.cliente_id !== req.user.userId && req.user.tipo_usuario !== 'lojista') {
         return res.status(403).json({ message: 'Você não tem permissão para acessar esta mala.' });
