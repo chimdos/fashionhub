@@ -95,7 +95,7 @@ const bagController = {
           variacao_produto_id: item.variacao_produto_id,
           quantidade_solicitada: item.quantidade,
           preco_unitario_mala: variation.produto.preco,
-          status_item: 'incluido'
+          status_item: 'INCLUIDO'
         };
       }));
 
@@ -916,7 +916,7 @@ const bagController = {
         variacao_produto_id: value.variacao_produto_id,
         quantidade_solicitada: value.quantidade,
         preco_unitario_mala: variation.produto.preco,
-        status_item: 'incluido',
+        status_item: 'INCLUIDO',
         is_extra: true
       });
 
