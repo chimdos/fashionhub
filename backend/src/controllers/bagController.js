@@ -686,7 +686,7 @@ const bagController = {
         include: [
           { model: Address, as: 'endereco_entrega' },
           { model: User, as: 'cliente', attributes: ['nome', 'telefone'] },
-          { model: User, as: 'lojista', attributes: ['nome'] }
+          { model: User, as: 'lojista', attributes: ['nome'], include: [{ model: Lojista, as: 'lojista' }] }
         ],
         order: [['data_solicitacao', 'DESC']],
       });
@@ -694,20 +694,26 @@ const bagController = {
       const formatted = deliveries.map(delivery => {
         const isReturn = delivery.status === 'AGUARDANDO_MOTO_DEVOLUCAO';
 
-        const enderecoClienteMascarado = delivery.endereco_entrega
-          ? `${delivery.endereco_entrega.rua}, *** - ${delivery.endereco_entrega.bairro}`
-          : 'Endereço não cadastrado!';
+        const dadosLoja = delivery.lojista?.lojista;
 
-        const enderecoLojaMascarado = delivery.lojista?.endereco
-          ? `${delivery.lojista.endereco.rua}, *** - ${delivery.lojista.endereco.bairro}`
-          : `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}`;
+        const enderecoLoja = dadosLoja?.rua
+          ? `${dadosLoja.rua}, ${dadosLoja.numero} - ${dadosLoja.bairro}`
+          : `Loja: ${dadosLoja?.nome_loja || delivery.lojista?.nome || 'FashionHub'}`;
+
+        const enderecoCliente = delivery.endereco_entrega
+          ? `${delivery.endereco_entrega.rua}, ${delivery.endereco_entrega.numero} - ${delivery.endereco_entrega.bairro}`
+          : 'Endereço do cliente não encontrado';
+
+        const origemMascarada = isReturn
+          ? `${delivery.endereco_entrega?.rua}, ***`
+          : `${dadosLoja?.rua || 'Rua'}, ***`;
 
         return {
           bagId: delivery.id,
           tipo: isReturn ? 'COLETA' : 'ENTREGA',
 
-          origem: isReturn ? enderecoClienteMascarado : enderecoLojaMascarado,
-          destino: isReturn ? enderecoLojaMascarado : {
+          origem: origemMascarada,
+          destino: isReturn ? enderecoLoja : {
             rua: delivery.endereco_entrega?.rua || 'Rua não informada',
             numero: '***',
             bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
