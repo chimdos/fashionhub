@@ -694,28 +694,27 @@ const bagController = {
       const formatted = deliveries.map(delivery => {
         const isReturn = delivery.status === 'AGUARDANDO_MOTO_DEVOLUCAO';
 
-        const enderecoCliente = delivery.endereco_entrega
-          ? `${delivery.endereco_entrega.rua}, ${delivery.endereco_entrega.numero} - ${delivery.endereco_entrega.bairro}`
+        const enderecoClienteMascarado = delivery.endereco_entrega
+          ? `${delivery.endereco_entrega.rua}, *** - ${delivery.endereco_entrega.bairro}`
           : 'Endereço não cadastrado!';
 
-        const enderecoLoja = delivery.lojista?.endereco
-          ? `${delivery.lojista.endereco.rua}, ${delivery.lojista.endereco.numero} - ${delivery.lojista.endereco.bairro}`
+        const enderecoLojaMascarado = delivery.lojista?.endereco
+          ? `${delivery.lojista.endereco.rua}, *** - ${delivery.lojista.endereco.bairro}`
           : `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}`;
 
         return {
           bagId: delivery.id,
           tipo: isReturn ? 'COLETA' : 'ENTREGA',
 
-          origem: isReturn ? enderecoCliente : enderecoLoja,
-          destino: isReturn ? enderecoLoja : {
+          origem: isReturn ? enderecoClienteMascarado : enderecoLojaMascarado,
+          destino: isReturn ? enderecoLojaMascarado : {
             rua: delivery.endereco_entrega?.rua || 'Rua não informada',
-            numero: delivery.endereco_entrega?.numero || 'N/A',
+            numero: '***',
             bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
           },
           valorFrete: Number(delivery.valor_frete) || 15.00,
           distancia: delivery.distancia_estimada || "Calculando...",
-          clienteNome: delivery.cliente?.nome || 'Cliente',
-          clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível',
+          clienteNome: 'Cliente FashionHub',
           status: delivery.status
         };
       });
