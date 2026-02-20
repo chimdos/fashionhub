@@ -681,8 +681,6 @@ const bagController = {
 
   async getAvailableDeliveries(req, res) {
     try {
-      console.log("--- NOVA BUSCA DE ENTREGAS ---");
-
       const deliveries = await Bag.findAll({
         where: { status: { [Op.in]: ['AGUARDANDO_MOTO', 'AGUARDANDO_MOTO_DEVOLUCAO'] } },
         include: [
@@ -691,10 +689,7 @@ const bagController = {
           { model: User, as: 'lojista', attributes: ['nome'] }
         ],
         order: [['data_solicitacao', 'DESC']],
-        logging: console.log
       });
-
-      console.log(`Resultado: ${deliveries.length} entregas encontradas.`);
 
       const formatted = deliveries.map(delivery => {
         const isReturn = delivery.status === 'AGUARDANDO_MOTO_DEVOLUCAO';
@@ -703,21 +698,19 @@ const bagController = {
           ? `${delivery.endereco_entrega.rua}, ${delivery.endereco_entrega.numero} - ${delivery.endereco_entrega.bairro}`
           : 'Endereço não cadastrado!';
 
-        if (!delivery.endereco_entrega) {
-          console.log(`Alerta: Mala ID ${delivery.id} sem endereço.`);
-        }
+        const enderecoLoja = delivery.lojista?.endereco
+          ? `${delivery.lojista.endereco.rua}, ${delivery.lojista.endereco.numero} - ${delivery.lojista.endereco.bairro}`
+          : `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}`;
 
         return {
           bagId: delivery.id,
           tipo: isReturn ? 'COLETA' : 'ENTREGA',
 
-          origem: isReturn ? enderecoCliente : `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}`,
-          destino: isReturn ? `Loja: ${delivery.lojista?.nome || 'FashionHub Central'}` : {
+          origem: isReturn ? enderecoCliente : enderecoLoja,
+          destino: isReturn ? enderecoLoja : {
             rua: delivery.endereco_entrega?.rua || 'Rua não informada',
             numero: delivery.endereco_entrega?.numero || 'N/A',
             bairro: delivery.endereco_entrega?.bairro || 'Bairro não informado',
-            cidade: delivery.endereco_entrega?.cidade || 'Cidade não informada',
-            estado: delivery.endereco_entrega?.estado || 'Estado não informado',
           },
           valorFrete: Number(delivery.valor_frete) || 15.00,
           distancia: delivery.distancia_estimada || "Calculando...",
@@ -728,9 +721,8 @@ const bagController = {
       });
       return res.json(formatted);
     } catch (error) {
-      console.error("ERRO CRÍTICO NO BACKEND:", error);
       return res.status(500).json({
-        message: 'Erro interno no servidor',
+        message: 'Erro ao buscar entregas',
         error: error.message
       });
     }
