@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity, Alert,
+  View, Text, StyleSheet, TextInput, TouchableOpacity,
   ActivityIndicator, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import Toast from 'react-native-toast-message';
 
 export const BecomeCourierScreen = () => {
   const navigation = useNavigation<any>();
@@ -19,7 +20,11 @@ export const BecomeCourierScreen = () => {
 
   const handleSubmit = async () => {
     if (!veiculo || !placa || !cnh) {
-      Alert.alert('Atenção', 'Por favor, preencha todos os dados do veículo e habilitação.');
+      Toast.show({
+        type: 'info',
+        text1: 'Atenção',
+        text2: 'Por favor, preencha todos os dados do veículo e habilitação.'
+      });
       return;
     }
 
@@ -36,14 +41,22 @@ export const BecomeCourierScreen = () => {
       if (updatedUser && newToken) {
         await updateSession(updatedUser, newToken);
 
-        Alert.alert(
-          'Sucesso!',
-          'Agora você é um entregador parceiro!',
-          [{ text: 'Começar', onPress: () => { } }]
-        );
+        Toast.show({
+          type: 'success',
+          text1: 'Sucesso!',
+          text2: 'Agora você é um entregador parceiro!'
+        });
+
+        setTimeout(() => {
+          navigation.goBack();
+        }, 2000);
       }
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.message || 'Falha ao processar cadastro.');
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no Cadastro',
+        text2: error.response?.data?.message || 'Falha ao processar cadastro.'
+      });
     } finally {
       setLoading(false);
     }
