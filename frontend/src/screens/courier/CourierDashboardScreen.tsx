@@ -111,7 +111,7 @@ export const CourierDashboardScreen = () => {
 
   const renderItem = ({ item }: { item: DeliveryRequest }) => {
     const isAvailable = activeTab === 'available';
-    const isReturn = item.tipo === 'COLETA' || item.status.includes('DEVOLUCAO') || item.status.includes('COLETA');
+    const isReturn = item.tipo === 'COLETA' || item.status?.includes('DEVOLUCAO') || item.status?.includes('COLETA');
 
     const getStatusInfo = (status: string) => {
       switch (status) {
