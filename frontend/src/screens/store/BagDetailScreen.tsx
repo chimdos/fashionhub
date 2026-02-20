@@ -727,6 +727,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderWidth: 1,
     borderColor: '#9B59B6',
+    marginTop: 20,
   },
   waitingText: {
     marginLeft: 10,
