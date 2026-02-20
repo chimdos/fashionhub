@@ -267,7 +267,7 @@ export const CourierDashboardScreen = () => {
             <View style={styles.infoAlert}>
               <Ionicons name="information-circle" size={18} color="#004085" />
               <Text style={styles.infoAlertText}>
-                Toque em um card para **aceitar a entrega** automaticamente.
+                Toque em um card para aceitar a entrega automaticamente.
               </Text>
             </View>
 
