@@ -164,14 +164,22 @@ export const CourierDashboardScreen = () => {
           <View style={styles.routeDetails}>
             <View style={styles.addressBlock}>
               <Text style={styles.addressLabel}>{isReturn ? 'RETIRAR COM CLIENTE' : 'RETIRAR NA LOJA'}</Text>
-              <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
+                {isAvailable && (
+                  <Ionicons name="lock-closed" size={12} color="#ADB5BD" style={{ marginLeft: 5 }} />
+                )}
+              </View>
             </View>
 
             <View style={styles.addressBlock}>
               <Text style={styles.addressLabel}>{isReturn ? 'ENTREGAR NA LOJA' : 'ENTREGAR AO CLIENTE'}</Text>
-              <Text style={styles.addressText} numberOfLines={1}>
-                {typeof item.destino === 'string' ? item.destino : `${item.destino?.rua}, ${item.destino?.numero}`}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.addressText} numberOfLines={1}>{item.destino}</Text>
+                {isAvailable && (
+                  <Ionicons name="lock-closed" size={12} color="#ADB5BD" style={{ marginLeft: 5 }} />
+                )}
+              </View>
             </View>
           </View>
         </View>
