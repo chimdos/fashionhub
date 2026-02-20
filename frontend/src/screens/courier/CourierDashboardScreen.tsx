@@ -165,10 +165,10 @@ export const CourierDashboardScreen = () => {
             <View style={styles.addressBlock}>
               <Text style={styles.addressLabel}>{isReturn ? 'RETIRAR COM CLIENTE' : 'RETIRAR NA LOJA'}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.addressText} numberOfLines={1}>{item.origem}</Text>
-                {isAvailable && (
-                  <Ionicons name="lock-closed" size={12} color="#ADB5BD" style={{ marginLeft: 5 }} />
-                )}
+                <Text style={styles.addressText} numberOfLines={1}>
+                  {item.origem}
+                </Text>
+                {isAvailable && <Ionicons name="lock-closed" size={12} color="#ADB5BD" style={{ marginLeft: 5 }} />}
               </View>
             </View>
 
