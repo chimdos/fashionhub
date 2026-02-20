@@ -891,7 +891,7 @@ const bagController = {
 
       if (error) return res.status(400).json({ message: 'Dados inválidos', details: error.details });
 
-      const lojista_id = req.user.loja_id || req.user.userId;
+      const lojista_id = req.user.userId;
 
       const bag = await Bag.findOne({
         where: {
