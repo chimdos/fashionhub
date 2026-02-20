@@ -498,7 +498,13 @@ const bagController = {
         });
       }
 
-      return res.json({ message: 'Retirada confirmada! Inicie a viagem para o cliente.', bag });
+      const responseData = bag.toJSON();
+
+      delete responseData.token_retirada;
+      delete responseData.token_entrega;
+      delete responseData.token_devolucao;
+
+      return res.json({ message: 'Retirada confirmada! Inicie a viagem para o cliente.', bag: responseData });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao confirmar retirada.' });
