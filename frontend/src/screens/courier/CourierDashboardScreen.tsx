@@ -175,7 +175,13 @@ export const CourierDashboardScreen = () => {
             <View style={styles.addressBlock}>
               <Text style={styles.addressLabel}>{isReturn ? 'ENTREGAR NA LOJA' : 'ENTREGAR AO CLIENTE'}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.addressText} numberOfLines={1}>{item.destino}</Text>
+                <Text style={styles.addressText} numberOfLines={1}>
+                  {typeof item.destino === 'string'
+                    ? item.destino
+                    : item.destino?.rua
+                      ? `${item.destino.rua}, ${item.destino.numero}`
+                      : 'Endereço não identificado'}
+                </Text>
                 {isAvailable && (
                   <Ionicons name="lock-closed" size={12} color="#ADB5BD" style={{ marginLeft: 5 }} />
                 )}
@@ -243,7 +249,7 @@ export const CourierDashboardScreen = () => {
           onPress={() => setActiveTab('available')}
         >
           <Text style={[styles.tabText, activeTab === 'available' && styles.tabTextActive]}>Disponíveis</Text>
-          {requests.length > 0 && <View style={styles.dot} />}
+          {!!requests.length && <View style={styles.dot} />}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -251,7 +257,7 @@ export const CourierDashboardScreen = () => {
           onPress={() => setActiveTab('active')}
         >
           <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>Em Andamento</Text>
-          {activeDeliveries.length > 0 && <View style={[styles.dot, { backgroundColor: '#3498db' }]} />}
+          {!!activeDeliveries.length && <View style={[styles.dot, { backgroundColor: '#3498db' }]} />}
         </TouchableOpacity>
       </View>
 
@@ -275,7 +281,7 @@ export const CourierDashboardScreen = () => {
             <View style={styles.infoAlert}>
               <Ionicons name="information-circle" size={18} color="#004085" />
               <Text style={styles.infoAlertText}>
-                Toque em um card para aceitar a entrega automaticamente.
+                Toque em um card para <Text style={{ fontWeight: 'bold' }}>aceitar a entrega</Text> automaticamente.
               </Text>
             </View>
 
