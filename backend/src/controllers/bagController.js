@@ -427,6 +427,12 @@ const bagController = {
 
       await t.commit();
 
+      const responseData = bag.toJSON();
+
+      delete responseData.token_retirada;
+      delete responseData.token_entrega;
+      delete responseData.token_devolucao;
+
       req.io.to(bag.lojista_id).emit('ENTREGA_ACEITA', {
         bagId: bag.id,
         entregadorId,
@@ -439,7 +445,7 @@ const bagController = {
         });
       }
 
-      return res.json({ message: 'Entrega aceita! Dirija-se à loja.', bag });
+      return res.json({ message: 'Entrega aceita! Dirija-se à loja.', bag: responseData });
     } catch (error) {
       if (t) await t.rollback();
       console.error("ERRO AO ACEITAR CORRIDA:", error);
