@@ -723,7 +723,7 @@ const bagController = {
           distancia: delivery.distancia_estimada || "Calculando...",
           clienteNome: delivery.cliente?.nome || 'Cliente',
           clienteTelefone: delivery.cliente?.telefone || 'Telefone não disponível',
-          statusOriginal: delivery.status
+          status: delivery.status
         };
       });
       return res.json(formatted);
